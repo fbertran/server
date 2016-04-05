@@ -20,5 +20,13 @@ dependencies = {
 
 build = {
   type    = "builtin",
-  modules = {},
+  modules = {
+    ["cosy.server.app"   ] = "src/cosy/server/app.lua",
+    ["cosy.server.models"] = "src/cosy/server/models.lua",
+  },
+  install = {
+    bin = {
+      ["cosy-server"] = "src/cosy/server/bin.lua",
+    },
+  },
 }
