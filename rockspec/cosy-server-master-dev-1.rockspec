@@ -1,13 +1,13 @@
-package = "cosy-server"
+package = "cosy-server-dev"
 version = "master-1"
 source  = {
   url = "git://github.com/saucisson/cosy-server"
 }
 
 description = {
-  summary    = "CosyVerif: server",
+  summary    = "CosyVerif: server (dev dependencies)",
   detailed   = [[
-    Server of the CosyVerif platform.
+    Development dependencies for cosy-server.
   ]],
   homepage   = "http://www.cosyverif.org/",
   license    = "MIT/X11",
@@ -16,6 +16,12 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
+  "argparse",
+  "ansicolors",
+  "busted",
+  "etlua",
+  "luafilesystem",
+  "luacov",
 }
 
 build = {
