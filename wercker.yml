@@ -1,0 +1,48 @@
+box: cosyverif/environment:lapis
+build:
+  steps:
+    - script:
+        name: "install module"
+        code: |
+          /app/bin/luarocks make rockspec/cosy-server-dev-master-1.rockspec
+          /app/bin/luarocks make rockspec/cosy-server-master-1.rockspec
+    - script:
+        name: "run checks"
+        code: |
+          /app/bin/luacheck --std=max+busted src/
+    - script:
+        name: "run tests"
+        code: |
+          /app/bin/busted --coverage --verbose src/
+    - script:
+        name: "run cosy-check"
+        code: |
+          /app/bin/cosy-check
+  after-steps:
+    - script:
+        name: "export to coveralls"
+        code: |
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          /app/bin/luacov-coveralls \
+            --repo-token "${COVERALLS_TOKEN}" \
+            --exclude share --exclude busted --exclude _spec \
+            --include cosy \
+            --root src/ \
+            --service-name "${branch}"
+
+deploy:
+  luarocks:
+    - script:
+        name: "upload to luarocks"
+        code: |
+          tag=$(git describe --tags --abbrev=0 || echo "0.0")
+          count=$(git rev-list --count HEAD ^"${tag}" || git rev-list --count HEAD)
+          cd rockspec || exit 1
+          rockspec=cosy-server-master-1.rockspec
+          name=cosy-server
+          sed -e "s/master-1/${tag}-${count}/" "${rockspec}" \
+            > "${name}"-"${tag}"-"${count}".rockspec
+          /app/bin/luarocks upload \
+            --api-key="${LUAROCKS_TOKEN}" \
+            "${name}"-"${tag}"-"${count}".rockspec
+          cd ..
