@@ -6,6 +6,7 @@ scgi_temp
 uwsgi_temp
 logs
 nginx.conf.compiled
+config.lua
 
 # Test stuff:
 coverage/
