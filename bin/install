@@ -1,0 +1,197 @@
+#! /usr/bin/env bash
+
+set -e
+set -o pipefail
+
+for i in "$@"
+do
+  case ${i} in
+    -p=*|--prefix=*)
+      cosy_prefix="${i#*=}"
+      cosy_prefix="${cosy_prefix%/}"
+    ;;
+    -t=*|--temp=*)
+      cosy_temp="${i#*=}"
+      cosy_temp="${cosy_temp%/}"
+    ;;
+    -m|--minimal)
+      minimal=true
+    ;;
+    -i|--in-ci)
+      in_ci=true
+    ;;
+    *)
+      echo "Usage: "
+      echo "  install [--prefix=PREFIX] [--temp=TEMP_DIR] [--minimal] [--in-ci]"
+      exit 1;
+    ;;
+  esac
+  shift
+done
+
+# Useful variables:
+currentwd=$(dirname "${BASH_SOURCE[0]}")
+currentwd=$(dirname "${currentwd}")
+cosy_temp=${cosy_temp:-$(mktemp -d 2>/dev/null || mktemp -d -t cosy)}
+cosy_log="${cosy_temp}/install.log"
+cosy_prefix=${cosy_prefix:-${cosy_temp}}
+parallel=$(nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null)
+
+export PATH="${PATH}:/sbin"
+
+# Test if sudo is required:
+{
+  if [ -d "${cosy_prefix}" ]; then
+    write_test=${cosy_prefix}
+  else
+    write_test=$(dirname "${cosy_prefix}")
+  fi
+  if [ ! -w "${write_test}" ]; then
+    export sudo="sudo"
+  fi
+}
+
+${sudo} mkdir -p "${cosy_temp}"
+${sudo} mkdir -p "${cosy_prefix}"
+
+if [ ! -z "${in_ci+x}" ]; then
+  export red=''
+  export green=''
+  export nc=''
+else
+  export red='\033[0;31m'
+  export green='\033[0;32m'
+  export nc='\033[0m'
+fi
+
+function error ()
+{
+  echo -e "${red}An error happened.${nc}"
+  echo -e "Please read log file: ${red}${cosy_log}${nc}."
+  if [ ! -z "${in_ci+x}" ]; then
+    cat "${cosy_log}"
+  fi
+  exit 1
+}
+trap error ERR
+
+# Detect if environment is already installed:
+if command -v git >> "${cosy_log}" 2>&1; then
+  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/"
+  if [ -f "${cosy_prefix}/share/cosy/environment.version" ]; then
+    oldversion=$(cat "${cosy_prefix}/share/cosy/environment.version")
+  fi
+  pushd "${currentwd}" >> "${cosy_log}" 2>&1
+  version=$(git rev-parse HEAD)
+  popd >> "${cosy_log}" 2>&1
+  if [ "${version}" = "${oldversion}" ]; then
+    echo -e "Environment is already installed at version ${green}${oldversion}${nc}."
+    return
+  fi
+fi
+
+{
+  echo -n "Initializing git submodules... "
+  (
+    cd "${currentwd}" || exit 1
+    git submodule init
+    git submodule update
+  ) >> "${cosy_log}" 2>&1 \
+  && echo -e "${green}success${nc}" \
+  || echo -e "${red}failure${nc}"
+}
+
+# Fix prefix to always be an absolute path:
+# shellcheck source=dependencies/sh-realpath/realpath.sh
+. "${cosy_prefix}/bin/realpath.sh"
+cosy_prefix=$(realpath "${cosy_prefix}")
+cosy_temp=$(realpath "${cosy_temp}")
+
+# Install web dependencies:
+(
+  cd "${currentwd}" || exit 1
+  web_dependencies=(
+    auth0-lock
+    bootbox
+    bootstrap3
+    d3
+    es6-promise
+    fetch-ie8
+    font-awesome
+    jquery
+    jquery-locationpicker
+    sjcl
+  )
+  echo "Installing web dependencies... "
+  for dependency in ${web_dependencies[*]}; do
+    echo -n "  Installing ${dependency}... "
+    npm install "${dependency}" >> "${cosy_log}" 2>&1 \
+      && echo -e "${green}success${nc}" \
+      || echo -e "${red}failure${nc}"
+  done
+  mv node_modules/fetch-ie8 node_modules/fetch
+  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www"
+  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/js"
+  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/css"
+  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/fonts"
+  for module in node_modules/*; do
+    name=$(basename "${module}")
+    ${sudo} cp "${module}/dist/"*.js    "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+    ${sudo} cp "${module}/dist/"*.map   "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+    ${sudo} cp "${module}/dist/js/"*    "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+    ${sudo} cp "${module}/dist/css/"*   "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
+    ${sudo} cp "${module}/dist/fonts/"* "${cosy_prefix}/share/cosy/www/fonts/" 2> /dev/null || true
+    ${sudo} cp "${module}/js/"*         "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+    ${sudo} cp "${module}/css/"*        "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
+    ${sudo} cp "${module}/fonts/"*      "${cosy_prefix}/share/cosy/www/fonts/" 2> /dev/null || true
+    ${sudo} cp "${module}/${name}"*.js  "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+    ${sudo} cp "${module}/${name}"*.map "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+    ${sudo} cp "${module}/${name}"*.css "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
+  done
+  # ${sudo} rm -rf node_modules
+  ${sudo} cp "dependencies/lua.vm.js/dist/lua.vm.js" "${cosy_prefix}/share/cosy/www/js/"
+)
+
+if [ ! -z "${minimal+x}" ]; then
+  echo -e "Skipping openresty and web dependencies as minimal install is set."
+  exit 0
+fi
+
+# Install openresty:
+echo -n "Installing openresty... "
+(
+  cd "${currentwd}/dependencies/openresty" || exit 1
+  make
+  for dir in openresty-*; do
+    if [ -d "${dir}" ]; then
+      cd "${dir}" || exit 1
+      ./configure --prefix="${cosy_prefix}" \
+                  --without-lua51 \
+                  --with-luajit="${cosy_prefix}" \
+                  --with-ipv6 \
+                  --with-pcre-jit \
+                  -j"${parallel}"
+      make -j"${parallel}"
+      ${sudo} make install
+      make clean
+      break
+    fi
+  done
+) >> "${cosy_log}" 2>&1 \
+  && echo -e "${green}success${nc}" \
+  || echo -e "${red}failure${nc}"
+
+# Install resty-jwt:
+echo -n "Installing openresty... "
+(
+  cd "${currentwd}/dependencies/nginx-jwt" || exit 1
+  ./build deps
+  cd ..
+  "${cosy_prefix}/bin/luarocks" make nginx-jwt-master-1.rockspec
+) >> "${cosy_log}" 2>&1 \
+  && echo -e "${green}success${nc}" \
+  || echo -e "${red}failure${nc}"
+
+if [ ! -z "${in_ci+x}" ]; then
+  cat "${cosy_log}"
+fi

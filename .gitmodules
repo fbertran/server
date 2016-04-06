@@ -1,3 +1,12 @@
 [submodule "environment"]
 	path = environment
 	url = https://github.com/CosyVerif/environment.git
+[submodule "dependencies/lua.vm.js"]
+	path = dependencies/lua.vm.js
+	url = https://github.com/daurnimator/lua.vm.js.git
+[submodule "dependencies/nginx-jwt"]
+	path = dependencies/nginx-jwt
+	url = https://github.com/auth0/nginx-jwt
+[submodule "dependencies/ngx_openresty"]
+	path = dependencies/ngx_openresty
+	url = https://github.com/openresty/ngx_openresty
