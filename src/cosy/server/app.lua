@@ -28,6 +28,9 @@ end
 app:get ("/", function ()
   return {
     json = {
+      auth = {
+        client_id = Config.auth.client_id,
+      },
       captcha = {
         public_key = Config.captcha.public_key,
       },
