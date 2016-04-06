@@ -27,29 +27,72 @@
     </div>
 
     <script type="text/lua"
-            lang="Lua">
-      local origin      = _G.js.global.location.origin
-      local loaded, err = pcall (require, origin .. "/lua/cosy-full")
-      if not loaded then
-        print ("Cosy bundle cannot be loaded:", err)
+            lang="lua">
+      -- This script puts up a working Lua environment,
+      -- by defining a "require" usable with asynchronous JavaScript.
+      local js      = _G.js
+      local window  = _G.js.global
+
+      function _G.require (name)
+        local loaded = package.loaded [name]
+        if loaded then
+          return loaded
+        end
+        local errors = {}
+        for _, searcher in ipairs (package.searchers) do
+          local factory, path = searcher (name)
+          if type (factory) == "function" then
+            local result = factory (name)
+            package.loaded [name] = result
+            return result
+          else
+            errors [#errors+1] = path
+          end
+        end
+        errors = table.concat (errors, "\n")
+        error (errors)
       end
-      local coromake    = loaded
-                      and require "coroutine.make"
-                       or require (origin .. "/lua/coroutine.make")
-      _G.coroutine      = coromake ()
+
+      function _G.request (t, opt)
+        if type (t) == "string" then
+          opt     = opt or {}
+          opt.url = t
+          t       = opt
+        end
+        local co      = coroutine.running ()
+        local promise = window:fetch (t.url, t)
+        promise ["then"] (promise, function (_, response)
+          coroutine.resume (co, response)
+        end)
+        local response = coroutine.yield ()
+        if response.ok then
+          promise = response:text ()
+          promise ["then"] (promise, function (_, value)
+            coroutine.resume (co, value)
+          end)
+          return coroutine.yield (), response.status
+        else
+          return nil, response.status
+        end
+      end
+
+      table.insert (package.searchers, 2, function (name)
+        local url = window.location.origin .. "/lua/" .. name
+        local result, err = _G.request (url)
+        if not result then
+          error (err)
+        end
+        return load (result, url)
+      end)
+    </script>
+
+    <script type="text/lua"
+            lang="lua">
+      local js      = _G.js
+      local window  = js.global
       local co = coroutine.create (function ()
         xpcall (function ()
-          local Loader    = loaded
-                        and require "cosy.loader.js"
-                         or require (origin .. "/lua/cosy.loader.js")
-          local loader    = Loader {}
-          local Webclient = loader.load "cosy.webclient"
-          loader.scheduler.addthread (function ()
-            Webclient.init ()
-            loader.load "cosy.webclient.headbar"   ()
-            loader.load "cosy.webclient.dashboard" ()
-          end)
-          loader.scheduler.loop ()
+          local Coromake = require "coroutine.make"
         end, function (err)
           print ("error:", err)
           print (debug.traceback ())
@@ -61,6 +104,14 @@
     <script src="/js/jquery.min.js"
             type="text/javascript">
     </script>
+    <script src="/js/fetch.js"
+            type="text/javascript">
+    </script>
+    <script src="http://cdn.auth0.com/js/lock-9.min.js"
+            type="text/javascript"
+            async defer>
+    </script>
+
     <script src="/js/bootstrap.min.js"
             type="text/javascript"
             async defer>
