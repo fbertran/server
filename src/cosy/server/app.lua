@@ -28,7 +28,11 @@ end
 app:get ("/", function ()
   return {
     json = {
+      server = {
+        hostname = Config.hostname,
+      },
       auth = {
+        domain    = Config.auth.domain,
         client_id = Config.auth.client_id,
       },
       captcha = {
