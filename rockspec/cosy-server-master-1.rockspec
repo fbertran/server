@@ -21,8 +21,11 @@ dependencies = {
 build = {
   type    = "builtin",
   modules = {
-    ["cosy.server.app"   ] = "src/cosy/server/app.lua",
-    ["cosy.server.models"] = "src/cosy/server/models.lua",
+    ["cosy.server.app"            ] = "src/cosy/server/app.lua",
+    ["cosy.server.models"         ] = "src/cosy/server/models.lua",
+    ["cosy.webclient"             ] = "src/cosy/webclient/init.lua",
+    ["cosy.webclient.headbar"     ] = "src/cosy/webclient/headbar/init.lua",
+    ["cosy.webclient.headbar.i18n"] = "src/cosy/webclient/headbar/i18n.lua",
   },
   install = {
     bin = {

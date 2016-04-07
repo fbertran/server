@@ -76,6 +76,25 @@
         end
       end
 
+      function _G.tojs (t)
+        if type (t) ~= "table" then
+          return t
+        elseif #t ~= 0 then
+          local result = js.new (window.Array)
+          for i = 1, #t do
+            result [result.length] = _G.tojs (t [i])
+          end
+          return result
+        else
+          local result = js.new (window.Object)
+          for k, v in pairs (t) do
+            assert (type (k) == "string")
+            result [k] = _G.tojs (v)
+          end
+          return result
+        end
+      end
+
       table.insert (package.searchers, 2, function (name)
         local url = window.location.origin .. "/lua/" .. name
         local result, err = _G.request (url)
@@ -92,7 +111,7 @@
       local window  = js.global
       local co = coroutine.create (function ()
         xpcall (function ()
-          local Coromake = require "coroutine.make"
+          require "cosy.webclient.headbar" ()
         end, function (err)
           print ("error:", err)
           print (debug.traceback ())
