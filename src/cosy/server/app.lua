@@ -1,20 +1,18 @@
+local Posix      = require "posix.stdlib"
 local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local app        = Lapis.Application ()
 
-require "cosy.server.app.user" (app)
+Posix.setenv ("JWT_SECRET", Config.auth0.client_secret)
+
+local Auth0 = require "cosy.server.app.auth0"
+local _     = require "cosy.server.app.user" (app)
 
 app.layout = false
 
 app:before_filter (function (self)
-  if self.req.headers ["Authorization"] then
-    local jwt = require "nginx-jwt"
-    jwt.auth ()
-    self.user = {
-      id = self.res.headers ["X-Auth-UserId"]
-    }
-  end
+  Auth0 (self)
 end)
 
 app.handle_404 = function ()
@@ -39,8 +37,8 @@ app:match ("/", respond_to {
           hostname = Config.hostname,
         },
         auth = {
-          domain    = Config.auth.domain,
-          client_id = Config.auth.client_id,
+          domain    = Config.auth0.domain,
+          client_id = Config.auth0.client_id,
         },
       }
     }

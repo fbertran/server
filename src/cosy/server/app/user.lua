@@ -7,7 +7,6 @@ return function (app)
     GET = function ()
       local users = {}
       for i, user in ipairs (Model.user:select ()) do
-        print (i, user.id)
         users [i] = {
           id = user.id,
         }
@@ -23,12 +22,31 @@ return function (app)
           status = 401,
         }
       end
+      local id   = self.user.sub
+      local user = Model.user:find (id)
+      if user then
+        return {
+          status = 409,
+        }
+      end
       Model.user:create {
-        id = self.user.id,
+        id = id,
       }
       return {
         status = 201,
       }
+    end,
+    OPTIONS = function ()
+      return { status = 200 }
+    end,
+    DELETE = function ()
+      return { status = 405 }
+    end,
+    PATCH = function ()
+      return { status = 405 }
+    end,
+    PUT = function ()
+      return { status = 405 }
     end,
   })
 

@@ -1,6 +1,3 @@
--- local autoload = require("lapis.util").autoload
--- return autoload("models")
-
 local Model  = require "lapis.db.model".Model
 local result = {}
 
