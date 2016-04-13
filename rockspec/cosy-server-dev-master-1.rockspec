@@ -20,6 +20,7 @@ dependencies = {
   "ansicolors",
   "busted",
   "etlua",
+  "jwt",
   "luafilesystem",
   "luacov",
 }
