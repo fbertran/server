@@ -101,6 +101,8 @@ fi
   || echo -e "${red}failure${nc}"
 }
 
+. environment/bin/install "$@"
+
 # Fix prefix to always be an absolute path:
 # shellcheck source=dependencies/sh-realpath/realpath.sh
 . "${cosy_prefix}/bin/realpath.sh"
@@ -170,6 +172,7 @@ echo -n "Installing openresty... "
                   --with-luajit="${cosy_prefix}" \
                   --with-ipv6 \
                   --with-pcre-jit \
+                  --with-postgresql \
                   -j"${parallel}"
       make -j"${parallel}"
       ${sudo} make install
@@ -182,7 +185,7 @@ echo -n "Installing openresty... "
   || echo -e "${red}failure${nc}"
 
 # Install resty-jwt:
-echo -n "Installing openresty... "
+echo -n "Installing nginx-jwt... "
 (
   cd "${currentwd}/dependencies/nginx-jwt" || exit 1
   ./build deps
