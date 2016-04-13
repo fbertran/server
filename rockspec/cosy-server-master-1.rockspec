@@ -17,6 +17,7 @@ description = {
 dependencies = {
   "lua >= 5.1",
   "lapis",
+  "luaposix",
   "nginx-jwt",
 }
 
@@ -24,6 +25,7 @@ build = {
   type    = "builtin",
   modules = {
     ["cosy.server.app"            ] = "src/cosy/server/app.lua",
+    ["cosy.server.app.auth0"      ] = "src/cosy/server/app/auth0.lua",
     ["cosy.server.app.user"       ] = "src/cosy/server/app/user.lua",
     ["cosy.server.model"          ] = "src/cosy/server/model.lua",
     ["cosy.webclient"             ] = "src/cosy/webclient/init.lua",
