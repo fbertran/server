@@ -26,7 +26,6 @@ do
       exit 1;
     ;;
   esac
-  shift
 done
 
 # Useful variables:
