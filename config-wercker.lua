@@ -1,12 +1,11 @@
 local Config = require "lapis.config"
 
-print (Config._name)
-print ((os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
+print ("host", (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
         .. ":"
         .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"))
-print (os.getenv "POSTGRES_ENV_POSTGRES_USERNAME")
-print (os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD")
-print (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE")
+print ("user", os.getenv "POSTGRES_ENV_POSTGRES_USER")
+print ("password", os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD")
+print ("database", os.getenv "POSTGRES_ENV_POSTGRES_DATABASE")
 
 local prefix
 do
@@ -29,7 +28,7 @@ Config ("test", {
     host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
             .. ":"
             .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
   },
