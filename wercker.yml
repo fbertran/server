@@ -19,10 +19,6 @@ build:
     - script:
         name: "configure"
         code: |
-          createdb --host=$POSTGRES_PORT_5432_TCP_ADDR \
-                   --port=$POSTGRES_PORT_5432_TCP_PORT \
-                   --username=$POSTGRES_ENV_POSTGRES_USER \
-                   $POSTGRES_ENV_POSTGRES_DATABASE
           cp config-wercker.lua config.lua
           /app/bin/lapis migrate test
     - script:
