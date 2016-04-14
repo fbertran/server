@@ -37,8 +37,7 @@ build = {
   },
   install = {
     bin = {
-      ["cosy-server"] = "src/cosy/server/run.lua",
-      ["cosy-test"  ] = "src/cosy/server/test.lua",
+      ["cosy-server"] = "src/cosy/server/bin.lua",
       ["cosy-check" ] = "src/cosy/check/bin.lua",
     },
   },
