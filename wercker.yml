@@ -2,6 +2,7 @@ box: cosyverif/cosy-server:dev
 services:
    - id: postgres
      env:
+       POSTGRES_USER: cosyverif
        POSTGRES_PASSWORD:
        POSTGRES_DATABASE: cosyverif-test
 build:
@@ -19,9 +20,9 @@ build:
         name: "configure"
         code: |
           env
-          echo $POSTGRES_ENV_POSTGRES_PASSWORD | \
           createdb --host=$POSTGRES_PORT_5432_TCP_ADDR \
                    --port=$POSTGRES_PORT_5432_TCP_PORT \
+                   --username=$POSTGRES_ENV_POSTGRES_USERNAME \
                    $POSTGRES_ENV_POSTGRES_DATABASE
           cp config-wercker.lua config.lua
           /app/bin/lapis migrate test
