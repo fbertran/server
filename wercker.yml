@@ -6,12 +6,16 @@ services:
 build:
   steps:
     - script:
+        name: "install environment"
+        code: |
+          ./bin/install --prefix=/app
+    - script:
         name: "install module"
         code: |
           /app/bin/luarocks make rockspec/cosy-server-dev-master-1.rockspec
           /app/bin/luarocks make rockspec/cosy-server-master-1.rockspec
     - script:
-        name: "install configuration"
+        name: "configure"
         code: |
           cp config-wercker.lua config.lua
           createdb --host ${POSTGRES_PORT_5432_TCP_ADDR} \
@@ -19,7 +23,7 @@ build:
                    cosyverif-test
           /app/bin/lapis migrate test
     - script:
-        name: "run cosy-check"
+        name: "check and test"
         code: |
           /app/bin/cosy-check
   after-steps:
