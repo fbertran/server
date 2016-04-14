@@ -1,6 +1,8 @@
 local config = require "lapis.config"
 
-print (os.getenv "POSTGRES_PORT")
+print ((os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
+        .. ":"
+        .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"))
 print (os.getenv "POSTGRES_ENV_POSTGRES_USERNAME")
 print (os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD")
 print (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE")
@@ -23,7 +25,9 @@ config ("test", {
   port     = 8080,
   postgres = {
     backend  = "pgmoon",
-    host     = os.getenv "POSTGRES_PORT",
+    host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
+            .. ":"
+            .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
     user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
@@ -36,7 +40,9 @@ config ("development", {
   port     = 8080,
   postgres = {
     backend  = "pgmoon",
-    host     = os.getenv "POSTGRES_PORT",
+    host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
+            .. ":"
+            .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
     user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
