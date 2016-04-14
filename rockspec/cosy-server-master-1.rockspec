@@ -17,7 +17,6 @@ description = {
 dependencies = {
   "lua >= 5.1",
   "lapis",
-  "luaposix",
   "nginx-jwt",
 }
 
