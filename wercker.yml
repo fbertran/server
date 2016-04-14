@@ -20,6 +20,7 @@ build:
         name: "configure"
         code: |
           env
+          set -x
           createdb --host=$POSTGRES_PORT_5432_TCP_ADDR \
                    --port=$POSTGRES_PORT_5432_TCP_PORT \
                    --username=$POSTGRES_ENV_POSTGRES_USERNAME \
