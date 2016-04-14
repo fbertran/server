@@ -19,6 +19,10 @@ build:
     - script:
         name: "configure"
         code: |
+          echo $POSTGRES_USERNAME
+          echo $POSTGRES_PASSWORD
+          echo $POSTGRES_DATABASE
+          env
           cp config-wercker.lua config.lua
           /app/bin/lapis migrate test
     - script:
