@@ -2,6 +2,7 @@ local Cjson  = require "cjson"
 Cjson.encode_empty_table = function () end -- Fix for Jwt
 local Jwt    = require "jwt"
 local Config = require "lapis.config".get ()
+local Util   = require "lapis.util"
 
 -- local Basexx = require "basexx"
 -- local function tobase64 (secret)
@@ -18,7 +19,6 @@ local Config = require "lapis.config".get ()
 return function (app)
 
   app:before_filter (function (self)
-
     local header = self.req.headers ["Authorization"]
     if not header then
       return nil
@@ -37,8 +37,7 @@ return function (app)
       return nil, "invalid token"
     end
     self.token = jwt
-    print ("JWT: " .. Cjson.encode (jwt))
-
+    print ("JWT: " .. Util.to_json (jwt))
   end)
 
 end

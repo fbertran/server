@@ -1,13 +1,26 @@
-local Posix      = require "posix.stdlib"
 local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
+local Http       = require "lapis.nginx.http"
+local Util       = require "lapis.util"
+local Ltn12      = require "ltn12"
 local app        = Lapis.Application ()
-
-Posix.setenv ("JWT_SECRET", Config.auth0.client_secret)
 
 require "cosy.server.app.auth0" (app)
 require "cosy.server.app.user" (app)
+
+function app.auth0 (url)
+  local result = {}
+  local _, status = Http.request {
+    url     = Config.auth0.api_url .. url,
+    sink    = Ltn12.sink.table (result),
+    headers = {
+      Authorization = "Bearer " .. Config.auth0.api_token,
+    },
+  }
+  return Util.from_json (table.concat (result)), status
+end
+
 
 app.layout = false
 

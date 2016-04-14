@@ -1,5 +1,6 @@
 local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
+local Util       = require "lapis.util"
 
 return function (app)
 
@@ -52,18 +53,23 @@ return function (app)
 
   app:match ("/users/:user(/)", respond_to {
     GET = function (self)
-      local id   = self.params.user
-      print ("looking for", id)
+      local id   = Util.unescape (self.params.user)
       local user = Model.users:find (id)
       if not user then
         return {
           status = 404,
         }
       end
+      local info, status = app.auth0 ("/users/" .. Util.escape (id))
+      if status ~= 200 then
+        return {
+          status = 500,
+        }
+      end
       local projects = {}
-      for i, project in ipairs (Model.project:find {
+      for i, project in ipairs (Model.projects:find {
         user = id,
-      }) do
+      } or {}) do
         projects [i] = {
           id = project.id,
         }
@@ -72,18 +78,23 @@ return function (app)
         status = 200,
         json   = {
           id       = user.id,
+          name     = info.name,
+          nickname = info.nickname,
+          company  = info.company,
+          location = info.location,
+          avatar   = info.picture,
           projects = projects,
         },
       }
     end,
     PATCH = function (self)
-      local id = self.params.user
+      local id = Util.unescape (self.params.user)
       if not self.token then
         return {
           status = 401,
         }
       end
-      if self.token.id ~= id then
+      if self.token.sub ~= id then
         return {
           status = 403,
         }
@@ -100,13 +111,13 @@ return function (app)
       }
     end,
     DELETE = function (self)
-      local id = self.params.user
+      local id = Util.unescape (self.params.user)
       if not self.token then
         return {
           status = 401,
         }
       end
-      if self.token.id ~= id then
+      if self.token.sub ~= id then
         return {
           status = 403,
         }
@@ -121,6 +132,15 @@ return function (app)
       return {
         status = 204,
       }
+    end,
+    OPTIONS = function ()
+      return { status = 200 }
+    end,
+    PUT = function ()
+      return { status = 405 }
+    end,
+    POST = function ()
+      return { status = 405 }
     end,
   })
 
