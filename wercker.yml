@@ -1,4 +1,4 @@
-box: cosyverif/$WERCKER_GIT_REPOSITORY:$WERCKER_GIT_BRANCH
+box: cosyverif/cosy-server:dev
 services:
    - id: postgres
      env:
