@@ -100,13 +100,81 @@ fi
   || echo -e "${red}failure${nc}"
 }
 
-. environment/bin/install "$@"
-
 # Fix prefix to always be an absolute path:
-# shellcheck source=environment/dependencies/sh-realpath/realpath.sh
+# shellcheck source=dependencies/sh-realpath/realpath.sh
 . "${cosy_prefix}/bin/realpath.sh"
 cosy_prefix=$(realpath "${cosy_prefix}")
 cosy_temp=$(realpath "${cosy_temp}")
+
+# Install dependencies:
+{
+  echo -n "Installing development packages... "
+  if [ -z "${apt_available}" ] && [ -z "${brew_available}" ]; then
+    echo -e "${green}skipped${nc}"
+  else
+    case "$(uname -s)" in
+      "Linux")
+        sudo apt-get update  --yes
+        sudo apt-get install --yes make clang gcc diffutils patch curl zip unzip \
+                                   perl build-essential wget python python-pip \
+                                   libc6-dev libssl-dev \
+                                   libreadline-dev libncurses5-dev libpcre3-dev \
+                                   redis-server imagemagick npm caca-utils libc-bin \
+                                   postgresql
+        ;;
+      "Darwin")
+        HOMEBREW_PREFIX=$(brew config | grep "HOMEBREW_PREFIX" | tr -d ' \t' | cut -d ":" -f 2)
+        export CPATH="${HOMEBREW_PREFIX}/include:${CPATH}"
+        export LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LIBRARY_PATH}"
+        export LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LD_LIBRARY_PATH}"
+        export DYLD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
+        brew update
+        brew install openssl pcre python redis imagemagick wget npm libcaca postgresql
+        brew link --force openssl
+        ;;
+      *)
+        echo -e "Error: unknown OS: ${red}$(uname -s)${nc}."
+        exit 1
+        ;;
+    esac >> "${cosy_log}" 2>&1 \
+         && echo -e "${green}success${nc}" \
+         || echo -e "${red}failure${nc}"
+  fi
+  export CPATH="${cosy_prefix}/include:${CPATH}"
+  export LIBRARY_PATH="${cosy_prefix}/lib:${LIBRARY_PATH}"
+  export LD_LIBRARY_PATH="${cosy_prefix}/lib:${LD_LIBRARY_PATH}"
+}
+
+# Install lua, luarocks and packages:
+{
+  export CC=clang
+  echo -n "Installing luajit and luarocks... "
+  if pip list | grep "hererocks" >> "${cosy_log}" 2>&1; then
+    hererocks="hererocks"
+  else
+    ${sudo} pip install --root="${cosy_prefix}" hererocks
+    path=$(find "${cosy_prefix}" -name "hererocks.py")
+    export PYTHONPATH
+    PYTHONPATH=$(dirname "${path}"):"${PYTHONPATH}"
+    hererocks="${cosy_prefix}/usr/local/bin/hererocks"
+  fi >> "${cosy_log}" 2>&1
+  ${sudo} "${hererocks}" "${cosy_prefix}" -r^ --luajit=2.1 \
+    >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
+  # shellcheck disable=SC2086
+  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/*-dev-master-1.rockspec \
+    >> "${cosy_log}" 2>&1 \
+   && echo -e "${green}success${nc}" \
+   || echo -e "${red}failure${nc}"
+  done
+  echo -n "Installing sh-realpath... "
+  ( ${sudo} cp "${currentwd}/dependencies/sh-realpath/realpath.sh" "${cosy_prefix}/bin/"
+    ${sudo} chmod a+x "${cosy_prefix}/bin/realpath.sh"
+  ) >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
+}
 
 # Install web dependencies:
 (
@@ -149,7 +217,7 @@ cosy_temp=$(realpath "${cosy_temp}")
     ${sudo} cp "${module}/${name}"*.map "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
     ${sudo} cp "${module}/${name}"*.css "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
   done
-  # ${sudo} rm -rf node_modules
+  ${sudo} rm -rf node_modules
   ${sudo} cp "dependencies/lua.vm.js/dist/lua.vm.js" "${cosy_prefix}/share/cosy/www/js/"
 )
 
@@ -193,6 +261,12 @@ echo -n "Installing nginx-jwt... "
 ) >> "${cosy_log}" 2>&1 \
   && echo -e "${green}success${nc}" \
   || echo -e "${red}failure${nc}"
+
+(
+  cd "${currentwd}" || exit 1
+  git rev-parse HEAD > "${cosy_temp}/environment.version"
+  ${sudo} mv "${cosy_temp}/environment.version" "${cosy_prefix}/share/cosy/environment.version"
+)
 
 if [ ! -z "${in_ci+x}" ]; then
   cat "${cosy_log}"

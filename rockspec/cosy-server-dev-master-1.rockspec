@@ -21,8 +21,11 @@ dependencies = {
   "busted",
   "etlua",
   "jwt",
-  "luafilesystem",
+  "luacheck",
   "luacov",
+  "luacov-coveralls",
+  "luafilesystem",
+  "luasec",
 }
 
 build = {
