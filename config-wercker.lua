@@ -1,5 +1,6 @@
-local config = require "lapis.config"
+local Config = require "lapis.config"
 
+print (Config._name)
 print ((os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
         .. ":"
         .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"))
@@ -20,7 +21,7 @@ do
   prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
 end
 
-config ("test", {
+Config ("test", {
   hostname = "cosyverif.dev",
   port     = 8080,
   postgres = {
@@ -35,7 +36,7 @@ config ("test", {
   measure_performance = true,
 })
 
-config ("development", {
+Config ("development", {
   hostname = "cosyverif.dev",
   port     = 8080,
   postgres = {
@@ -49,11 +50,20 @@ config ("development", {
   },
 })
 
-config ("production", {
+Config ("production", {
   hostname    = "cosyverif.org",
   port        = 80,
   num_workers = 4,
   code_cache  = "on",
+  postgres = {
+    backend  = "pgmoon",
+    host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
+            .. ":"
+            .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
+    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
+    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
+  },
 })
 
 local common = {
@@ -68,4 +78,4 @@ local common = {
 
 common.www_prefix  = prefix .. "/share/cosy/www"
 
-config ({ "test", "development", "production" }, common)
+Config ({ "test", "development", "production" }, common)
