@@ -19,8 +19,9 @@ config ("test", {
   postgres = {
     backend  = "pgmoon",
     host     = os.getenv "POSTGRES_PORT",
+    user     = os.getenv "POSTGRES_USER",
     password = os.getenv "POSTGRES_PASSWORD",
-    database = "cosyverif-test"
+    database = os.getenv "POSTGRES_DB",
   },
   measure_performance = true,
 })
@@ -31,8 +32,9 @@ config ("development", {
   postgres = {
     backend  = "pgmoon",
     host     = os.getenv "POSTGRES_PORT",
+    user     = os.getenv "POSTGRES_USER",
     password = os.getenv "POSTGRES_PASSWORD",
-    database = "cosyverif-dev"
+    database = os.getenv "POSTGRES_DB",
   },
 })
 
