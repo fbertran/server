@@ -25,9 +25,7 @@ Config ("test", {
   port     = 8080,
   postgres = {
     backend  = "pgmoon",
-    host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
-            .. ":"
-            .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
+    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
     user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
@@ -40,9 +38,7 @@ Config ("development", {
   port     = 8080,
   postgres = {
     backend  = "pgmoon",
-    host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
-            .. ":"
-            .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
+    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
     user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
@@ -56,9 +52,7 @@ Config ("production", {
   code_cache  = "on",
   postgres = {
     backend  = "pgmoon",
-    host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
-            .. ":"
-            .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
+    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
     user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
