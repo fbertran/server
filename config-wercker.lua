@@ -52,6 +52,9 @@ Config ("production", {
   },
 })
 
+print ("AUTH_DOMAIN", os.getenv "AUTH_DOMAIN")
+print ("AUTH_CLIENT", os.getenv "AUTH_CLIENT")
+
 local common = {
   auth0 = {
     domain        = os.getenv "AUTH_DOMAIN",
