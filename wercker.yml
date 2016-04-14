@@ -2,7 +2,6 @@ box: cosyverif/cosy-server:dev
 services:
    - id: postgres
      env:
-       POSTGRES_USERNAME: cosyverif
        POSTGRES_PASSWORD:
        POSTGRES_DATABASE: cosyverif-test
 build:
