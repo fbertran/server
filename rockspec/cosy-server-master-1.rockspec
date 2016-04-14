@@ -17,9 +17,9 @@ description = {
 dependencies = {
   "lua >= 5.1",
   "i18n",
+  "jwt",
   "lapis",
   "layeredata",
-  "nginx-jwt",
 }
 
 build = {

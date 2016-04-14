@@ -7,7 +7,7 @@ local Ltn12      = require "ltn12"
 local app        = Lapis.Application ()
 
 require "cosy.server.app.auth0" (app)
-require "cosy.server.app.user" (app)
+require "cosy.server.app.user"  (app)
 
 function app.auth0 (url)
   local result = {}

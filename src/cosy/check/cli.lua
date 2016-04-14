@@ -86,7 +86,7 @@ end
 -- ======
 do
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --verbose src/
+    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --coverage --verbose src/
   ]], {
     prefix = prefix,
   })) and status

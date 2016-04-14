@@ -185,12 +185,22 @@ cosy_temp=$(realpath "${cosy_temp}")
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"
-  echo -n "Installing lua rocks... "
+  echo -n "Installing development rocks... "
   # shellcheck disable=SC2086
-  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/*-dev-master-1.rockspec \
+  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-server-dev-master-1.rockspec \
     >> "${cosy_log}" 2>&1 \
    && echo -e "${green}success${nc}" \
    || echo -e "${red}failure${nc}"
+  echo -n "Installing runtime rocks... "
+  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-server-master-1.rockspec \
+    >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
+  echo -n "Installing lua-cjson-ol rock... "
+  ${sudo} "${cosy_prefix}/bin/luarocks" install lua-cjson-ol \
+    >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
 }
 
 # Install web dependencies:
@@ -263,17 +273,6 @@ echo -n "Installing openresty... "
       break
     fi
   done
-) >> "${cosy_log}" 2>&1 \
-  && echo -e "${green}success${nc}" \
-  || echo -e "${red}failure${nc}"
-
-# Install resty-jwt:
-echo -n "Installing nginx-jwt... "
-(
-  cd "${currentwd}/dependencies/nginx-jwt" || exit 1
-  ./build deps
-  cd ..
-  "${cosy_prefix}/bin/luarocks" make nginx-jwt-master-1.rockspec
 ) >> "${cosy_log}" 2>&1 \
   && echo -e "${green}success${nc}" \
   || echo -e "${red}failure${nc}"
