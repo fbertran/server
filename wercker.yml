@@ -28,6 +28,7 @@ build:
     - script:
         name: "debug"
         code: |
+          env
           /app/bin/cosy-server &
           sleep 1
           curl -v http://localhost:8080/
