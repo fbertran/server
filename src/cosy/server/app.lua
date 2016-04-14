@@ -6,14 +6,10 @@ local app        = Lapis.Application ()
 
 Posix.setenv ("JWT_SECRET", Config.auth0.client_secret)
 
-local Auth0 = require "cosy.server.app.auth0"
-local _     = require "cosy.server.app.user" (app)
+require "cosy.server.app.auth0" (app)
+require "cosy.server.app.user" (app)
 
 app.layout = false
-
-app:before_filter (function (self)
-  Auth0 (self)
-end)
 
 app.handle_404 = function ()
   return {

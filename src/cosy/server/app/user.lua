@@ -6,7 +6,7 @@ return function (app)
   app:match ("/users(/)", respond_to {
     GET = function ()
       local users = {}
-      for i, user in ipairs (Model.user:select ()) do
+      for i, user in ipairs (Model.users:select ()) do
         users [i] = {
           id = user.id,
         }
@@ -17,19 +17,19 @@ return function (app)
       }
     end,
     POST = function (self)
-      if not self.user then
+      if not self.token then
         return {
           status = 401,
         }
       end
-      local id   = self.user.sub
-      local user = Model.user:find (id)
+      local id   = self.token.sub
+      local user = Model.users:find (id)
       if user then
         return {
           status = 409,
         }
       end
-      Model.user:create {
+      Model.users:create {
         id = id,
       }
       return {
@@ -54,7 +54,7 @@ return function (app)
     GET = function (self)
       local id   = self.params.user
       print ("looking for", id)
-      local user = Model.user:find (id)
+      local user = Model.users:find (id)
       if not user then
         return {
           status = 404,
@@ -78,17 +78,17 @@ return function (app)
     end,
     PATCH = function (self)
       local id = self.params.user
-      if not self.user then
+      if not self.token then
         return {
           status = 401,
         }
       end
-      if self.user.id ~= id then
+      if self.token.id ~= id then
         return {
           status = 403,
         }
       end
-      local user = Model.user:find (id)
+      local user = Model.users:find (id)
       if not user then
         return {
           status = 404,
@@ -101,17 +101,17 @@ return function (app)
     end,
     DELETE = function (self)
       local id = self.params.user
-      if not self.user then
+      if not self.token then
         return {
           status = 401,
         }
       end
-      if self.user.id ~= id then
+      if self.token.id ~= id then
         return {
           status = 403,
         }
       end
-      local user = Model.user:find (id)
+      local user = Model.users:find (id)
       if not user then
         return {
           status = 404,

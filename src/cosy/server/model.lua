@@ -1,7 +1,11 @@
 local Model  = require "lapis.db.model".Model
 local result = {}
 
-result.user = Model:extend ("users", {
+result.identities = Model:extend ("identities", {
+  ...
+})
+
+result.users = Model:extend ("users", {
   primary_key = "id",
   relations   = {
     { "projects",
@@ -11,15 +15,15 @@ result.user = Model:extend ("users", {
   },
 })
 
-result.project = Model:extend ("projects", {
+result.projects = Model:extend ("projects", {
   primary_key = "id",
   relations   = {
     { "user", belongs_to = "users" },
   },
 })
 
-result.resource = Model:extend "resources"
+result.resources = Model:extend "resources"
 
-result.tag = Model:extend "tags"
+result.tags = Model:extend "tags"
 
 return result
