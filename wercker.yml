@@ -4,7 +4,7 @@ services:
      env:
        POSTGRES_USER: cosyverif
        POSTGRES_PASSWORD:
-       POSTGRES_DATABASE: cosyverif-test
+       POSTGRES_DATABASE: cosyverif
 build:
   steps:
     - script:
@@ -29,6 +29,12 @@ build:
         name: "check and test"
         code: |
           /app/bin/cosy-check
+    - script:
+        name: "debug"
+        code: |
+          /app/bin/cosy-server &
+          sleep 1
+          curl -v http://localhost:8080/
   after-steps:
     - script:
         name: "export to coveralls"
