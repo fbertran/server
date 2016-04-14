@@ -44,7 +44,7 @@ Config ("development", {
     host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
             .. ":"
             .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
   },
@@ -60,7 +60,7 @@ Config ("production", {
     host     = (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
             .. ":"
             .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"),
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
     password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
     database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
   },
