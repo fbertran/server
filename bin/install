@@ -52,6 +52,7 @@ export PATH="${PATH}:/sbin"
 
 ${sudo} mkdir -p "${cosy_temp}"
 ${sudo} mkdir -p "${cosy_prefix}"
+${sudo} mkdir -p "${cosy_prefix}/bin"
 
 if [ ! -z "${in_ci+x}" ]; then
   export red=''
@@ -74,20 +75,32 @@ function error ()
 }
 trap error ERR
 
-# Detect if environment is already installed:
+# Detect if environment needs rebuild:
 if command -v git >> "${cosy_log}" 2>&1; then
   ${sudo} mkdir -p "${cosy_prefix}/share/cosy/"
   if [ -f "${cosy_prefix}/share/cosy/environment.version" ]; then
-    oldversion=$(cat "${cosy_prefix}/share/cosy/environment.version")
-  fi
-  pushd "${currentwd}" >> "${cosy_log}" 2>&1
-  version=$(git rev-parse HEAD)
-  popd >> "${cosy_log}" 2>&1
-  if [ "${version}" = "${oldversion}" ]; then
-    echo -e "Environment is already installed at version ${green}${oldversion}${nc}."
-    return
+    version=$(cat "${cosy_prefix}/share/cosy/environment.version")
+    if git diff --name-only "${version}" | grep --quiet "bin/install" ; then
+      echo -e "Environment is installed at version ${green}${version}${nc} and needs rebuild."
+    else
+      echo -e "Environment is already installed at version ${green}${version}${nc}."
+      exit 0
+    fi
+  else
+    echo -e "Environment is ${green}not installed${nc}."
   fi
 fi
+
+{ # Detect if apt-get or brew is available:
+  if command -v apt-get; then
+    if sudo apt-get update; then
+      apt_available=true
+    fi
+  fi >> "${cosy_log}" 2>&1
+  if command -v brew; then
+    brew_available=true
+  fi >> "${cosy_log}" 2>&1
+}
 
 {
   echo -n "Initializing git submodules... "
@@ -98,6 +111,16 @@ fi
   ) >> "${cosy_log}" 2>&1 \
   && echo -e "${green}success${nc}" \
   || echo -e "${red}failure${nc}"
+}
+
+# Install realpath:
+{
+  echo -n "Installing sh-realpath... "
+  ( ${sudo} cp "${currentwd}/dependencies/sh-realpath/realpath.sh" "${cosy_prefix}/bin/"
+    ${sudo} chmod a+x "${cosy_prefix}/bin/realpath.sh"
+  ) >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
 }
 
 # Fix prefix to always be an absolute path:
@@ -162,18 +185,12 @@ cosy_temp=$(realpath "${cosy_temp}")
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"
+  echo -n "Installing lua rocks... "
   # shellcheck disable=SC2086
   ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/*-dev-master-1.rockspec \
     >> "${cosy_log}" 2>&1 \
    && echo -e "${green}success${nc}" \
    || echo -e "${red}failure${nc}"
-  done
-  echo -n "Installing sh-realpath... "
-  ( ${sudo} cp "${currentwd}/dependencies/sh-realpath/realpath.sh" "${cosy_prefix}/bin/"
-    ${sudo} chmod a+x "${cosy_prefix}/bin/realpath.sh"
-  ) >> "${cosy_log}" 2>&1 \
-    && echo -e "${green}success${nc}" \
-    || echo -e "${red}failure${nc}"
 }
 
 # Install web dependencies:
@@ -229,7 +246,7 @@ fi
 # Install openresty:
 echo -n "Installing openresty... "
 (
-  cd "${currentwd}/dependencies/openresty" || exit 1
+  cd "${currentwd}/dependencies/ngx_openresty" || exit 1
   make
   for dir in openresty-*; do
     if [ -d "${dir}" ]; then
@@ -239,7 +256,6 @@ echo -n "Installing openresty... "
                   --with-luajit="${cosy_prefix}" \
                   --with-ipv6 \
                   --with-pcre-jit \
-                  --with-postgresql \
                   -j"${parallel}"
       make -j"${parallel}"
       ${sudo} make install
@@ -264,7 +280,7 @@ echo -n "Installing nginx-jwt... "
 
 (
   cd "${currentwd}" || exit 1
-  git rev-parse HEAD > "${cosy_temp}/environment.version"
+  git rev-parse --verify HEAD > "${cosy_temp}/environment.version"
   ${sudo} mv "${cosy_temp}/environment.version" "${cosy_prefix}/share/cosy/environment.version"
 )
 
