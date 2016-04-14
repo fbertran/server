@@ -19,9 +19,9 @@ config ("test", {
   postgres = {
     backend  = "pgmoon",
     host     = os.getenv "POSTGRES_PORT",
-    user     = os.getenv "POSTGRES_USERNAME",
-    password = os.getenv "POSTGRES_PASSWORD",
-    database = os.getenv "POSTGRES_DATABASE",
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
+    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
+    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
   },
   measure_performance = true,
 })
@@ -32,9 +32,9 @@ config ("development", {
   postgres = {
     backend  = "pgmoon",
     host     = os.getenv "POSTGRES_PORT",
-    user     = os.getenv "POSTGRES_USERNAME",
-    password = os.getenv "POSTGRES_PASSWORD",
-    database = os.getenv "POSTGRES_DATABASE",
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USERNAME",
+    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
+    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
   },
 })
 
