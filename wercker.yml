@@ -18,8 +18,9 @@ build:
         name: "configure"
         code: |
           cp config-wercker.lua config.lua
-          createdb --host ${POSTGRES_PORT_5432_TCP_ADDR} \
-                   --port ${POSTGRES_PORT_5432_TCP_PORT} \
+          createdb --host "${POSTGRES_PORT_5432_TCP_ADDR}" \
+                   --port "${POSTGRES_PORT_5432_TCP_PORT}" \
+                   --password "${POSTGRES_PASSWORD}" \
                    cosyverif-test
           /app/bin/lapis migrate test
     - script:
