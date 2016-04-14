@@ -35,17 +35,33 @@ function HeadBar.__call ()
     end)
     Webclient:jQuery "#log-in" :click (function ()
       lock:show (Webclient.tojs {
-        authParams = {
+        popup        = true,
+        dict         = Webclient.locale,
+        responseType = "token",
+        sso          = true,
+        authParams   = {
           scope = "openid",
-        }
-      }, function (_, err, profile)
-        Webclient.log (err)
-        Webclient.log (profile)
-        if profile ~= Webclient.js.undefined then
-          Webclient:jQuery "#log-in" :hide ()
-          Webclient:jQuery "#profile":show ()
-          Webclient:jQuery "#log-out":show ()
-        end
+        },
+        connections  = {
+          "github", "google", "twitter", "facebook",
+        },
+      }, function (_, _, profile, token) --id_token, access_token, state, refresh_token
+        local co = coroutine.create (function ()
+          if profile ~= Webclient.js.undefined then
+            Webclient:jQuery "#log-in" :hide ()
+            Webclient:jQuery "#profile":show ()
+            Webclient:jQuery "#log-out":show ()
+            Webclient.profile = profile
+            Webclient.token   = token
+            print (Webclient.api .. "/" .. profile.user_id)
+            Webclient.request (Webclient.api .. "/" .. profile.user_id, {
+              headers = {
+                authorization = token,
+              }
+            })
+          end
+        end)
+        coroutine.resume (co)
       end)
       return false
     end)

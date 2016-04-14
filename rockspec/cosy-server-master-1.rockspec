@@ -16,14 +16,18 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
+  "i18n",
   "lapis",
+  "layeredata",
   "nginx-jwt",
 }
 
 build = {
   type    = "builtin",
   modules = {
-    ["cosy.server.app"            ] = "src/cosy/server/app.lua",
+    ["cosy.check.cli"            ] = "src/cosy/check/cli.lua",
+    ["cosy.i18n"                 ] = "src/cosy/i18n/init.lua",
+    ["cosy.server.app"            ] = "src/cosy/server/app/init.lua",
     ["cosy.server.app.auth0"      ] = "src/cosy/server/app/auth0.lua",
     ["cosy.server.app.user"       ] = "src/cosy/server/app/user.lua",
     ["cosy.server.model"          ] = "src/cosy/server/model.lua",
@@ -35,6 +39,7 @@ build = {
     bin = {
       ["cosy-server"] = "src/cosy/server/run.lua",
       ["cosy-test"  ] = "src/cosy/server/test.lua",
+      ["cosy-check" ] = "src/cosy/check/bin.lua",
     },
   },
 }

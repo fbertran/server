@@ -104,7 +104,7 @@ fi
 . environment/bin/install "$@"
 
 # Fix prefix to always be an absolute path:
-# shellcheck source=dependencies/sh-realpath/realpath.sh
+# shellcheck source=environment/dependencies/sh-realpath/realpath.sh
 . "${cosy_prefix}/bin/realpath.sh"
 cosy_prefix=$(realpath "${cosy_prefix}")
 cosy_temp=$(realpath "${cosy_temp}")

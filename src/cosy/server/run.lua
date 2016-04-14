@@ -7,7 +7,7 @@ local parts = {}
 for part in path:gmatch "[^/]+" do
   parts [#parts+1] = part
 end
-for _ = 1, 6 do
+for _ = 1, 7 do
   parts [#parts] = nil
 end
 local prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")

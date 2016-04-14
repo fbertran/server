@@ -12,19 +12,20 @@ Webclient.locale    = Webclient.js.global.navigator.language
 Webclient.origin    = Webclient.js.global.location.origin
 Webclient.jQuery    = Webclient.window.jQuery
 Webclient.request   = _G.request
+Webclient.tojs      = _G.tojs
 
-local function replace (t)
-  if type (t) ~= "table" then
-    return t
-  elseif t._ then
-    return t.message
-  else
-    for k, v in pairs (t) do
-      t [k] = replace (v)
-    end
-    return t
-  end
-end
+-- local function replace (t)
+--   if type (t) ~= "table" then
+--     return t
+--   elseif t._ then
+--     return t.message
+--   else
+--     for k, v in pairs (t) do
+--       t [k] = replace (v)
+--     end
+--     return t
+--   end
+-- end
 
 function MT.__call (_, f, ...)
   local args = { ... }
@@ -46,25 +47,6 @@ function Webclient.show (component)
     return i18n [key] % {}
   end
   container:html (Et.render (template, data))
-end
-
-function Webclient.tojs (t)
-  if type (t) ~= "table" then
-    return t
-  elseif #t ~= 0 then
-    local result = Webclient.js.new (Webclient.window.Array)
-    for i = 1, #t do
-      result [result.length] = Webclient.tojs (t [i])
-    end
-    return result
-  else
-    local result = Webclient.js.new (Webclient.window.Object)
-    for k, v in pairs (t) do
-      assert (type (k) == "string")
-      result [k] = Webclient.tojs (v)
-    end
-    return result
-  end
 end
 
 function Webclient.log (...)

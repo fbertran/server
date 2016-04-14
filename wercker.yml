@@ -7,14 +7,6 @@ build:
           /app/bin/luarocks make rockspec/cosy-server-dev-master-1.rockspec
           /app/bin/luarocks make rockspec/cosy-server-master-1.rockspec
     - script:
-        name: "run checks"
-        code: |
-          /app/bin/luacheck --std=max+busted src/
-    - script:
-        name: "run tests"
-        code: |
-          /app/bin/busted --coverage --verbose src/
-    - script:
         name: "run cosy-check"
         code: |
           /app/bin/cosy-check
