@@ -1,12 +1,5 @@
 local Config = require "lapis.config"
 
-print ("host", (os.getenv "POSTGRES_PORT_5432_TCP_ADDR")
-        .. ":"
-        .. (os.getenv "POSTGRES_PORT_5432_TCP_PORT"))
-print ("user", os.getenv "POSTGRES_ENV_POSTGRES_USER")
-print ("password", os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD")
-print ("database", os.getenv "POSTGRES_ENV_POSTGRES_DATABASE")
-
 local prefix
 do
   local path = package.searchpath ("cosy.server.app", package.path)
