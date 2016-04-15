@@ -41,31 +41,31 @@ for name, environment in pairs (Env) do
       Db.delete "users"
     end)
 
-    describe ("route '/users'", function ()
+    describe ("route '/projects'", function ()
 
       it ("answers to HEAD", function ()
-        local status = request (app, "/users", {
+        local status = request (app, "/projects", {
           method = "HEAD",
         })
         assert.are.same (status, 200)
       end)
 
       it ("answers to GET", function ()
-        local status = request (app, "/users", {
+        local status = request (app, "/projects", {
           method = "GET",
         })
         assert.are.same (status, 200)
       end)
 
       it ("answers to OPTIONS", function ()
-        local status = request (app, "/users", {
+        local status = request (app, "/projects", {
           method = "OPTIONS",
         })
         assert.are.same (status, 200)
       end)
 
       it ("answers to POST without Authorization", function ()
-        local status = request (app, "/users", {
+        local status = request (app, "/projects", {
           method = "POST",
         })
         assert.are.same (status, 401)
@@ -83,7 +83,7 @@ for name, environment in pairs (Env) do
           alg = "HS256",
           keys = { private = Config.auth0.client_id }
         })
-        local status = request (app, "/users", {
+        local status = request (app, "/projects", {
           method  = "POST",
           headers = { Authorization = "Bearer " .. token},
         })
@@ -99,11 +99,18 @@ for name, environment in pairs (Env) do
         assert.are.same (status, 200)
         result = Util.from_json (result)
         assert.is.not_nil (result.id)
+        status, result = request (app, "/projects", {
+          method  = "POST",
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 200)
+        result = Util.from_json (result)
+        assert.is.not_nil (result.id)
       end)
 
       for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
         it ("does not answer to " .. method, function ()
-          local status = request (app, "/users", {
+          local status = request (app, "/projects", {
             method = method,
           })
           assert.are.same (status, 405)
@@ -112,51 +119,73 @@ for name, environment in pairs (Env) do
 
     end)
 
-    describe ("route '/users/:user'", function ()
+    describe ("route '/projects/:project'", function ()
+
+      local projects = {}
 
       before_each (function ()
-        for _, id in pairs (identities) do
+        for key, id in pairs (identities) do
           local token  = make_token (id)
-          local status = request (app, "/users", {
+          local status, result = request (app, "/users", {
             method  = "POST",
             headers = { Authorization = "Bearer " .. token},
           })
           assert.are.same (status, 200)
+          result = Util.from_json (result)
+          assert.is.not_nil (result.id)
+          status, result = request (app, "/projects", {
+            method  = "POST",
+            headers = { Authorization = "Bearer " .. token},
+          })
+          assert.are.same (status, 200)
+          result = Util.from_json (result)
+          assert.is.not_nil (result.id)
+          projects [key] = result.id
         end
       end)
 
-      it ("answers to HEAD for a non-existing user", function ()
-        local status = request (app, "/users/non-existing", {
+      it ("answers to HEAD for a non-existing project", function ()
+        local token  = make_token (identities.rahan)
+        local status = request (app, "/projects/" .. projects.rahan, {
+          method = "DELETE",
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 204)
+        status = request (app, "/projects/" .. projects.rahan, {
           method = "HEAD",
         })
         assert.are.same (status, 404)
       end)
 
-      it ("answers to HEAD for an existing user", function ()
-        local status = request (app, "/users/" .. identities.rahan, {
+      it ("answers to HEAD for an existing project", function ()
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "HEAD",
         })
         assert.are.same (status, 200)
       end)
 
-      it ("answers to GET for a non-existing existing user", function ()
-        local status = request (app, "/users/non-existing", {
+      it ("answers to GET for a non-existing project", function ()
+        local token  = make_token (identities.rahan)
+        local status = request (app, "/projects/" .. projects.rahan, {
+          method = "DELETE",
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 204)
+        status = request (app, "/projects/" .. projects.rahan, {
           method = "GET",
         })
         assert.are.same (status, 404)
       end)
 
-      it ("answers to GET for an existing user", function ()
-        local status, result = request (app, "/users/" .. identities.rahan, {
+      it ("answers to GET for an existing project", function ()
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "GET",
         })
         assert.are.same (status, 200)
-        result = Util.from_json (result)
-        assert.are.same (result.nickname, "saucisson")
       end)
 
       it ("answers to PATCH with no Authorization", function ()
-        local status = request (app, "/users/" .. identities.rahan, {
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "PATCH",
         })
         assert.are.same (status, 401)
@@ -164,25 +193,30 @@ for name, environment in pairs (Env) do
 
       it ("answers to PATCH for another user with Authorization", function ()
         local token  = make_token (identities.rahan)
-        local status = request (app, "/users/" .. identities.crao, {
+        local status = request (app, "/projects/" .. projects.crao, {
           method = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
       end)
 
-      it ("answers to PATCH for a non-existing user with Authorization", function ()
+      it ("answers to PATCH for a non-existing project with Authorization", function ()
         local token  = make_token (identities.rahan)
-        local status = request (app, "/users/another", {
+        local status = request (app, "/projects/" .. projects.rahan, {
+          method = "DELETE",
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 204)
+        status = request (app, "/projects/" .. projects.rahan, {
           method = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
-        assert.are.same (status, 403)
+        assert.are.same (status, 404)
       end)
 
       it ("answers to PATCH with Authorization", function ()
         local token  = make_token (identities.rahan)
-        local status = request (app, "/users/" .. identities.rahan, {
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
@@ -190,7 +224,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to DELETE with no Authorization", function ()
-        local status = request (app, "/users/" .. identities.rahan, {
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "DELETE",
         })
         assert.are.same (status, 401)
@@ -198,25 +232,30 @@ for name, environment in pairs (Env) do
 
       it ("answers to DELETE for another user with Authorization", function ()
         local token  = make_token (identities.rahan)
-        local status = request (app, "/users/" .. identities.crao, {
+        local status = request (app, "/projects/" .. projects.crao, {
           method = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
       end)
 
-      it ("answers to DELETE for a non-existing user with Authorization", function ()
+      it ("answers to DELETE for a non-existing project with Authorization", function ()
         local token  = make_token (identities.rahan)
-        local status = request (app, "/users/another", {
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
-        assert.are.same (status, 403)
+        assert.are.same (status, 204)
+        status = request (app, "/projects/" .. projects.rahan, {
+          method = "DELETE",
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 404)
       end)
 
       it ("answers to DELETE with Authorization", function ()
         local token  = make_token (identities.rahan)
-        local status = request (app, "/users/" .. identities.rahan, {
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
@@ -224,7 +263,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to OPTIONS", function ()
-        local status = request (app, "/users/" .. identities.rahan, {
+        local status = request (app, "/projects/" .. projects.rahan, {
           method = "OPTIONS",
         })
         assert.are.same (status, 200)
@@ -232,10 +271,19 @@ for name, environment in pairs (Env) do
 
       for _, method in ipairs { "PUT", "POST" } do
         it ("does not answer to " .. method, function ()
-          local status = request (app, "/users/" .. identities.rahan, {
+          local status = request (app, "/projects/" .. projects.rahan, {
             method = method,
           })
           assert.are.same (status, 405)
+        end)
+      end
+
+      for _, method in ipairs { "DELETE", "GET", "OPTIONS", "PATCH", "PUT", "POST" } do
+        it ("correcly fails for invalid argument to " .. method, function ()
+          local status = request (app, "/projects/invalid", {
+            method = method,
+          })
+          assert.are.same (status, 400)
         end)
       end
 

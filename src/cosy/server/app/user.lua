@@ -5,6 +5,11 @@ local Util       = require "lapis.util"
 return function (app)
 
   app:match ("/users(/)", respond_to {
+    HEAD = function ()
+      return {
+        status = 200,
+      }
+    end,
     GET = function ()
       local users = {}
       for i, user in ipairs (Model.identities:select ()) do
@@ -30,12 +35,16 @@ return function (app)
           status = 409,
         }
       end
+      user = Model.users:create {}
       Model.identities:create {
         id      = id,
-        user_id = Model.users:create {}.id,
+        user_id = user.id,
       }
       return {
-        status = 201,
+        status = 200,
+        json   = {
+          id = user.id,
+        },
       }
     end,
     OPTIONS = function ()
@@ -53,10 +62,22 @@ return function (app)
   })
 
   app:match ("/users/:user(/)", respond_to {
+    HEAD = function (self)
+      local id   = Util.unescape (self.params.user)
+      local user = Model.identities:find (id)
+      if not user then
+        return {
+          status = 404,
+        }
+      end
+      return {
+        status = 200,
+      }
+    end,
     GET = function (self)
       local id   = Util.unescape (self.params.user)
       local user = Model.identities:find (id)
-      if not user or user:get_user ().deleted then
+      if not user then
         return {
           status = 404,
         }
@@ -104,7 +125,7 @@ return function (app)
         }
       end
       local user = Model.identities:find (id)
-      if not user or user:get_user ().deleted then
+      if not user then
         return {
           status = 404,
         }
@@ -127,15 +148,13 @@ return function (app)
         }
       end
       local user = Model.identities:find (id)
-      if not user or user:get_user ().deleted then
+      if not user then
         return {
           status = 404,
         }
       end
       user = user:get_user ()
-      user:update {
-        deleted = true,
-      }
+      user:delete ()
       return {
         status = 204,
       }

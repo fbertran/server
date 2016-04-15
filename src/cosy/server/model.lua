@@ -5,7 +5,6 @@ result.identities = Model:extend ("identities", {
   relations = {
     { "user",
       belongs_to = "users",
-      where      = { deleted = false },
     },
   },
 })
@@ -15,7 +14,6 @@ result.users = Model:extend ("users", {
   relations   = {
     { "projects",
       has_many = "projects",
-      where    = { deleted = false },
     },
     { "identities",
       has_many = "identities",
@@ -33,7 +31,9 @@ result.projects = Model:extend ("projects", {
   relations   = {
     { "user",
       belongs_to = "users",
-      where      = { deleted = false },
+    },
+    { "resources",
+      has_many = "resources",
     },
     { "tags",
       has_many = "tags",
@@ -50,7 +50,6 @@ result.tags = Model:extend ("tags", {
   relations   = {
     { "project",
       belongs_to = "projects",
-      where      = { deleted = false },
     },
   },
 })
@@ -60,17 +59,15 @@ result.resources = Model:extend ("resources", {
   relations   = {
     { "project",
       belongs_to = "projects",
-      where      = { deleted = false },
     },
   },
 })
 
-result.resources = Model:extend ("executions", {
+result.executions = Model:extend ("executions", {
   timestamp   = true,
   relations   = {
     { "resource",
       belongs_to = "resources",
-      where      = { deleted = false },
     },
   },
 })

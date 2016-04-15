@@ -5,15 +5,21 @@ local Util       = require "lapis.util"
 return function (app)
 
   app:match ("/projects(/)", respond_to {
+    HEAD = function ()
+      return {
+        status = 200,
+      }
+    end,
     GET = function ()
       local projects = {}
-      for i, project in ipairs (Model.projects:select ()) do
+      for i, project in ipairs (Model.projects:select () or {}) do
         projects [i] = {
           id          = project.id,
-          user        = project.user,
+          user        = project.user_id,
           name        = project.name,
           description = project.description,
-          -- tags        = project.tags,
+          stars       = # (project:get_stars () or {}),
+          tags        = project:get_tags () or {},
         }
       end
       return {
@@ -27,18 +33,20 @@ return function (app)
           status = 401,
         }
       end
-      local id   = self.token.sub
-      local user = Model.users:find (id)
-      if user then
+      local user = Model.identities:find (self.token.sub)
+      if not user then
         return {
-          status = 409,
+          status = 401,
         }
       end
-      Model.users:create {
-        id = id,
+      local project = Model.projects:create {
+        user_id = user.user_id,
       }
       return {
-        status = 201,
+        status = 200,
+        json   = {
+          id = project.id,
+        },
       }
     end,
     OPTIONS = function ()
@@ -56,57 +64,77 @@ return function (app)
   })
 
   app:match ("/projects/:project(/)", respond_to {
-    GET = function (self)
-      local id   = Util.unescape (self.params.user)
-      local user = Model.users:find (id)
-      if not user then
+    HEAD = function (self)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
+        return {
+          status = 400,
+        }
+      end
+      local project = Model.projects:find (id)
+      if not project then
         return {
           status = 404,
         }
       end
-      local info, status = app.auth0 ("/users/" .. Util.escape (id))
-      if status ~= 200 then
+      return {
+        status = 200,
+      }
+    end,
+    GET = function (self)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
         return {
-          status = 500,
+          status = 400,
         }
       end
-      local projects = {}
-      for i, project in ipairs (Model.projects:find {
-        user = id,
-      } or {}) do
-        projects [i] = {
-          id = project.id,
+      local project = Model.projects:find (id)
+      if not project then
+        return {
+          status = 404,
+        }
+      end
+      local resources = {}
+      for i, resource in ipairs (project:get_resources () or {}) do
+        resources [i] = {
+          id          = resource.id,
+          name        = resource.name,
+          description = resource.description,
         }
       end
       return {
         status = 200,
         json   = {
-          id       = user.id,
-          name     = info.name,
-          nickname = info.nickname,
-          company  = info.company,
-          location = info.location,
-          avatar   = info.picture,
-          projects = projects,
+          id          = project.id,
+          owner       = project.user_id,
+          name        = project.name,
+          description = project.description,
+          resources   = resources,
         },
       }
     end,
     PATCH = function (self)
-      local id = Util.unescape (self.params.user)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
+        return {
+          status = 400,
+        }
+      end
       if not self.token then
         return {
           status = 401,
         }
       end
-      if self.token.sub ~= id then
-        return {
-          status = 403,
-        }
-      end
-      local user = Model.users:find (id)
-      if not user then
+      local project = Model.projects:find (id)
+      if not project then
         return {
           status = 404,
+        }
+      end
+      local user = Model.identities:find (self.token.sub)
+      if not user or user.user_id ~= project.user_id then
+        return {
+          status = 403,
         }
       end
       -- TODO
@@ -115,35 +143,59 @@ return function (app)
       }
     end,
     DELETE = function (self)
-      local id = Util.unescape (self.params.user)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
+        return {
+          status = 400,
+        }
+      end
       if not self.token then
         return {
           status = 401,
         }
       end
-      if self.token.sub ~= id then
-        return {
-          status = 403,
-        }
-      end
-      local user = Model.users:find (id)
-      if not user then
+      local project = Model.projects:find (id)
+      if not project then
         return {
           status = 404,
         }
       end
-      user:delete ()
+      local user = Model.identities:find (self.token.sub)
+      if not user or user.user_id ~= project.user_id then
+        return {
+          status = 403,
+        }
+      end
+      project:delete ()
       return {
         status = 204,
       }
     end,
-    OPTIONS = function ()
+    OPTIONS = function (self)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
+        return {
+          status = 400,
+        }
+      end
       return { status = 200 }
     end,
-    PUT = function ()
+    PUT = function (self)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
+        return {
+          status = 400,
+        }
+      end
       return { status = 405 }
     end,
-    POST = function ()
+    POST = function (self)
+      local id = Util.unescape (self.params.project)
+      if not tonumber (id) then
+        return {
+          status = 400,
+        }
+      end
       return { status = 405 }
     end,
   })

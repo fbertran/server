@@ -3,28 +3,23 @@ local Schema = require "lapis.db.schema"
 return {
   [1] = function ()
     Schema.create_table ("users", {
-      { "id"        , Schema.types.serial  },
-      { "deleted"   , Schema.types.boolean },
+      { "id"        , Schema.types.serial { primary_key = true } },
       { "reputation", Schema.types.integer },
       { "created_at", Schema.types.time    },
       { "updated_at", Schema.types.time    },
-      [[ PRIMARY KEY ("id") ]],
     })
     Schema.create_table ("identities", {
-      { "id"     , Schema.types.text   },
+      { "id"     , Schema.types.text { primary_key = true } },
       { "user_id", Schema.types.serial },
-      [[ PRIMARY KEY ("id") ]],
       [[ FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("projects", {
-      { "id"         , Schema.types.serial  },
+      { "id"         , Schema.types.serial { primary_key = true } },
       { "user_id"    , Schema.types.serial  },
-      { "name"       , Schema.types.text    },
-      { "description", Schema.types.text    },
-      { "deleted"    , Schema.types.boolean },
+      { "name"       , Schema.types.text { null = true } },
+      { "description", Schema.types.text { null = true } },
       { "created_at" , Schema.types.time    },
       { "updated_at" , Schema.types.time    },
-      [[ PRIMARY KEY ("id") ]],
       [[ FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("tags", {
@@ -45,26 +40,23 @@ return {
       [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("resources", {
-      { "id"         , Schema.types.serial  },
+      { "id"         , Schema.types.serial { primary_key = true } },
       { "project_id" , Schema.types.serial  },
-      { "name"       , Schema.types.text    },
-      { "description", Schema.types.text    },
-      { "deleted"    , Schema.types.boolean },
+      { "name"       , Schema.types.text { null = true } },
+      { "description", Schema.types.text { null = true } },
       { "created_at" , Schema.types.time    },
       { "updated_at" , Schema.types.time    },
-      [[ PRIMARY KEY ("id") ]],
       [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("executions", {
-      { "id"         , Schema.types.serial  },
+      { "id"         , Schema.types.serial { primary_key = true } },
       { "resource_id", Schema.types.serial  },
-      { "name"       , Schema.types.text    },
+      { "name"       , Schema.types.text { null = true } },
+      { "description", Schema.types.text { null = true } },
       { "running"    , Schema.types.boolean },
       { "canceled"   , Schema.types.boolean },
-      { "deleted"    , Schema.types.boolean },
       { "created_at" , Schema.types.time    },
       { "updated_at" , Schema.types.time    },
-      [[ PRIMARY KEY ("id") ]],
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
     })
   end,
