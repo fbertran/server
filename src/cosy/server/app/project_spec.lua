@@ -1,6 +1,7 @@
 local Jwt    = require "jwt"
 local Config = require "lapis.config".get ()
 local Time   = require "socket".gettime
+local Ltn12  = require "ltn12"
 local Db     = require "lapis.db"
 local Util   = require "lapis.util"
 local Env    = require "cosy.server.test"
@@ -80,7 +81,7 @@ for name, environment in pairs (Env) do
           iat = Time (),
         }
         local token = Jwt.encode (claims, {
-          alg = "HS256",
+          alg  = "HS256",
           keys = { private = Config.auth0.client_id }
         })
         local status = request (app, "/projects", {
@@ -147,7 +148,7 @@ for name, environment in pairs (Env) do
       it ("answers to HEAD for a non-existing project", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)
@@ -167,7 +168,7 @@ for name, environment in pairs (Env) do
       it ("answers to GET for a non-existing project", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)
@@ -194,7 +195,7 @@ for name, environment in pairs (Env) do
       it ("answers to PATCH for another user with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.crao, {
-          method = "PATCH",
+          method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
@@ -203,12 +204,12 @@ for name, environment in pairs (Env) do
       it ("answers to PATCH for a non-existing project with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)
         status = request (app, "/projects/" .. projects.rahan, {
-          method = "PATCH",
+          method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 404)
@@ -217,10 +218,34 @@ for name, environment in pairs (Env) do
       it ("answers to PATCH with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
-          method = "PATCH",
+          method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)
+      end)
+
+      it ("updates information on PATCH with Authorization", function ()
+        local token  = make_token (identities.rahan)
+        local status = request (app, "/projects/" .. projects.rahan, {
+          method  = "PATCH",
+          headers = {
+            ["Authorization" ] = "Bearer " .. token,
+            ["Content-type"  ] = "application/json",
+          },
+          post = Util.to_json {
+            name        = "a-name",
+            description = "a-description",
+          }
+        })
+        assert.are.same (status, 204)
+        local result
+        status, result = request (app, "/projects/" .. projects.rahan, {
+          method = "GET",
+        })
+        assert.are.same (status, 200)
+        result = Util.from_json (result)
+        assert.are.equal (result.name       , "a-name"       )
+        assert.are.equal (result.description, "a-description")
       end)
 
       it ("answers to DELETE with no Authorization", function ()
@@ -233,7 +258,7 @@ for name, environment in pairs (Env) do
       it ("answers to DELETE for another user with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.crao, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
@@ -242,7 +267,7 @@ for name, environment in pairs (Env) do
       it ("answers to DELETE for a non-existing project with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)
@@ -256,7 +281,7 @@ for name, environment in pairs (Env) do
       it ("answers to DELETE with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)

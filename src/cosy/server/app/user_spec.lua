@@ -80,7 +80,7 @@ for name, environment in pairs (Env) do
           iat = Time (),
         }
         local token = Jwt.encode (claims, {
-          alg = "HS256",
+          alg  = "HS256",
           keys = { private = Config.auth0.client_id }
         })
         local status = request (app, "/users", {
@@ -165,7 +165,7 @@ for name, environment in pairs (Env) do
       it ("answers to PATCH for another user with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/users/" .. identities.crao, {
-          method = "PATCH",
+          method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
@@ -174,7 +174,7 @@ for name, environment in pairs (Env) do
       it ("answers to PATCH for a non-existing user with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/users/another", {
-          method = "PATCH",
+          method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
@@ -183,7 +183,7 @@ for name, environment in pairs (Env) do
       it ("answers to PATCH with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/users/" .. identities.rahan, {
-          method = "PATCH",
+          method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)
@@ -199,7 +199,7 @@ for name, environment in pairs (Env) do
       it ("answers to DELETE for another user with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/users/" .. identities.crao, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
@@ -208,7 +208,7 @@ for name, environment in pairs (Env) do
       it ("answers to DELETE for a non-existing user with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/users/another", {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 403)
@@ -217,7 +217,7 @@ for name, environment in pairs (Env) do
       it ("answers to DELETE with Authorization", function ()
         local token  = make_token (identities.rahan)
         local status = request (app, "/users/" .. identities.rahan, {
-          method = "DELETE",
+          method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 204)

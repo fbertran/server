@@ -1,6 +1,7 @@
-local respond_to = require "lapis.application".respond_to
-local Model      = require "cosy.server.model"
-local Util       = require "lapis.util"
+local respond_to  = require "lapis.application".respond_to
+local json_params = require "lapis.application".json_params
+local Model       = require "cosy.server.model"
+local Util        = require "lapis.util"
 
 return function (app)
 
@@ -112,7 +113,7 @@ return function (app)
         },
       }
     end,
-    PATCH = function (self)
+    PATCH = json_params (function (self)
       local id = Util.unescape (self.params.user)
       if not self.token then
         return {
@@ -130,11 +131,11 @@ return function (app)
           status = 404,
         }
       end
-      -- TODO
+      user:update {}
       return {
         status = 204,
       }
-    end,
+    end),
     DELETE = function (self)
       local id = Util.unescape (self.params.user)
       if not self.token then
