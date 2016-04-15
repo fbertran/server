@@ -3,21 +3,7 @@ local Config = require "lapis.config".get ()
 local Time   = require "socket".gettime
 local Db     = require "lapis.db"
 local Util   = require "lapis.util"
-
-local environments = {
-  -- mock = {
-  --   app     = require "cosy.server.app",
-  --   use     = require "lapis.spec".use_test_env,
-  --   request = require "lapis.spec.request".mock_request,
-  -- },
-  server = {
-    app     = nil,
-    use     = require "lapis.spec".use_test_server,
-    request = function (_, ...)
-      return require "lapis.spec.server".request (...)
-    end,
-  },
-}
+local Env    = require "cosy.server.test"
 
 local function make_token (user_id)
   local claims = {
@@ -33,7 +19,7 @@ local function make_token (user_id)
   })
 end
 
-for name, environment in pairs (environments) do
+for name, environment in pairs (Env) do
   local request = environment.request
   local app     = environment.app
 
