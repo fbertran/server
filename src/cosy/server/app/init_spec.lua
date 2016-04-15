@@ -1,7 +1,7 @@
-local Db  = require "lapis.db"
-local Env = require "cosy.server.test"
+local Db   = require "lapis.db"
+local Test = require "cosy.server.test"
 
-for name, environment in pairs (Env) do
+for name, environment in pairs (Test.environments) do
   local request = environment.request
   local app     = environment.app
 
@@ -9,8 +9,7 @@ for name, environment in pairs (Env) do
     environment.use ()
 
     before_each (function ()
-      Db.delete "users"
-      Db.delete "projects"
+      Test.clean_db ()
     end)
 
     describe ("route '/'", function ()

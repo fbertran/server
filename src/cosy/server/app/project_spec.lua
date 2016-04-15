@@ -1,45 +1,18 @@
 local Jwt    = require "jwt"
 local Config = require "lapis.config".get ()
 local Time   = require "socket".gettime
-local Ltn12  = require "ltn12"
-local Db     = require "lapis.db"
 local Util   = require "lapis.util"
-local Env    = require "cosy.server.test"
+local Test   = require "cosy.server.test"
 
-local function make_token (user_id)
-  local claims = {
-    iss = "https://cosyverif.eu.auth0.com",
-    sub = user_id,
-    aud = Config.auth0.client_id,
-    exp = Time () + 10 * 3600,
-    iat = Time (),
-  }
-  return Jwt.encode (claims, {
-    alg = "HS256",
-    keys = { private = Config.auth0.client_secret }
-  })
-end
-
-for name, environment in pairs (Env) do
+for name, environment in pairs (Test.environments) do
   local request = environment.request
   local app     = environment.app
-
-  local identities = {
-    rahan = "github|1818862",
-    crao  = "github|199517",
-  }
 
   describe ("cosyverif api in " .. name .. " mode", function ()
     environment.use ()
 
     before_each (function ()
-      Db.delete "executions"
-      Db.delete "identities"
-      Db.delete "projects"
-      Db.delete "resources"
-      Db.delete "stars"
-      Db.delete "tags"
-      Db.delete "users"
+      Test.clean_db ()
     end)
 
     describe ("route '/projects'", function ()
@@ -92,7 +65,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to POST with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status, result = request (app, "/users", {
           method  = "POST",
           headers = { Authorization = "Bearer " .. token},
@@ -125,8 +98,8 @@ for name, environment in pairs (Env) do
       local projects = {}
 
       before_each (function ()
-        for key, id in pairs (identities) do
-          local token  = make_token (id)
+        for key, id in pairs (Test.identities) do
+          local token  = Test.make_token (id)
           local status, result = request (app, "/users", {
             method  = "POST",
             headers = { Authorization = "Bearer " .. token},
@@ -146,7 +119,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to HEAD for a non-existing project", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -166,7 +139,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to GET for a non-existing project", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -193,7 +166,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to PATCH for another user with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.crao, {
           method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
@@ -202,7 +175,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to PATCH for a non-existing project with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -216,7 +189,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to PATCH with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
@@ -225,7 +198,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("updates information on PATCH with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "PATCH",
           headers = {
@@ -256,7 +229,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to DELETE for another user with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.crao, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -265,7 +238,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to DELETE for a non-existing project with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -279,7 +252,7 @@ for name, environment in pairs (Env) do
       end)
 
       it ("answers to DELETE with Authorization", function ()
-        local token  = make_token (identities.rahan)
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/" .. projects.rahan, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
