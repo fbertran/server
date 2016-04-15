@@ -52,16 +52,13 @@ Config ("production", {
   },
 })
 
-print ("AUTH_DOMAIN", os.getenv "AUTH_DOMAIN")
-print ("AUTH_CLIENT", os.getenv "AUTH_CLIENT")
-
 local common = {
   auth0 = {
-    domain        = os.getenv "AUTH_DOMAIN",
-    client_id     = os.getenv "AUTH_CLIENT",
-    client_secret = os.getenv "AUTH_SECRET",
-    api_token     = os.getenv "AUTH_API",
-    api_url       = "https://" .. (os.getenv "AUTH_DOMAIN") .. "/api/v2",
+    domain        = os.getenv "AUTH0_DOMAIN",
+    client_id     = os.getenv "AUTH0_CLIENT",
+    client_secret = os.getenv "AUTH0_SECRET",
+    api_token     = os.getenv "AUTH0_API",
+    api_url       = "https://" .. (os.getenv "AUTH0_DOMAIN") .. "/api/v2",
   },
 }
 

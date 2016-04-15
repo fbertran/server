@@ -79,7 +79,7 @@ do
   ]], {
     prefix = prefix,
     source = source,
-  })) and status
+  })) == 0 and status
 end
 
 -- busted
@@ -89,7 +89,7 @@ do
     LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --coverage --verbose src/
   ]], {
     prefix = prefix,
-  })) and status
+  })) == 0 and status
   -- status = os.execute (Et.render ([[
   --   LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --output=<%= format %> --coverage src/ > <%= output %> 2> /dev/null
   -- ]], {
@@ -359,12 +359,11 @@ do
     ]], {
       prefix = prefix,
     }))
-    if s then
+    if s == 0 then
       print (Colors ("Shellcheck detects %{bright green}no problems%{reset}."))
     end
-    status = s and status
+    status = s == 0 and status
   end
 end
-
 
 os.exit (status and 0 or 1)

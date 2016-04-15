@@ -25,17 +25,6 @@ build:
         name: "check and test"
         code: |
           /app/bin/cosy-check
-    - script:
-        name: "debug"
-        code: |
-          env
-          export AUTH_DOMAIN
-          export AUTH_CLIENT
-          export AUTH_SECRET
-          export AUTH_API
-          /app/bin/cosy-server &
-          sleep 1
-          curl -v http://localhost:8080/
   after-steps:
     - script:
         name: "export to coveralls"
