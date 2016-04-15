@@ -4,17 +4,21 @@ local Util       = require "lapis.util"
 
 return function (app)
 
-  app:match ("/users(/)", respond_to {
+  app:match ("/projects(/)", respond_to {
     GET = function ()
-      local users = {}
-      for i, user in ipairs (Model.users:select ()) do
-        users [i] = {
-          id = user.id,
+      local projects = {}
+      for i, project in ipairs (Model.projects:select ()) do
+        projects [i] = {
+          id          = project.id,
+          user        = project.user,
+          name        = project.name,
+          description = project.description,
+          -- tags        = project.tags,
         }
       end
       return {
         status = 200,
-        json   = users,
+        json   = projects,
       }
     end,
     POST = function (self)
@@ -51,7 +55,7 @@ return function (app)
     end,
   })
 
-  app:match ("/users/:user(/)", respond_to {
+  app:match ("/projects/:project(/)", respond_to {
     GET = function (self)
       local id   = Util.unescape (self.params.user)
       local user = Model.users:find (id)

@@ -7,7 +7,7 @@ return function (app)
   app:match ("/users(/)", respond_to {
     GET = function ()
       local users = {}
-      for i, user in ipairs (Model.users:select ()) do
+      for i, user in ipairs (Model.identities:select ()) do
         users [i] = {
           id = user.id,
         }
@@ -24,14 +24,15 @@ return function (app)
         }
       end
       local id   = self.token.sub
-      local user = Model.users:find (id)
+      local user = Model.identities:find (id)
       if user then
         return {
           status = 409,
         }
       end
-      Model.users:create {
-        id = id,
+      Model.identities:create {
+        id      = id,
+        user_id = Model.users:create {}.id,
       }
       return {
         status = 201,
@@ -54,12 +55,13 @@ return function (app)
   app:match ("/users/:user(/)", respond_to {
     GET = function (self)
       local id   = Util.unescape (self.params.user)
-      local user = Model.users:find (id)
-      if not user then
+      local user = Model.identities:find (id)
+      if not user or user:get_user ().deleted then
         return {
           status = 404,
         }
       end
+      user = user:get_user ()
       local info, status = app.auth0 ("/users/" .. Util.escape (id))
       if status ~= 200 then
         return {
@@ -67,17 +69,19 @@ return function (app)
         }
       end
       local projects = {}
-      for i, project in ipairs (Model.projects:find {
-        user = id,
-      } or {}) do
+      for i, project in ipairs (user:get_projects () or {}) do
         projects [i] = {
-          id = project.id,
+          id          = project.id,
+          name        = project.name,
+          description = project.description,
+          stars       = # (project:get_stars () or {}),
+          tags        = project:get_tags () or {},
         }
       end
       return {
         status = 200,
         json   = {
-          id       = user.id,
+          id       = user.user_id,
           name     = info.name,
           nickname = info.nickname,
           company  = info.company,
@@ -99,8 +103,8 @@ return function (app)
           status = 403,
         }
       end
-      local user = Model.users:find (id)
-      if not user then
+      local user = Model.identities:find (id)
+      if not user or user:get_user ().deleted then
         return {
           status = 404,
         }
@@ -122,13 +126,16 @@ return function (app)
           status = 403,
         }
       end
-      local user = Model.users:find (id)
-      if not user then
+      local user = Model.identities:find (id)
+      if not user or user:get_user ().deleted then
         return {
           status = 404,
         }
       end
-      user:delete ()
+      user = user:get_user ()
+      user:update {
+        deleted = true,
+      }
       return {
         status = 204,
       }
