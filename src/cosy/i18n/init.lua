@@ -17,46 +17,42 @@ function I18n.new (options)
   local i18n = setmetatable ({}, I18n)
   Hidden [i18n] = {
     locale       = options.locale or os.getenv "LANG",
-    translations = Layer.new {
-      data = {
-        [Layer.key.refines] = {},
-      }
-    },
+    translations = {},
+    index        = Layer.new {},
   }
+  Hidden [i18n].index [Layer.key.refines] = Hidden [i18n].translations
   return i18n
 end
 
 function I18n.__add (i18n, translations)
   assert (getmetatable (i18n) == I18n)
   assert (type (translations) == "table")
+  local t = {}
+  local sources = Hidden [i18n].translations
+  for i = 1, #sources do
+    t [i] = sources [i]
+  end
+  t [#t+1] = Layer.new {
+    data = translations,
+  }
   local result = setmetatable ({}, I18n)
   Hidden [result] = {
     locale       = Hidden [i18n].locale,
-    translations = Layer.new {
-      data = {
-        [Layer.key.refines] = {},
-      }
-    },
+    translations = t,
+    index        = Layer.new {},
   }
-  local source = Hidden [i18n  ].translations [Layer.key.refines]
-  local target = Hidden [result].translations [Layer.key.refines]
-  for i = 1, #source do
-    target [i] = source [i]
-  end
-  target [#target+1] = Layer.new {
-    data = translations
-  }
+  Hidden [result].index [Layer.key.refines] = Hidden [result].translations
   return result
 end
 
 function I18n.__div (i18n, key)
   assert (getmetatable (i18n) == I18n)
-  return Hidden [i18n].translations [key] ~= nil
+  return Hidden [i18n].index [key] ~= nil
 end
 
 function I18n.__index (i18n, key)
   assert (getmetatable (i18n) == I18n)
-  local entry = Hidden [i18n].translations [key]
+  local entry = Hidden [i18n].index [key]
   assert (entry, key)
   return setmetatable ({
     i18n        = i18n,
