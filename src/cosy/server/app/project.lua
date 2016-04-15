@@ -1,7 +1,7 @@
 local respond_to  = require "lapis.application".respond_to
 local json_params = require "lapis.application".json_params
 local Model       = require "cosy.server.model"
-local Util        = require "lapis.util"
+local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
@@ -28,20 +28,11 @@ return function (app)
         json   = projects,
       }
     end,
-    POST = json_params (function (self)
-      if not self.token then
-        return {
-          status = 401,
-        }
-      end
-      local user = Model.identities:find (self.token.sub)
-      if not user then
-        return {
-          status = 401,
-        }
-      end
+    POST = json_params
+        .. Decorators.is_authentified
+        .. function (self)
       local project = Model.projects:create {
-        user_id     = user.user_id,
+        user_id     = self.authentified.id,
         name        = self.params.name,
         description = self.params.description,
       }
@@ -51,7 +42,7 @@ return function (app)
           id = project.id,
         },
       }
-    end),
+    end,
     OPTIONS = function ()
       return { status = 200 }
     end,
@@ -67,38 +58,16 @@ return function (app)
   })
 
   app:match ("/projects/:project(/)", respond_to {
-    HEAD = function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
-      local project = Model.projects:find (id)
-      if not project then
-        return {
-          status = 404,
-        }
-      end
+    HEAD = Decorators.param_is_project "project"
+        .. function ()
       return {
         status = 200,
       }
     end,
-    GET = function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
-      local project = Model.projects:find (id)
-      if not project then
-        return {
-          status = 404,
-        }
-      end
+    GET = Decorators.param_is_project "project"
+       .. function (self)
       local resources = {}
-      for i, resource in ipairs (project:get_resources () or {}) do
+      for i, resource in ipairs (self.project:get_resources () or {}) do
         resources [i] = {
           id          = resource.id,
           name        = resource.name,
@@ -108,102 +77,54 @@ return function (app)
       return {
         status = 200,
         json   = {
-          id          = project.id,
-          owner       = project.user_id,
-          name        = project.name,
-          description = project.description,
+          id          = self.project.id,
+          owner       = self.project.user_id,
+          name        = self.project.name,
+          description = self.project.description,
           resources   = resources,
         },
       }
     end,
-    PATCH = json_params (function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
-      if not self.token then
-        return {
-          status = 401,
-        }
-      end
-      local project = Model.projects:find (id)
-      if not project then
-        return {
-          status = 404,
-        }
-      end
-      local user = Model.identities:find (self.token.sub)
-      if not user or user.user_id ~= project.user_id then
+    PATCH = json_params
+         .. Decorators.param_is_project "project"
+         .. Decorators.is_authentified
+         .. function (self)
+      if self.authentified.id ~= self.project.user_id then
         return {
           status = 403,
         }
       end
-      print (self.params.name)
-      print (self.params.description)
-      project:update {
+      self.project:update {
         name        = self.params.name,
         description = self.params.description,
       }
       return {
         status = 204,
       }
-    end),
-    DELETE = function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
-      if not self.token then
-        return {
-          status = 401,
-        }
-      end
-      local project = Model.projects:find (id)
-      if not project then
-        return {
-          status = 404,
-        }
-      end
-      local user = Model.identities:find (self.token.sub)
-      if not user or user.user_id ~= project.user_id then
+    end,
+    DELETE = Decorators.param_is_project "project"
+          .. Decorators.is_authentified
+          .. function (self)
+      if self.authentified.id ~= self.project.user_id then
         return {
           status = 403,
         }
       end
-      project:delete ()
+      self.project:delete ()
       return {
         status = 204,
       }
     end,
-    OPTIONS = function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
+    OPTIONS = Decorators.param_is_serial "project"
+           .. function ()
       return { status = 200 }
     end,
-    PUT = function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
+    PUT = Decorators.param_is_serial "project"
+       .. function ()
       return { status = 405 }
     end,
-    POST = function (self)
-      local id = Util.unescape (self.params.project)
-      if not tonumber (id) then
-        return {
-          status = 400,
-        }
-      end
+    POST = Decorators.param_is_serial "project"
+        .. function ()
       return { status = 405 }
     end,
   })

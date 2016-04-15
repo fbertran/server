@@ -2,6 +2,7 @@ local respond_to  = require "lapis.application".respond_to
 local json_params = require "lapis.application".json_params
 local Model       = require "cosy.server.model"
 local Util        = require "lapis.util"
+local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
@@ -63,27 +64,15 @@ return function (app)
   })
 
   app:match ("/users/:user(/)", respond_to {
-    HEAD = function (self)
-      local id   = Util.unescape (self.params.user)
-      local user = Model.identities:find (id)
-      if not user then
-        return {
-          status = 404,
-        }
-      end
+    HEAD = Decorators.param_is_user "user"
+        .. function ()
       return {
         status = 200,
       }
     end,
-    GET = function (self)
-      local id   = Util.unescape (self.params.user)
-      local user = Model.identities:find (id)
-      if not user then
-        return {
-          status = 404,
-        }
-      end
-      user = user:get_user ()
+    GET = Decorators.param_is_user "user"
+       .. function (self)
+      local id = Util.unescape (self.params.user)
       local info, status = app.auth0 ("/users/" .. Util.escape (id))
       if status ~= 200 then
         return {
@@ -91,7 +80,7 @@ return function (app)
         }
       end
       local projects = {}
-      for i, project in ipairs (user:get_projects () or {}) do
+      for i, project in ipairs (self.user:get_projects () or {}) do
         projects [i] = {
           id          = project.id,
           name        = project.name,
@@ -103,7 +92,7 @@ return function (app)
       return {
         status = 200,
         json   = {
-          id       = user.user_id,
+          id       = self.user.id,
           name     = info.name,
           nickname = info.nickname,
           company  = info.company,
@@ -113,49 +102,29 @@ return function (app)
         },
       }
     end,
-    PATCH = json_params (function (self)
-      local id = Util.unescape (self.params.user)
-      if not self.token then
-        return {
-          status = 401,
-        }
-      end
-      if self.token.sub ~= id then
+    PATCH = json_params
+         .. Decorators.is_authentified
+         .. Decorators.param_is_user "user"
+         .. function (self)
+      if self.authentified.id ~= self.user.id then
         return {
           status = 403,
         }
       end
-      local user = Model.identities:find (id)
-      if not user then
-        return {
-          status = 404,
-        }
-      end
-      user:update {}
+      self.user:update {}
       return {
         status = 204,
       }
-    end),
-    DELETE = function (self)
-      local id = Util.unescape (self.params.user)
-      if not self.token then
-        return {
-          status = 401,
-        }
-      end
-      if self.token.sub ~= id then
+    end,
+    DELETE = Decorators.is_authentified
+          .. Decorators.param_is_user "user"
+          .. function (self)
+      if self.authentified.id ~= self.user.id then
         return {
           status = 403,
         }
       end
-      local user = Model.identities:find (id)
-      if not user then
-        return {
-          status = 404,
-        }
-      end
-      user = user:get_user ()
-      user:delete ()
+      self.user:delete ()
       return {
         status = 204,
       }

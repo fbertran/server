@@ -151,7 +151,7 @@ for name, environment in pairs (Test.environments) do
           method  = "PATCH",
           headers = { Authorization = "Bearer " .. token},
         })
-        assert.are.same (status, 403)
+        assert.are.same (status, 404)
       end)
 
       it ("answers to PATCH with Authorization", function ()
@@ -185,7 +185,7 @@ for name, environment in pairs (Test.environments) do
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
         })
-        assert.are.same (status, 403)
+        assert.are.same (status, 404)
       end)
 
       it ("answers to DELETE with Authorization", function ()

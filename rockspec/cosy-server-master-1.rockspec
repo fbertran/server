@@ -31,6 +31,7 @@ build = {
     ["cosy.server.app.auth0"      ] = "src/cosy/server/app/auth0.lua",
     ["cosy.server.app.user"       ] = "src/cosy/server/app/user.lua",
     ["cosy.server.app.project"    ] = "src/cosy/server/app/project.lua",
+    ["cosy.server.decorators"     ] = "src/cosy/server/decorators.lua",
     ["cosy.server.model"          ] = "src/cosy/server/model.lua",
     ["cosy.webclient"             ] = "src/cosy/webclient/init.lua",
     ["cosy.webclient.headbar"     ] = "src/cosy/webclient/headbar/init.lua",
