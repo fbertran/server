@@ -354,7 +354,7 @@ do
     local s = os.execute (Et.render ([[
       if [ -d bin ]; then
         . "<%= prefix %>/bin/realpath.sh"
-        shellcheck --exclude=SC2024 --exclude=SC1008 $(realpath bin/*) -x
+        shellcheck --exclude=SC2024 --exclude=SC1008 --exclude=SC1091 $(realpath bin/*)
       fi
     ]], {
       prefix = prefix,
