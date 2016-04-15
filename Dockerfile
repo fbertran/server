@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM debian:testing
 MAINTAINER Alban Linard <alban@linard.fr>
 
 RUN apt-get update
