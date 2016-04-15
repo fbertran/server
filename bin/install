@@ -124,7 +124,7 @@ fi
 }
 
 # Fix prefix to always be an absolute path:
-# shellcheck source=dependencies/sh-realpath/realpath.sh
+# shellcheck disable=SC1091 disable=SC1090
 . "${cosy_prefix}/bin/realpath.sh"
 cosy_prefix=$(realpath "${cosy_prefix}")
 cosy_temp=$(realpath "${cosy_temp}")
