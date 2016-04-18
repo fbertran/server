@@ -1,7 +1,8 @@
 local respond_to  = require "lapis.application".respond_to
 local json_params = require "lapis.application".json_params
-local Model       = require "cosy.server.model"
 local Util        = require "lapis.util"
+local Config      = require "lapis.config".get ()
+local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 
 return function (app)
@@ -9,19 +10,13 @@ return function (app)
   app:match ("/users(/)", respond_to {
     HEAD = function ()
       return {
-        status = 200,
+        status = 204,
       }
     end,
     GET = function ()
-      local users = {}
-      for i, user in ipairs (Model.identities:select ()) do
-        users [i] = {
-          id = user.id,
-        }
-      end
       return {
         status = 200,
-        json   = users,
+        json   = Model.users:select () or {},
       }
     end,
     POST = function (self)
@@ -37,20 +32,40 @@ return function (app)
           status = 409,
         }
       end
-      user = Model.users:create {}
+      local info
+      if Config._name == "test" then
+        info = {
+          email    = nil,
+          name     = "Alban Linard",
+          nickname = "saucisson",
+          picture  = "https://avatars.githubusercontent.com/u/1818862?v=3",
+        }
+      else
+        local status
+        info, status = app.auth0 ("/users/" .. Util.escape (id))
+        if status ~= 200 then
+          return {
+            status = 500,
+          }
+        end
+      end
+      user = Model.users:create {
+        email    = info.email,
+        name     = info.name,
+        nickname = info.nickname,
+        picture  = info.picture,
+      }
       Model.identities:create {
         id      = id,
         user_id = user.id,
       }
       return {
-        status = 200,
-        json   = {
-          id = user.id,
-        },
+        status = 201,
+        json   = user,
       }
     end,
     OPTIONS = function ()
-      return { status = 200 }
+      return { status = 204 }
     end,
     DELETE = function ()
       return { status = 405 }
@@ -67,39 +82,32 @@ return function (app)
     HEAD = Decorators.param_is_user "user"
         .. function ()
       return {
-        status = 200,
+        status = 204,
       }
     end,
     GET = Decorators.param_is_user "user"
        .. function (self)
       local id = Util.unescape (self.params.user)
-      local info, status = app.auth0 ("/users/" .. Util.escape (id))
-      if status ~= 200 then
-        return {
-          status = 500,
-        }
+      if  Config._name ~= "test"
+      and self.token and Model.identities:find (self.token.sub) then
+        local info, status = app.auth0 ("/users/" .. Util.escape (id))
+        if status == 200 then
+          self.user:update {
+            email    = info.email,
+            name     = info.name,
+            nickname = info.nickname,
+            picture  = info.picture,
+          }
+        end
       end
-      local projects = {}
-      for i, project in ipairs (self.user:get_projects () or {}) do
-        projects [i] = {
-          id          = project.id,
-          name        = project.name,
-          description = project.description,
-          stars       = # (project:get_stars () or {}),
-          tags        = project:get_tags () or {},
-        }
+      self.user.projects = self.user:get_projects () or {}
+      for _, project in ipairs (self.user.projects) do
+        project.stars = # project:get_stars ()
+        project.tags  = project:get_tags  ()
       end
       return {
         status = 200,
-        json   = {
-          id       = self.user.id,
-          name     = info.name,
-          nickname = info.nickname,
-          company  = info.company,
-          location = info.location,
-          avatar   = info.picture,
-          projects = projects,
-        },
+        json   = self.user,
       }
     end,
     PATCH = json_params
@@ -130,7 +138,7 @@ return function (app)
       }
     end,
     OPTIONS = function ()
-      return { status = 200 }
+      return { status = 204 }
     end,
     PUT = function ()
       return { status = 405 }

@@ -21,7 +21,7 @@ for name, environment in pairs (Test.environments) do
         local status = request (app, "/users", {
           method = "HEAD",
         })
-        assert.are.same (status, 200)
+        assert.are.same (status, 204)
       end)
 
       it ("answers to GET", function ()
@@ -35,7 +35,7 @@ for name, environment in pairs (Test.environments) do
         local status = request (app, "/users", {
           method = "OPTIONS",
         })
-        assert.are.same (status, 200)
+        assert.are.same (status, 204)
       end)
 
       it ("answers to POST without Authorization", function ()
@@ -70,7 +70,7 @@ for name, environment in pairs (Test.environments) do
           method  = "POST",
           headers = { Authorization = "Bearer " .. token},
         })
-        assert.are.same (status, 200)
+        assert.are.same (status, 201)
         result = Util.from_json (result)
         assert.is.not_nil (result.id)
       end)
@@ -95,7 +95,7 @@ for name, environment in pairs (Test.environments) do
             method  = "POST",
             headers = { Authorization = "Bearer " .. token},
           })
-          assert.are.same (status, 200)
+          assert.are.same (status, 201)
         end
       end)
 
@@ -110,7 +110,7 @@ for name, environment in pairs (Test.environments) do
         local status = request (app, "/users/" .. Test.identities.rahan, {
           method = "HEAD",
         })
-        assert.are.same (status, 200)
+        assert.are.same (status, 204)
       end)
 
       it ("answers to GET for a non-existing existing user", function ()
@@ -201,7 +201,7 @@ for name, environment in pairs (Test.environments) do
         local status = request (app, "/users/" .. Test.identities.rahan, {
           method = "OPTIONS",
         })
-        assert.are.same (status, 200)
+        assert.are.same (status, 204)
       end)
 
       for _, method in ipairs { "PUT", "POST" } do

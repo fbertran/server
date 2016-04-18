@@ -24,6 +24,14 @@ result.users = Model:extend ("users", {
 result.stars = Model:extend ("stars", {
   timestamp   = true,
   primary_key = { "user_id", "project_id" },
+  relations   = {
+    { "user",
+      belongs_to = "users",
+    },
+    { "project",
+      has_many = "projects",
+    },
+  }
 })
 
 result.projects = Model:extend ("projects", {

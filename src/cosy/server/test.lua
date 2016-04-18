@@ -25,7 +25,7 @@ Test.environments.server = {
 
 Test.identities = {
   rahan = "github|1818862",
-  crao  = "github|199517",
+  crao  = "google-oauth2|103410538451613086005",
 }
 
 function Test.make_token (user_id)

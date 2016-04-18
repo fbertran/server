@@ -48,6 +48,11 @@ parser:option "--output" {
   description = "output directory",
   default     = "output",
 }
+parser:option "--tags" {
+  description = "busted tags",
+  default     = nil,
+}
+
 
 local arguments = parser:parse ()
 
@@ -86,9 +91,10 @@ end
 -- ======
 do
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --coverage --verbose src/
+    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --coverage "<%= tags %>" --verbose src/
   ]], {
     prefix = prefix,
+    tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   -- status = os.execute (Et.render ([[
   --   LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --output=<%= format %> --coverage src/ > <%= output %> 2> /dev/null

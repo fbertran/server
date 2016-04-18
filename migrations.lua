@@ -4,6 +4,10 @@ return {
   [1] = function ()
     Schema.create_table ("users", {
       { "id"        , Schema.types.serial { primary_key = true } },
+      { "email"     , Schema.types.text   { null        = true } },
+      { "name"      , Schema.types.text    },
+      { "nickname"  , Schema.types.text    },
+      { "picture"   , Schema.types.text    },
       { "reputation", Schema.types.integer },
       { "created_at", Schema.types.time    },
       { "updated_at", Schema.types.time    },
