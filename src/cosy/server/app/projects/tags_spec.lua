@@ -1,5 +1,5 @@
-local Util   = require "lapis.util"
-local Test   = require "cosy.server.test"
+local Util = require "lapis.util"
+local Test = require "cosy.server.test"
 
 for name, environment in pairs (Test.environments) do
   local request = environment.request

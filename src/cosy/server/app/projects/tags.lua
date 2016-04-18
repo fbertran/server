@@ -1,5 +1,4 @@
 local respond_to  = require "lapis.application".respond_to
-local json_params = require "lapis.application".json_params
 local Util        = require "lapis.util"
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
@@ -67,10 +66,9 @@ return function (app)
         json   = tag,
       }
     end,
-    PUT = json_params
-         .. Decorators.param_is_project "project"
-         .. Decorators.is_authentified
-         .. function (self)
+    PUT = Decorators.param_is_project "project"
+       .. Decorators.is_authentified
+       .. function (self)
       if self.authentified.id ~= self.project.user_id then
         return {
           status = 403,

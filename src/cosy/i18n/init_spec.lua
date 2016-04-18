@@ -28,7 +28,7 @@ describe ("Module cosy.i18n", function ()
     end)
   end)
 
-  it ("can make use of translations #current", function ()
+  it ("can make use of translations", function ()
     local I18n = require "cosy.i18n"
     local i18n = I18n.new () + {
       key = {

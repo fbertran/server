@@ -33,6 +33,7 @@ build = {
     ["cosy.server.app.projects"      ] = "src/cosy/server/app/projects/init.lua",
     ["cosy.server.app.projects.stars"] = "src/cosy/server/app/projects/stars.lua",
     ["cosy.server.app.projects.tags" ] = "src/cosy/server/app/projects/tags.lua",
+    ["cosy.server.app.tags"          ] = "src/cosy/server/app/tags.lua",
     ["cosy.server.decorators"        ] = "src/cosy/server/decorators.lua",
     ["cosy.server.model"             ] = "src/cosy/server/model.lua",
     ["cosy.webclient"                ] = "src/cosy/webclient/init.lua",
