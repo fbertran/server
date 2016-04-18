@@ -1,4 +1,3 @@
-local Db   = require "lapis.db"
 local Test = require "cosy.server.test"
 
 for name, environment in pairs (Test.environments) do

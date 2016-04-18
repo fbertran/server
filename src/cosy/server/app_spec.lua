@@ -50,19 +50,19 @@ for name, environment in pairs (Test.environments) do
       })
       assert.are.same (status, 201)
       -- Get user:
-      status, result = request (app, "/users/" .. Test.identities.rahan, {
+      status = request (app, "/users/" .. Test.identities.rahan, {
         method  = "GET",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 200)
-      print (result)
+      -- print (result)
       -- Get all users:
-      status, result = request (app, "/users", {
+      status = request (app, "/users", {
         method  = "GET",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 200)
-      print (result)
+      -- print (result)
       -- Delete user:
       status = request (app, "/users/" .. Test.identities.rahan, {
         method  = "DELETE",
