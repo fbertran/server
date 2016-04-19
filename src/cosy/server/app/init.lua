@@ -1,9 +1,6 @@
 local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
-local Http       = require "lapis.nginx.http"
-local Util       = require "lapis.util"
-local Ltn12      = require "ltn12"
 local app        = Lapis.Application ()
 
 require "cosy.server.app.auth0"          (app)
@@ -12,20 +9,6 @@ require "cosy.server.app.users"          (app)
 require "cosy.server.app.projects"       (app)
 require "cosy.server.app.projects.tags"  (app)
 require "cosy.server.app.projects.stars" (app)
-
-function app.auth0 (url)
-  print ("auth0", Config._name)
-  local result = {}
-  local _, status = Http.request {
-    url     = Config.auth0.api_url .. url,
-    sink    = Ltn12.sink.table (result),
-    headers = {
-      Authorization = "Bearer " .. Config.auth0.api_token,
-    },
-  }
-  return Util.from_json (table.concat (result)), status
-end
-
 
 app.layout = false
 

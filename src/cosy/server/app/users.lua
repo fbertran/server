@@ -4,8 +4,24 @@ local Util        = require "lapis.util"
 local Config      = require "lapis.config".get ()
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
+local Ltn12       = require "ltn12"
+local Http        = Config._name == "test"
+                and require "ssl.https"
+                 or require "lapis.nginx.http"
 
 return function (app)
+
+  local function auth0 (url)
+    local result = {}
+    local _, status = Http.request {
+      url      = Config.auth0.api_url .. url,
+      sink     = Ltn12.sink.table (result),
+      headers  = {
+        Authorization = "Bearer " .. Config.auth0.api_token,
+      },
+    }
+    return Util.from_json (table.concat (result)), status
+  end
 
   app:match ("/users(/)", respond_to {
     HEAD = function ()
@@ -29,11 +45,11 @@ return function (app)
       local user = Model.identities:find (id)
       if user then
         return {
-          status = 409,
+          status = 202,
         }
       end
       local info
-      if Config._name == "test" then
+      if Config._name == "test" and not self.req.headers ["Force"] then
         info = {
           email    = nil,
           name     = "Alban Linard",
@@ -42,7 +58,7 @@ return function (app)
         }
       else
         local status
-        info, status = app.auth0 ("/users/" .. Util.escape (id))
+        info, status = auth0 ("/users/" .. Util.escape (id))
         if status ~= 200 then
           return {
             status = 500,
@@ -88,9 +104,8 @@ return function (app)
     GET = Decorators.param_is_user "user"
        .. function (self)
       local id = Util.unescape (self.params.user)
-      if  Config._name ~= "test"
-      and self.token and Model.identities:find (self.token.sub) then
-        local info, status = app.auth0 ("/users/" .. Util.escape (id))
+      if self.token and Model.identities:find (self.token.sub) then
+        local info, status = auth0 ("/users/" .. Util.escape (id))
         if status == 200 then
           self.user:update {
             email    = info.email,

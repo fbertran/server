@@ -55,6 +55,34 @@ describe ("cosyverif api", function ()
       assert.is.not_nil (result.id)
     end)
 
+    it ("answers to POST with Authorization and Auth0 connection", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status, result = request (app, "/users", {
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+          Force         = "true",
+        },
+      })
+      assert.are.same (status, 201)
+      result = Util.from_json (result)
+      assert.is.not_nil (result.id)
+    end)
+
+    it ("answers to POST an existing user with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users", {
+        method  = "POST",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 201)
+      status = request (app, "/users", {
+        method  = "POST",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 202)
+    end)
+
     for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
       it ("does not answer to " .. method, function ()
         local status = request (app, "/users", {
@@ -103,6 +131,17 @@ describe ("cosyverif api", function ()
     it ("answers to GET for an existing user", function ()
       local status, result = request (app, "/users/" .. Test.identities.rahan, {
         method = "GET",
+      })
+      assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.are.same (result.nickname, "saucisson")
+    end)
+
+    it ("answers to GET for a connected user", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status, result = request (app, "/users/" .. Test.identities.rahan, {
+        method  = "GET",
+        headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 200)
       result = Util.from_json (result)
