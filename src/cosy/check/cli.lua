@@ -90,19 +90,21 @@ end
 -- busted
 -- ======
 do
+  os.execute [[
+    rm -f luacov.*
+  ]]
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --coverage "<%= tags %>" --verbose src/
+    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" "<%= tags %>" --verbose src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
-  -- status = os.execute (Et.render ([[
-  --   LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" --output=<%= format %> --coverage src/ > <%= output %> 2> /dev/null
-  -- ]], {
-  --   prefix = prefix,
-  --   format = arguments.test_format,
-  --   output = arguments.output .. "/test-results",
-  -- })) and status
+  status = os.execute (Et.render ([[
+    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%= prefix %>/bin/busted" --coverage "<%= tags %>" --verbose src/
+  ]], {
+    prefix = prefix,
+    tags   = arguments.tags and "--tags=" .. arguments.tags,
+  })) == 0 and status
   print ()
 end
 
@@ -151,12 +153,12 @@ do
     elseif output then
       output:write (line .. "\n")
     else
-      local filename = line:match "/(cosy/.-%.lua)$"
+      local filename = line:match "src/(cosy/.-%.lua)"
       if filename and filename:match "^cosy" then
         line = line:gsub ("\t", " ")
         local parts = line:split " "
         if #parts == 4 and parts [4] ~= "" then
-          report [filename] = tonumber (parts [3]:match "([0-9%.]+)%%")
+          report [filename] = tonumber (parts [4]:match "([0-9%.]+)%%")
         end
       end
     end
@@ -180,7 +182,7 @@ do
   for i = 1, #keys do
     local k = keys   [i]
     local v = report [k]
-    if not k:match "/share/lua/" then
+    if not k:match "/share/lua/" and not k:match "_spec.lua" then
       local color
       if v == 100 then
         color = "%{bright green}"

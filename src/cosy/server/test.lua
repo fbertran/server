@@ -1,27 +1,38 @@
-local Jwt    = require "jwt"
-local Config = require "lapis.config".get ()
-local Time   = require "socket".gettime
-local Db     = require "lapis.db"
+local In_test   = require "lapis.spec".use_test_env
+local In_server = require "lapis.spec".use_test_server
+local Jwt       = require "jwt"
+local Time      = require "socket".gettime
 
 local Test = {}
 
-Test.environments = {}
-
-Test.environments.server = {
-  app     = nil,
-  use     = require "lapis.spec".use_test_server,
-  request = function (_, ...)
-    return require "lapis.spec.server".request (...)
-  end,
-}
-
--- if not os.getenv "Apple_PubSub_Socket_Render" then
---   environments.mock = {
---     app     = require "cosy.server.app",
---     use     = require "lapis.spec".use_test_env,
---     request = require "lapis.spec.request".mock_request,
---   }
--- end
+if os.getenv "RUN_COVERAGE" then
+  Test.environment = {
+    app     = function ()
+      return require "cosy.server.app"
+    end,
+    use     = function ()
+      In_test ()
+    end,
+    request = function ()
+      return require "lapis.spec.request".mock_request
+    end,
+  }
+else
+  Test.environment = {
+    app     = function ()
+      return nil
+    end,
+    use     = function ()
+      In_test   ()
+      In_server ()
+    end,
+    request = function ()
+      return function (_, ...)
+        return require "lapis.spec.server".request (...)
+      end
+    end,
+  }
+end
 
 Test.identities = {
   rahan = "github|1818862",
@@ -29,6 +40,7 @@ Test.identities = {
 }
 
 function Test.make_token (user_id)
+  local Config = require "lapis.config".get ()
   local claims = {
     iss = "https://cosyverif.eu.auth0.com",
     sub = user_id,
@@ -43,6 +55,7 @@ function Test.make_token (user_id)
 end
 
 function Test.clean_db ()
+  local Db = require "lapis.db"
   Db.delete "executions"
   Db.delete "identities"
   Db.delete "projects"

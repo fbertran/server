@@ -2,9 +2,7 @@ local Model = require "cosy.server.model"
 local Util  = require "lapis.util"
 
 do
-  local Function = debug.getmetatable (function () end)
-  assert (Function == nil)
-  Function = {}
+  local Function = debug.getmetatable (function () end) or {}
   function Function.__concat (lhs, rhs)
     assert (type (lhs) == "function")
     assert (type (rhs) == "function")

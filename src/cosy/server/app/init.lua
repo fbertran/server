@@ -14,6 +14,7 @@ require "cosy.server.app.projects.tags"  (app)
 require "cosy.server.app.projects.stars" (app)
 
 function app.auth0 (url)
+  print ("auth0", Config._name)
   local result = {}
   local _, status = Http.request {
     url     = Config.auth0.api_url .. url,
