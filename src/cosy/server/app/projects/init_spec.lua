@@ -3,17 +3,11 @@ local Test = require "cosy.server.test"
 describe ("cosyverif api", function ()
   Test.environment.use ()
 
-  local Jwt
-  local Config
-  local Time
   local Util
   local request
   local app
 
   before_each (function ()
-    Jwt     = require "jwt"
-    Config  = require "lapis.config".get ()
-    Time    = require "socket".gettime
     Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
@@ -46,25 +40,6 @@ describe ("cosyverif api", function ()
     it ("answers to POST without Authorization", function ()
       local status = request (app, "/projects", {
         method = "POST",
-      })
-      assert.are.same (status, 401)
-    end)
-
-    it ("answers to POST with wrong Authorization", function ()
-      local claims = {
-        iss = "https://cosyverif.eu.auth0.com",
-        sub = "github|1818862",
-        aud = Config.auth0.client_id,
-        exp = Time () + 10 * 3600,
-        iat = Time (),
-      }
-      local token = Jwt.encode (claims, {
-        alg  = "HS256",
-        keys = { private = Config.auth0.client_id }
-      })
-      local status = request (app, "/projects", {
-        method  = "POST",
-        headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 401)
     end)
