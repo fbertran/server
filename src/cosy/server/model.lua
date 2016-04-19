@@ -3,7 +3,8 @@ local result = {}
 
 result.identities = Model:extend ("identities", {
   relations = {
-    { "user",
+    {
+      "user",
       belongs_to = "users",
     },
   },
@@ -12,10 +13,12 @@ result.identities = Model:extend ("identities", {
 result.users = Model:extend ("users", {
   timestamp   = true,
   relations   = {
-    { "projects",
+    {
+      "projects",
       has_many = "projects",
     },
-    { "identities",
+    {
+      "identities",
       has_many = "identities",
     },
   },
@@ -23,12 +26,15 @@ result.users = Model:extend ("users", {
 
 result.stars = Model:extend ("stars", {
   timestamp   = true,
-  primary_key = { "user_id", "project_id" },
+  primary_key = {
+      "user_id", "project_id" },
   relations   = {
-    { "user",
+    {
+      "user",
       belongs_to = "users",
     },
-    { "project",
+    {
+      "project",
       has_many = "projects",
     },
   }
@@ -37,16 +43,20 @@ result.stars = Model:extend ("stars", {
 result.projects = Model:extend ("projects", {
   timestamp   = true,
   relations   = {
-    { "user",
+    {
+      "user",
       belongs_to = "users",
     },
-    { "resources",
+    {
+      "resources",
       has_many = "resources",
     },
-    { "tags",
+    {
+      "tags",
       has_many = "tags",
     },
-    { "stars",
+    {
+      "stars",
       has_many = "stars",
     },
   },
@@ -54,9 +64,11 @@ result.projects = Model:extend ("projects", {
 
 result.tags = Model:extend ("tags", {
   timestamp   = true,
-  primary_key = { "id", "project_id" },
+  primary_key = {
+      "id", "project_id" },
   relations   = {
-    { "project",
+    {
+      "project",
       belongs_to = "projects",
     },
   },
@@ -65,7 +77,8 @@ result.tags = Model:extend ("tags", {
 result.resources = Model:extend ("resources", {
   timestamp   = true,
   relations   = {
-    { "project",
+    {
+      "project",
       belongs_to = "projects",
     },
   },
@@ -74,7 +87,8 @@ result.resources = Model:extend ("resources", {
 result.executions = Model:extend ("executions", {
   timestamp   = true,
   relations   = {
-    { "resource",
+    {
+      "resource",
       belongs_to = "resources",
     },
   },
