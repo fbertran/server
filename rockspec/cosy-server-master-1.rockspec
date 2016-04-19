@@ -20,6 +20,7 @@ dependencies = {
   "jwt",
   "lapis",
   "layeredata",
+  "lustache",
 }
 
 build = {

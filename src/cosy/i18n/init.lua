@@ -1,6 +1,6 @@
-local Et     = require "etlua"
-local Layer  = require "layeredata"
-local Plural = require "i18n.plural"
+local Layer    = require "layeredata"
+local Lustache = require "lustache"
+local Plural   = require "i18n.plural"
 
 local Metatable = {}
 
@@ -105,7 +105,7 @@ function Message.__mod (message, context)
       t [k .. "~" .. Plural.get (locale, v)] = true
     end
   end
-  return Et.render (result, t)
+  return Lustache:render (result, t)
 end
 
 return I18n

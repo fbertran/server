@@ -65,6 +65,18 @@ describe ("Module cosy.i18n", function ()
     }, "key translation")
   end)
 
+  it ("automatically defines plural keys for numbers", function ()
+    local I18n = require "cosy.i18n"
+    local i18n = I18n.new () + {
+      key = {
+        en = "{{#n~one}}one{{/n~one}}{{#n~other}}other{{/n~other}}",
+      }
+    }
+    assert.are.equal (i18n.key % {
+      n = 2,
+    }, "other")
+  end)
+
   it ("handles tables", function ()
     local I18n = require "cosy.i18n"
     local i18n = I18n.new () + {
@@ -83,6 +95,25 @@ describe ("Module cosy.i18n", function ()
         message = "key translation",
       },
     })
+  end)
+
+  it ("can be applied on tables using the _ key", function ()
+    local I18n = require "cosy.i18n"
+    local i18n = I18n.new () + {
+      key = {
+        en = "key translation",
+      }
+    }
+    local result = I18n {
+      _ = i18n ["key"],
+    }
+    assert.are.equal (result.message, "key translation")
+  end)
+
+  it ("do not fail when applied on a non-table value", function ()
+    local I18n = require "cosy.i18n"
+    local result = I18n (true)
+    assert.are.equal (result, true)
   end)
 
 end)
