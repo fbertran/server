@@ -59,11 +59,7 @@ return function (app)
       else
         local status
         info, status = auth0 ("/users/" .. Util.escape (id))
-        if status ~= 200 then
-          return {
-            status = 500,
-          }
-        end
+        assert (status == 200)
       end
       user = Model.users:create {
         email    = info.email,
@@ -95,14 +91,14 @@ return function (app)
   })
 
   app:match ("/users/:user(/)", respond_to {
-    HEAD = Decorators.param_is_user "user"
-        .. function ()
+    HEAD = Decorators.param_is_user "user" ..
+           function ()
       return {
         status = 204,
       }
     end,
-    GET = Decorators.param_is_user "user"
-       .. function (self)
+    GET = Decorators.param_is_user "user" ..
+          function (self)
       local id = Util.unescape (self.params.user)
       if self.token and Model.identities:find (self.token.sub) then
         local info, status = auth0 ("/users/" .. Util.escape (id))
@@ -125,10 +121,10 @@ return function (app)
         json   = self.user,
       }
     end,
-    PATCH = json_params
-         .. Decorators.is_authentified
-         .. Decorators.param_is_user "user"
-         .. function (self)
+    PATCH = json_params ..
+            Decorators.is_authentified ..
+            Decorators.param_is_user "user" ..
+            function (self)
       if self.authentified.id ~= self.user.id then
         return {
           status = 403,
@@ -139,9 +135,9 @@ return function (app)
         status = 204,
       }
     end,
-    DELETE = Decorators.is_authentified
-          .. Decorators.param_is_user "user"
-          .. function (self)
+    DELETE = Decorators.is_authentified ..
+             Decorators.param_is_user "user" ..
+             function (self)
       if self.authentified.id ~= self.user.id then
         return {
           status = 403,

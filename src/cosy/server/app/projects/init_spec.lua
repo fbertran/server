@@ -16,6 +16,22 @@ describe ("cosyverif api", function ()
 
   describe ("route '/projects'", function ()
 
+    before_each (function ()
+      local token  = Test.make_token (Test.identities.crao)
+      local status, result = request (app, "/users", {
+        method  = "POST",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 201)
+      result = Util.from_json (result)
+      assert.is.not_nil (result.id)
+      status = request (app, "/projects", {
+        method  = "POST",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 201)
+    end)
+
     it ("answers to HEAD", function ()
       local status = request (app, "/projects", {
         method = "HEAD",
@@ -24,10 +40,12 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to GET", function ()
-      local status = request (app, "/projects", {
+      local status, result = request (app, "/projects", {
         method = "GET",
       })
       assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert (#result == 1)
     end)
 
     it ("answers to OPTIONS", function ()

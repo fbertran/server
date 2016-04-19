@@ -18,12 +18,11 @@ app.handle_404 = function ()
   }
 end
 
-app.handle_error = function (_, err, trace)
-  print (err, trace)
-  return {
-    status = 500,
-  }
-end
+-- app.handle_error = function () -- (_, err, trace)
+--   return {
+--     status = 200,
+--   }
+-- end
 
 app:match ("/", respond_to {
   GET = function ()
