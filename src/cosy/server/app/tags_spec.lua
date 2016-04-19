@@ -57,10 +57,12 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to GET", function ()
-      local status = request (app, "/tags", {
+      local status, result = request (app, "/tags", {
         method = "GET",
       })
       assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.are.equal (#result, 3)
     end)
 
     it ("answers to OPTIONS", function ()
@@ -138,10 +140,12 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to GET for an existing tag", function ()
-      local status = request (app, "/tags/rahan", {
+      local status, result = request (app, "/tags/rahan", {
         method = "GET",
       })
       assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.are.equal (#result, 1)
     end)
 
     it ("answers to OPTIONS", function ()

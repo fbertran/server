@@ -11,7 +11,7 @@ return function (app)
       }
     end,
     GET = function ()
-      local tags = Db.select "distinct created_at, updated_at, id from tags" or {}
+      local tags = Db.select "id, count (1) as count from tags group by id" or {}
       return {
         status = 200,
         json   = tags,
@@ -49,7 +49,7 @@ return function (app)
     end,
     GET = function (self)
       local id   = Util.unescape (self.params.tag)
-      local tags = Db.select ("distinct created_at, updated_at, id from tags where id = ?", id) or {}
+      local tags = Db.select ("id, project_id, created_at, updated_at from tags where id = ?", id) or {}
       if #tags == 0 then
         return {
           status = 404,
