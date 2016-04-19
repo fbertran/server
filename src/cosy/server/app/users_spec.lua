@@ -134,6 +134,20 @@ describe ("cosyverif api", function ()
       assert.are.same (status, 404)
     end)
 
+    it ("answers to PATCH for a deleted user with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users/" .. Test.identities.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
+      status = request (app, "/users/" .. Test.identities.rahan, {
+        method  = "PATCH",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 401)
+    end)
+
     it ("answers to PATCH with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
       local status = request (app, "/users/" .. Test.identities.rahan, {
