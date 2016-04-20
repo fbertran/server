@@ -4,7 +4,7 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
-  app:match ("/projects/:project/stars(/)", respond_to {
+  app:match ("/projects/:project/stars", respond_to {
     HEAD = Decorators.param_is_project "project" ..
            function ()
       return {
@@ -19,8 +19,8 @@ return function (app)
         json   = stars,
       }
     end,
-    PUT = Decorators.param_is_project "project" ..
-          Decorators.is_authentified ..
+    PUT = Decorators.is_authentified ..
+          Decorators.param_is_project "project" ..
           function (self)
       local exists = Model.stars:find {
         user_id    = self.authentified.id,
@@ -39,8 +39,8 @@ return function (app)
         status = 201,
       }
     end,
-    DELETE = Decorators.param_is_project "project" ..
-             Decorators.is_authentified ..
+    DELETE = Decorators.is_authentified ..
+             Decorators.param_is_project "project" ..
              function (self)
       local exists = Model.stars:find {
         user_id    = self.authentified.id,
@@ -48,7 +48,7 @@ return function (app)
       }
       if not exists then
         return {
-          status = 202,
+          status = 404,
         }
       end
       exists:delete ()

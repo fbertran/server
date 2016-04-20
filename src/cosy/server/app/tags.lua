@@ -4,7 +4,7 @@ local Db          = require "lapis.db"
 
 return function (app)
 
-  app:match ("/tags(/)", respond_to {
+  app:match ("/tags", respond_to {
     HEAD = function ()
       return {
         status = 204,
@@ -34,7 +34,7 @@ return function (app)
     end,
   })
 
-  app:match ("/tags/(:tag)(/)", respond_to {
+  app:match ("/tags/(:tag)", respond_to {
     HEAD = function (self)
       local id   = Util.unescape (self.params.tag)
       local tags = Db.select ("id from tags where id = ? limit 1", id) or {}

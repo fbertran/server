@@ -203,7 +203,7 @@ describe ("cosyverif api", function ()
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
-      assert.are.same (status, 202)
+      assert.are.same (status, 404)
     end)
 
     it ("answers to OPTIONS", function ()
@@ -224,8 +224,10 @@ describe ("cosyverif api", function ()
 
     for _, method in ipairs { "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "PUT", "POST" } do
       it ("correcly fails for invalid argument to " .. method, function ()
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/invalid/stars", {
           method = method,
+          headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 400)
       end)

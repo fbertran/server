@@ -23,7 +23,7 @@ return function (app)
     return Util.from_json (table.concat (result)), status
   end
 
-  app:match ("/users(/)", respond_to {
+  app:match ("/users", respond_to {
     HEAD = function ()
       return {
         status = 204,
@@ -90,7 +90,7 @@ return function (app)
     end,
   })
 
-  app:match ("/users/:user(/)", respond_to {
+  app:match ("/users/:user", respond_to {
     HEAD = Decorators.param_is_user "user" ..
            function ()
       return {

@@ -276,8 +276,10 @@ describe ("cosyverif api", function ()
 
     for _, method in ipairs { "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "PUT", "POST" } do
       it ("correcly fails for invalid argument to " .. method, function ()
+        local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/projects/invalid", {
           method = method,
+          headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 400)
       end)

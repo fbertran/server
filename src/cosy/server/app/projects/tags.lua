@@ -5,12 +5,10 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
-  app:match ("/projects/:project/tags(/)", respond_to {
+  app:match ("/projects/:project/tags", respond_to {
     HEAD = Decorators.param_is_project "project" ..
            function ()
-      return {
-        status = 204,
-      }
+      return { status = 204 }
     end,
     GET = Decorators.param_is_project "project" ..
           function (self)
@@ -42,79 +40,46 @@ return function (app)
     end,
   })
 
-  app:match ("/projects/:project/tags/(:tag)(/)", respond_to {
+  app:match ("/projects/:project/tags/(:tag)", respond_to {
     HEAD = Decorators.param_is_project "project" ..
            function ()
-      return {
-        status = 204,
-      }
+      return { status = 204 }
     end,
     GET = Decorators.param_is_project "project" ..
+          Decorators.param_is_tag "tag" ..
           function (self)
-      local id  = Util.unescape (self.params.tag)
-      local tag = Model.tags:find {
-        id         = id,
-        project_id = self.project.id,
-      }
-      if not tag then
-        return {
-          status = 404,
-        }
-      end
       return {
         status = 200,
-        json   = tag,
+        json   = self.tag,
       }
     end,
-    PUT = Decorators.param_is_project "project" ..
-          Decorators.is_authentified ..
+    PUT = Decorators.is_authentified ..
+          Decorators.param_is_project "project" ..
+          Decorators.optional (Decorators.param_is_tag "tag") ..
           function (self)
       if self.authentified.id ~= self.project.user_id then
-        return {
-          status = 403,
-        }
+        return { status = 403 }
       end
-      local id  = Util.unescape (self.params.tag)
-      local tag = Model.tags:find {
-        id         = id,
-        project_id = self.project.id,
-      }
-      if tag then
-        return {
-          status = 202,
+      if self.tag then
+        self.tag:update {}
+        return { status = 204 }
+      else
+        Model.tags:create {
+          id         = Util.unescape (self.params.tag),
+          project_id = self.project.id,
         }
+        return { status = 201 }
       end
-      Model.tags:create {
-        id         = id,
-        project_id = self.project.id,
-      }
-      return {
-        status = 201,
-        json   = tag,
-      }
     end,
-    DELETE = Decorators.param_is_project "project" ..
-             Decorators.is_authentified ..
+    DELETE = Decorators.is_authentified ..
+             Decorators.param_is_project "project" ..
+             Decorators.param_is_tag "tag" ..
              function (self)
       if self.authentified.id ~= self.project.user_id then
-        return {
-          status = 403,
-        }
+        return { status = 403 }
       end
-      local id  = Util.unescape (self.params.tag)
-      local tag = Model.tags:find {
-        id         = id,
-        project_id = self.project.id,
-      }
-      if not tag then
-        return {
-          status = 202,
-        }
-      end
-      tag:delete ()
-      return {
-        status = 204,
-      }
+      self.tag:delete ()
+      return { status = 204 }
     end,
     OPTIONS = Decorators.param_is_serial "project" ..
               function ()
