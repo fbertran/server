@@ -1,6 +1,6 @@
 local respond_to  = require "lapis.application".respond_to
-local Util        = require "lapis.util"
 local Db          = require "lapis.db"
+local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
@@ -35,8 +35,9 @@ return function (app)
   })
 
   app:match ("/tags/(:tag)", respond_to {
-    HEAD = function (self)
-      local id   = Util.unescape (self.params.tag)
+    HEAD = Decorators.param_is_identifier "tag" ..
+           function (self)
+      local id   = self.params.tag
       local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
       if #tags == 0 then
         return {
@@ -47,8 +48,9 @@ return function (app)
         status = 204,
       }
     end,
-    GET = function (self)
-      local id   = Util.unescape (self.params.tag)
+    GET = Decorators.param_is_identifier "tag" ..
+          function (self)
+      local id   = self.params.tag
       local tags = Db.select ("id, project_id, created_at, updated_at from tags where id = ?", id) or {}
       if #tags == 0 then
         return {

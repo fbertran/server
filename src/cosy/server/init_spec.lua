@@ -1,4 +1,5 @@
 local Test = require "cosy.server.test"
+local Util = require "lapis.util"
 
 describe ("cosyverif api", function ()
   Test.environment.use ()
@@ -26,6 +27,34 @@ describe ("cosyverif api", function ()
         method = "GET",
       })
       assert.are.same (status, 200)
+    end)
+
+    it ("answers to GET with Authorization but not a user", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status, result = request (app, "/", {
+        method  = "GET",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.is_nil (result.user)
+    end)
+
+    it ("answers to GET with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users", {
+        method  = "POST",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 201)
+      local result
+      status, result = request (app, "/", {
+        method  = "GET",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.is_not_nil (result.user)
     end)
 
     it ("answers to GET a missing object", function ()

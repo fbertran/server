@@ -39,11 +39,23 @@ function Decorators.is_authentified (f)
   end
 end
 
+function Decorators.param_is_identifier (parameter)
+  return function (f)
+    return function (self)
+      self.params [parameter] = Util.unescape (self.params [parameter])
+      if not self.params [parameter]:match "[%w-_]+" then
+        return { status = 400 }
+      end
+      return f (self)
+    end
+  end
+end
+
 function Decorators.param_is_serial (parameter)
   return function (f)
     return function (self)
-      local id = Util.unescape (self.params [parameter])
-      if not tonumber (id) then
+      self.params [parameter] = Util.unescape (self.params [parameter])
+      if not tonumber (self.params [parameter]) then
         return { status = 400 }
       end
       return f (self)
@@ -53,13 +65,14 @@ end
 
 function Decorators.param_is_user (parameter)
   return function (f)
-    return function (self)
-      local id   = Util.unescape (self.params [parameter])
-      local user = Model.identities:find (id)
+    return Decorators.param_is_serial (parameter) ..
+           function (self)
+      local id   = self.params [parameter]
+      local user = Model.users:find (id)
       if not user then
         return { status = 404 }
       end
-      self.user = user:get_user ()
+      self.user = user
       return f (self)
     end
   end
@@ -67,11 +80,9 @@ end
 
 function Decorators.param_is_project (parameter)
   return function (f)
-    return function (self)
-      local id = Util.unescape (self.params [parameter])
-      if not tonumber (id) then
-        return { status = 400 }
-      end
+    return Decorators.param_is_serial (parameter) ..
+           function (self)
+      local id      = self.params [parameter]
       local project = Model.projects:find (id)
       if not project then
         return { status = 404 }
@@ -84,8 +95,9 @@ end
 
 function Decorators.param_is_tag (parameter)
   return function (f)
-    return function (self)
-      local id  = Util.unescape (self.params [parameter])
+    return Decorators.param_is_identifier (parameter) ..
+           function (self)
+      local id  = self.params [parameter]
       local tag = Model.tags:find {
         id         = id,
         project_id = self.project.id,
@@ -101,13 +113,14 @@ end
 
 function Decorators.param_is_resource (parameter)
   return function (f)
-    return function (self)
-      local id = Util.unescape (self.params [parameter])
-      local resource = Model.resources:find {
-        id         = id,
-        project_id = self.project.id,
-      }
+    return Decorators.param_is_serial (parameter) ..
+           function (self)
+      local id       = self.params [parameter]
+      local resource = Model.resources:find (id)
       if not resource then
+        return { status = 404 }
+      end
+      if resource.project_id ~= self.project.id then
         return { status = 404 }
       end
       self.resource = resource

@@ -24,9 +24,9 @@ describe ("cosyverif api", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (Util.from_json (result).id)
-    local user = Util.from_json (result).id
+    local user = Util.from_json (result)
     -- Update user info:
-    status = request (app, "/users/" .. Test.identities.rahan, {
+    status = request (app, "/users/" .. user.id, {
       method  = "PATCH",
       headers = { Authorization = "Bearer " .. token},
     })
@@ -52,7 +52,7 @@ describe ("cosyverif api", function ()
     })
     assert.are.same (status, 201)
     -- Get user:
-    status = request (app, "/users/" .. Test.identities.rahan, {
+    status = request (app, "/users/" .. user.id, {
       method  = "GET",
       headers = { Authorization = "Bearer " .. token},
     })
@@ -66,13 +66,13 @@ describe ("cosyverif api", function ()
     assert.are.same (status, 200)
     -- print (result)
     -- Delete user:
-    status = request (app, "/users/" .. Test.identities.rahan, {
+    status = request (app, "/users/" .. user.id, {
       method  = "DELETE",
       headers = { Authorization = "Bearer " .. token},
     })
     assert.are.same (status, 204)
     -- Check that user has been deleted:
-    status = request (app, "/projects/" .. user, {
+    status = request (app, "/projects/" .. user.id, {
       method  = "GET",
       headers = { Authorization = "Bearer " .. token},
     })

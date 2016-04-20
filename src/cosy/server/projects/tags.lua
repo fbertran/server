@@ -1,5 +1,4 @@
 local respond_to  = require "lapis.application".respond_to
-local Util        = require "lapis.util"
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 
@@ -40,8 +39,9 @@ return function (app)
     end,
   })
 
-  app:match ("/projects/:project/tags/(:tag)", respond_to {
+  app:match ("/projects/:project/tags/:tag", respond_to {
     HEAD = Decorators.param_is_project "project" ..
+           Decorators.param_is_tag "tag" ..
            function ()
       return { status = 204 }
     end,
@@ -65,7 +65,7 @@ return function (app)
         return { status = 204 }
       else
         Model.tags:create {
-          id         = Util.unescape (self.params.tag),
+          id         = self.params.tag,
           project_id = self.project.id,
         }
         return { status = 201 }
@@ -81,15 +81,18 @@ return function (app)
       self.tag:delete ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.param_is_serial "project" ..
+    OPTIONS = Decorators.param_is_project "project" ..
+              Decorators.param_is_tag "tag" ..
               function ()
       return { status = 204 }
     end,
-    PATCH = Decorators.param_is_serial "project" ..
-          function ()
+    PATCH = Decorators.param_is_project "project" ..
+            Decorators.param_is_tag "tag" ..
+            function ()
       return { status = 405 }
     end,
-    POST = Decorators.param_is_serial "project" ..
+    POST = Decorators.param_is_project "project" ..
+           Decorators.param_is_tag "tag" ..
            function ()
       return { status = 405 }
     end,

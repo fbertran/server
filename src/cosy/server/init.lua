@@ -1,15 +1,16 @@
 local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
+local Model      = require "cosy.server.model"
 local app        = Lapis.Application ()
 
-require "cosy.server.app.auth0"              (app)
-require "cosy.server.app.tags"               (app)
-require "cosy.server.app.users"              (app)
-require "cosy.server.app.projects"           (app)
-require "cosy.server.app.projects.resources" (app)
-require "cosy.server.app.projects.stars"     (app)
-require "cosy.server.app.projects.tags"      (app)
+require "cosy.server.auth0"              (app)
+require "cosy.server.tags"               (app)
+require "cosy.server.users"              (app)
+require "cosy.server.projects"           (app)
+require "cosy.server.projects.resources" (app)
+require "cosy.server.projects.stars"     (app)
+require "cosy.server.projects.tags"      (app)
 
 app.layout = false
 
@@ -26,10 +27,18 @@ end
 -- end
 
 app:match ("/", respond_to {
-  GET = function ()
+  GET = function (self)
+    local user
+    if self.token then
+      local id = Model.identities:find (self.token.sub)
+      if id then
+        user = id:get_user ()
+      end
+    end
     return {
       status = 200,
       json   = {
+        user   = user,
         server = {
           hostname = Config.hostname,
         },

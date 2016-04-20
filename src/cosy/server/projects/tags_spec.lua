@@ -14,7 +14,7 @@ describe ("cosyverif api", function ()
     app     = Test.environment.app ()
   end)
 
-  describe ("route '/projects/:project/resources'", function ()
+  describe ("route '/projects/:project/tags'", function ()
 
     local projects = {}
 
@@ -46,14 +46,14 @@ describe ("cosyverif api", function ()
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 204)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources", {
+      status = request (app, "/projects/" .. projects.rahan .. "/tags", {
         method = "HEAD",
       })
       assert.are.same (status, 404)
     end)
 
     it ("answers to HEAD for an existing project", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags", {
         method = "HEAD",
       })
       assert.are.same (status, 204)
@@ -66,21 +66,21 @@ describe ("cosyverif api", function ()
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 204)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources", {
+      status = request (app, "/projects/" .. projects.rahan .. "/tags", {
         method = "GET",
       })
       assert.are.same (status, 404)
     end)
 
     it ("answers to GET for an existing project", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags", {
         method = "GET",
       })
       assert.are.same (status, 200)
     end)
 
     it ("answers to OPTIONS", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags", {
         method = "OPTIONS",
       })
       assert.are.same (status, 204)
@@ -88,7 +88,7 @@ describe ("cosyverif api", function ()
 
     for _, method in ipairs { "DELETE", "PATCH", "POST", "PUT" } do
       it ("does not answer to " .. method, function ()
-        local status = request (app, "/projects/" .. projects.rahan .. "/resources", {
+        local status = request (app, "/projects/" .. projects.rahan .. "/tags", {
           method = method,
         })
         assert.are.same (status, 405)
@@ -97,7 +97,7 @@ describe ("cosyverif api", function ()
 
     for _, method in ipairs { "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "PUT", "POST" } do
       it ("correcly fails for invalid argument to " .. method, function ()
-        local status = request (app, "/projects/invalid/resources", {
+        local status = request (app, "/projects/invalid/tags", {
           method = method,
         })
         assert.are.same (status, 400)
@@ -106,7 +106,7 @@ describe ("cosyverif api", function ()
 
   end)
 
-  describe ("route '/projects/:project/resources/:resource'", function ()
+  describe ("route '/projects/:project/tags/:tag'", function ()
 
     local projects = {}
 
@@ -128,64 +128,44 @@ describe ("cosyverif api", function ()
         result = Util.from_json (result)
         assert.is.not_nil (result.id)
         projects [key] = result.id
+        status = request (app, "/projects/" .. result.id .. "/tags/" .. key, {
+          method  = "PUT",
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 201)
       end
     end)
 
-    it ("answers to HEAD for a non-existing project", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan, {
-        method  = "DELETE",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 204)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+    it ("answers to HEAD for a non-existing tag", function ()
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/unknown", {
         method = "HEAD",
       })
       assert.are.same (status, 404)
     end)
 
-    it ("answers to HEAD for an existing project", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+    it ("answers to HEAD for an existing tag", function ()
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method = "HEAD",
       })
       assert.are.same (status, 204)
     end)
 
-    it ("answers to GET for a non-existing project", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan, {
-        method  = "DELETE",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 204)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+    it ("answers to GET for a non-existing tag", function ()
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/unknown", {
         method = "GET",
       })
       assert.are.same (status, 404)
     end)
 
-    it ("answers to GET for a missing resource", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method = "GET",
-      })
-      assert.are.same (status, 404)
-    end)
-
-    it ("answers to GET for an existing resource", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method = "PUT",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 201)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+    it ("answers to GET", function ()
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method = "GET",
       })
       assert.are.same (status, 200)
     end)
 
     it ("answers to PUT with no Authorization", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/mytag", {
         method = "PUT",
       })
       assert.are.same (status, 401)
@@ -193,7 +173,7 @@ describe ("cosyverif api", function ()
 
     it ("answers to PUT for another user with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.crao .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.crao .. "/tags/mytag", {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -207,7 +187,7 @@ describe ("cosyverif api", function ()
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 204)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      status = request (app, "/projects/" .. projects.rahan .. "/tags/mytag", {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -216,70 +196,68 @@ describe ("cosyverif api", function ()
 
     it ("answers to PUT with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/mytag", {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 201)
     end)
 
-    it ("answers to PUT on an existing resource with Authorization", function ()
+    it ("answers to PUT on an existing tag with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method  = "PUT",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 201)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 204)
     end)
 
-    it ("updates resource on PUT with Authorization", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+    it ("answers to PUT on another user with Authorization", function ()
+      local token  = Test.make_token (Test.identities.crao)
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })
-      assert.are.same (status, 201)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method = "GET",
+      assert.are.same (status, 403)
+    end)
+
+    it ("updates tag on PUT on another user with Authorization", function ()
+      local token  = Test.make_token (Test.identities.crao)
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
+        method  = "PUT",
+        headers = { Authorization = "Bearer " .. token},
       })
-      assert.are.same (status, 200)
+      assert.are.same (status, 403)
+    end)
+
+    it ("updates tag on PUT with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
+        method  = "PUT",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
     end)
 
     it ("answers to DELETE with no Authorization", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method = "DELETE",
       })
       assert.are.same (status, 401)
     end)
 
     it ("answers to DELETE for another user with Authorization", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method  = "PUT",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 201)
-      token  = Test.make_token (Test.identities.crao)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local token  = Test.make_token (Test.identities.crao)
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 403)
     end)
 
-    it ("answers to DELETE for a non-existing project with Authorization", function ()
+    it ("answers to DELETE for a non-existing tag with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan, {
-        method  = "DELETE",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 204)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/mytag", {
         method = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -288,29 +266,15 @@ describe ("cosyverif api", function ()
 
     it ("answers to DELETE with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method  = "PUT",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 201)
-      status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 204)
     end)
 
-    it ("answers to DELETE on a non-existing resource with Authorization", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
-        method  = "DELETE",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 404)
-    end)
-
     it ("answers to OPTIONS", function ()
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+      local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
         method = "OPTIONS",
       })
       assert.are.same (status, 204)
@@ -318,7 +282,7 @@ describe ("cosyverif api", function ()
 
     for _, method in ipairs { "PATCH", "POST" } do
       it ("does not answer to " .. method, function ()
-        local status = request (app, "/projects/" .. projects.rahan .. "/resources/myresource", {
+        local status = request (app, "/projects/" .. projects.rahan .. "/tags/rahan", {
           method = method,
         })
         assert.are.same (status, 405)
@@ -328,7 +292,12 @@ describe ("cosyverif api", function ()
     for _, method in ipairs { "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "PUT", "POST" } do
       it ("correcly fails for invalid argument to " .. method, function ()
         local token  = Test.make_token (Test.identities.rahan)
-        local status = request (app, "/projects/invalid/resources/myresource", {
+        local status = request (app, "/projects/invalid/tags/mytag", {
+          method = method,
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 400)
+        status = request (app, "/projects/" .. projects.rahan .. "/tags/===", {
           method = method,
           headers = { Authorization = "Bearer " .. token},
         })

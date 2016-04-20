@@ -96,40 +96,57 @@ describe ("cosyverif api", function ()
 
   describe ("route '/users/:user'", function ()
 
+    local users = {}
+
     before_each (function ()
-      for _, id in pairs (Test.identities) do
+      for key, id in pairs (Test.identities) do
         local token  = Test.make_token (id)
-        local status = request (app, "/users", {
+        local status, result = request (app, "/users", {
           method  = "POST",
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 201)
+        result = Util.from_json (result)
+        assert.is.not_nil (result.id)
+        users [key] = result.id
       end
     end)
 
     it ("answers to HEAD for a non-existing user", function ()
-      local status = request (app, "/users/non-existing", {
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users/" .. users.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
+      status = request (app, "/users/" .. users.rahan, {
         method = "HEAD",
       })
       assert.are.same (status, 404)
     end)
 
     it ("answers to HEAD for an existing user", function ()
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method = "HEAD",
       })
       assert.are.same (status, 204)
     end)
 
     it ("answers to GET for a non-existing existing user", function ()
-      local status = request (app, "/users/non-existing", {
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users/" .. users.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
+      status = request (app, "/users/" .. users.rahan, {
         method = "GET",
       })
       assert.are.same (status, 404)
     end)
 
     it ("answers to GET for an existing user", function ()
-      local status, result = request (app, "/users/" .. Test.identities.rahan, {
+      local status, result = request (app, "/users/" .. users.rahan, {
         method = "GET",
       })
       assert.are.same (status, 200)
@@ -138,8 +155,8 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to GET for a connected user", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status, result = request (app, "/users/" .. Test.identities.rahan, {
+      local token = Test.make_token (Test.identities.rahan)
+      local status, result = request (app, "/users/" .. users.rahan, {
         method  = "GET",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -149,7 +166,7 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to PATCH with no Authorization", function ()
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method = "PATCH",
       })
       assert.are.same (status, 401)
@@ -157,7 +174,7 @@ describe ("cosyverif api", function ()
 
     it ("answers to PATCH for another user with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/" .. Test.identities.crao, {
+      local status = request (app, "/users/" .. users.crao, {
         method  = "PATCH",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -166,30 +183,36 @@ describe ("cosyverif api", function ()
 
     it ("answers to PATCH for a non-existing user with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/another", {
-        method  = "PATCH",
-        headers = { Authorization = "Bearer " .. token},
-      })
-      assert.are.same (status, 404)
-    end)
-
-    it ("answers to PATCH for a deleted user with Authorization", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 204)
-      status = request (app, "/users/" .. Test.identities.rahan, {
+      status = request (app, "/users/" .. users.rahan, {
         method  = "PATCH",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 401)
     end)
 
+    it ("answers to PATCH for a non-existing user with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users/" .. users.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
+      token  = Test.make_token (Test.identities.crao)
+      status = request (app, "/users/" .. users.rahan, {
+        method  = "PATCH",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 404)
+    end)
+
     it ("answers to PATCH with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method  = "PATCH",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -197,7 +220,7 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to DELETE with no Authorization", function ()
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method = "DELETE",
       })
       assert.are.same (status, 401)
@@ -205,7 +228,7 @@ describe ("cosyverif api", function ()
 
     it ("answers to DELETE for another user with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/" .. Test.identities.crao, {
+      local status = request (app, "/users/" .. users.crao, {
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -214,7 +237,27 @@ describe ("cosyverif api", function ()
 
     it ("answers to DELETE for a non-existing user with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/another", {
+      local status = request (app, "/users/" .. users.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
+      status = request (app, "/users/" .. users.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 401)
+    end)
+
+    it ("answers to DELETE for a non-existing user with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/users/" .. users.rahan, {
+        method  = "DELETE",
+        headers = { Authorization = "Bearer " .. token},
+      })
+      assert.are.same (status, 204)
+      token  = Test.make_token (Test.identities.crao)
+      status = request (app, "/users/" .. users.rahan, {
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -223,7 +266,7 @@ describe ("cosyverif api", function ()
 
     it ("answers to DELETE with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method  = "DELETE",
         headers = { Authorization = "Bearer " .. token},
       })
@@ -231,7 +274,7 @@ describe ("cosyverif api", function ()
     end)
 
     it ("answers to OPTIONS", function ()
-      local status = request (app, "/users/" .. Test.identities.rahan, {
+      local status = request (app, "/users/" .. users.rahan, {
         method = "OPTIONS",
       })
       assert.are.same (status, 204)
@@ -239,7 +282,7 @@ describe ("cosyverif api", function ()
 
     for _, method in ipairs { "PUT", "POST" } do
       it ("does not answer to " .. method, function ()
-        local status = request (app, "/users/" .. Test.identities.rahan, {
+        local status = request (app, "/users/" .. users.rahan, {
           method = method,
         })
         assert.are.same (status, 405)

@@ -1,6 +1,5 @@
 local respond_to  = require "lapis.application".respond_to
 local json_params = require "lapis.application".json_params
-local Util        = require "lapis.util"
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 
@@ -19,6 +18,25 @@ return function (app)
         json   = tags,
       }
     end,
+    POST = json_params ..
+           Decorators.is_authentified ..
+           Decorators.param_is_project "project" ..
+           function (self)
+      if self.authentified.id ~= self.project.user_id then
+        return { status = 403 }
+      end
+      local resource = Model.resources:create {
+        project_id  = self.project.id,
+        name        = self.params.name,
+        description = self.params.description,
+        history     = self.params.history,
+        data        = self.params.data,
+      }
+      return {
+        status = 201,
+        json   = resource,
+      }
+    end,
     OPTIONS = Decorators.param_is_project "project" ..
               function ()
       return { status = 204 }
@@ -31,18 +49,15 @@ return function (app)
             function ()
       return { status = 405 }
     end,
-    POST = Decorators.param_is_project "project" ..
-            function ()
-      return { status = 405 }
-    end,
     PUT = Decorators.param_is_project "project" ..
           function ()
       return { status = 405 }
     end,
   })
 
-  app:match ("/projects/:project/resources/(:resource)", respond_to {
+  app:match ("/projects/:project/resources/:resource", respond_to {
     HEAD = Decorators.param_is_project "project" ..
+           Decorators.param_is_resource "resource" ..
            function ()
       return { status = 204 }
     end,
@@ -57,34 +72,22 @@ return function (app)
     PUT = json_params ..
           Decorators.is_authentified ..
           Decorators.param_is_project "project" ..
-          Decorators.optional (Decorators.param_is_resource "resource") ..
+          Decorators.param_is_resource "resource" ..
           function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
       end
-      if self.resource then
-        self.resource:update {
-          name        = self.params.name,
-          description = self.params.description,
-          history     = self.params.history,
-          data        = self.params.data,
-        }
-        return { status = 204 }
-      else
-        Model.resources:create {
-          id          = Util.unescape (self.params.resource),
-          project_id  = self.project.id,
-          name        = self.params.name,
-          description = self.params.description,
-          history     = self.params.history,
-          data        = self.params.data,
-        }
-        return { status = 201 }
-      end
+      self.resource:update {
+        name        = self.params.name,
+        description = self.params.description,
+        history     = self.params.history,
+        data        = self.params.data,
+      }
+      return { status = 204 }
     end,
     PATCH = json_params ..
             Decorators.is_authentified ..
-            Decorators.param_is_serial "project" ..
+            Decorators.param_is_project "project" ..
             Decorators.param_is_resource "resource" ..
             function (self)
       if self.authentified.id ~= self.project.user_id then
@@ -108,11 +111,13 @@ return function (app)
       self.resource:delete ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.param_is_serial "project" ..
+    OPTIONS = Decorators.param_is_project "project" ..
+              Decorators.param_is_resource "resource" ..
               function ()
       return { status = 204 }
     end,
-    POST = Decorators.param_is_serial "project" ..
+    POST = Decorators.param_is_project "project" ..
+           Decorators.param_is_resource "resource" ..
            function ()
       return { status = 405 }
     end,

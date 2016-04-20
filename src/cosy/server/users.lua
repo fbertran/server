@@ -99,7 +99,7 @@ return function (app)
     end,
     GET = Decorators.param_is_user "user" ..
           function (self)
-      local id = Util.unescape (self.params.user)
+      local id = self.params.user
       if self.token and Model.identities:find (self.token.sub) then
         local info, status = auth0 ("/users/" .. Util.escape (id))
         if status == 200 then
@@ -148,13 +148,16 @@ return function (app)
         status = 204,
       }
     end,
-    OPTIONS = function ()
+    OPTIONS = Decorators.param_is_user "user" ..
+              function ()
       return { status = 204 }
     end,
-    PUT = function ()
+    PUT = Decorators.param_is_user "user" ..
+          function ()
       return { status = 405 }
     end,
-    POST = function ()
+    POST = Decorators.param_is_user "user" ..
+           function ()
       return { status = 405 }
     end,
   })

@@ -8,7 +8,7 @@ local Test = {}
 if os.getenv "RUN_COVERAGE" then
   Test.environment = {
     app     = function ()
-      return require "cosy.server.app"
+      return require "cosy.server"
     end,
     use     = function ()
       In_test ()
