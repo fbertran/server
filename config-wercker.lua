@@ -2,12 +2,12 @@ local Config = require "lapis.config"
 
 local prefix
 do
-  local path = package.searchpath ("cosy.server.app", package.path)
+  local path = package.searchpath ("cosy.server", package.path)
   local parts = {}
   for part in path:gmatch "[^/]+" do
     parts [#parts+1] = part
   end
-  for _ = 1, 7 do
+  for _ = 1, 6 do
     parts [#parts] = nil
   end
   prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
