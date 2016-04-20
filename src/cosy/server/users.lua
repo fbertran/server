@@ -99,9 +99,14 @@ return function (app)
     end,
     GET = Decorators.param_is_user "user" ..
           function (self)
-      local id = self.params.user
-      if self.token and Model.identities:find (self.token.sub) then
-        local info, status = auth0 ("/users/" .. Util.escape (id))
+      if self.token then
+        local id = Model.identities:find (self.token.sub)
+        if id then
+          self.authentified = id:get_user ()
+        end
+      end
+      if self.authentified and self.authentified.id == self.user.id then
+        local info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
         if status == 200 then
           self.user:update {
             email    = info.email,
