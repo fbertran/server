@@ -55,19 +55,15 @@ return function (app)
       }
     end,
     PUT = json_params ..
-          Decorators.param_is_project "project" ..
           Decorators.is_authentified ..
+          Decorators.param_is_project "project" ..
+          Decorators.optional (Decorators.param_is_resource "resource") ..
           function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
       end
-      local id       = Util.unescape (self.params.resource)
-      local resource = Model.resources:find {
-        id         = id,
-        project_id = self.project.id,
-      }
-      if resource then
-        resource:update {
+      if self.resource then
+        self.resource:update {
           name        = self.params.name,
           description = self.params.description,
           history     = self.params.history,
@@ -76,8 +72,8 @@ return function (app)
         return { status = 204 }
       else
         Model.resources:create {
-          id         = id,
-          project_id = self.project.id,
+          id          = Util.unescape (self.params.resource),
+          project_id  = self.project.id,
           name        = self.params.name,
           description = self.params.description,
           history     = self.params.history,
@@ -87,9 +83,9 @@ return function (app)
       end
     end,
     PATCH = json_params ..
+            Decorators.is_authentified ..
             Decorators.param_is_serial "project" ..
             Decorators.param_is_resource "resource" ..
-            Decorators.is_authentified ..
             function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -102,9 +98,9 @@ return function (app)
       }
       return { status = 204 }
     end,
-    DELETE = Decorators.param_is_project "project" ..
+    DELETE = Decorators.is_authentified ..
+             Decorators.param_is_project "project" ..
              Decorators.param_is_resource "resource" ..
-             Decorators.is_authentified ..
              function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }

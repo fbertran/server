@@ -3,12 +3,13 @@ local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local app        = Lapis.Application ()
 
-require "cosy.server.app.auth0"          (app)
-require "cosy.server.app.tags"           (app)
-require "cosy.server.app.users"          (app)
-require "cosy.server.app.projects"       (app)
-require "cosy.server.app.projects.tags"  (app)
-require "cosy.server.app.projects.stars" (app)
+require "cosy.server.app.auth0"              (app)
+require "cosy.server.app.tags"               (app)
+require "cosy.server.app.users"              (app)
+require "cosy.server.app.projects"           (app)
+require "cosy.server.app.projects.resources" (app)
+require "cosy.server.app.projects.stars"     (app)
+require "cosy.server.app.projects.tags"      (app)
 
 app.layout = false
 

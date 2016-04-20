@@ -45,11 +45,13 @@ return {
     })
     Schema.create_table ("resources", {
       { "id"         , Schema.types.serial { primary_key = true } },
-      { "project_id" , Schema.types.serial  },
+      { "project_id" , Schema.types.serial },
       { "name"       , Schema.types.text { null = true } },
       { "description", Schema.types.text { null = true } },
-      { "created_at" , Schema.types.time    },
-      { "updated_at" , Schema.types.time    },
+      { "histrory"   , Schema.types.text { null = true } },
+      { "data"       , Schema.types.text { null = true } },
+      { "created_at" , Schema.types.time   },
+      { "updated_at" , Schema.types.time   },
       [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("executions", {

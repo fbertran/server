@@ -27,7 +27,9 @@ result.users = Model:extend ("users", {
 result.stars = Model:extend ("stars", {
   timestamp   = true,
   primary_key = {
-      "user_id", "project_id" },
+      "user_id",
+      "project_id",
+  },
   relations   = {
     {
       "user",
@@ -65,7 +67,9 @@ result.projects = Model:extend ("projects", {
 result.tags = Model:extend ("tags", {
   timestamp   = true,
   primary_key = {
-      "id", "project_id" },
+      "id",
+      "project_id",
+  },
   relations   = {
     {
       "project",
@@ -80,6 +84,10 @@ result.resources = Model:extend ("resources", {
     {
       "project",
       belongs_to = "projects",
+    },
+    {
+      "history",
+      has_many = "history",
     },
   },
 })
