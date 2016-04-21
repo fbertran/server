@@ -34,23 +34,23 @@ Config ("production", {
 
 local common = {
   auth0 = {
-    domain        = os.getenv "AUTH0_DOMAIN",
-    client_id     = os.getenv "AUTH0_CLIENT",
-    client_secret = os.getenv "AUTH0_SECRET",
-    api_token     = os.getenv "AUTH0_API",
-    api_url       = "https://" .. (os.getenv "AUTH0_DOMAIN") .. "/api/v2",
+    domain        = assert (os.getenv "AUTH0_DOMAIN"),
+    client_id     = assert (os.getenv "AUTH0_CLIENT"),
+    client_secret = assert (os.getenv "AUTH0_SECRET"),
+    api_token     = assert (os.getenv "AUTH0_API"),
+    api_url       = "https://" .. assert (os.getenv "AUTH0_DOMAIN") .. "/api/v2",
   },
   redis = {
-    host     = os.getenv "REDIS_PORT_6379_TCP_ADDR",
-    port     = os.getenv "REDIS_PORT_6379_TCP_PORT",
+    host     = assert (os.getenv "REDIS_PORT_6379_TCP_ADDR"),
+    port     = assert (os.getenv "REDIS_PORT_6379_TCP_PORT"),
     database = 1,
   },
   postgres = {
     backend  = "pgmoon",
-    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
-    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
-    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
+    host     = assert (os.getenv "POSTGRES_PORT_5432_TCP_ADDR"),
+    user     = assert (os.getenv "POSTGRES_ENV_POSTGRES_USER"),
+    password = assert (os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD"),
+    database = assert (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE"),
   },
 }
 
