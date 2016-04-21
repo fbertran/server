@@ -1,11 +1,11 @@
 box: cosyverif/cosy-server:dev
 services:
-   - id: postgres
-     env:
-       POSTGRES_USER: cosyverif
-       POSTGRES_PASSWORD:
-       POSTGRES_DATABASE: cosyverif
   - id: redis
+  - id: postgres
+    env:
+      POSTGRES_USER: cosyverif
+      POSTGRES_PASSWORD:
+      POSTGRES_DATABASE: cosyverif
 build:
   steps:
     - script:
