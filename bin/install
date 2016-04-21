@@ -142,7 +142,7 @@ cosy_temp=$(realpath "${cosy_temp}")
                                    perl build-essential wget python python-pip \
                                    libc6-dev libssl-dev \
                                    libreadline-dev libncurses5-dev libpcre3-dev \
-                                   npm libc-bin redis postgresql shellcheck
+                                   npm libc-bin redis-server postgresql shellcheck
         ;;
       "Darwin")
         HOMEBREW_PREFIX=$(brew config | grep "HOMEBREW_PREFIX" | tr -d ' \t' | cut -d ":" -f 2)
