@@ -14,42 +14,22 @@ do
 end
 
 Config ("test", {
-  hostname = "cosyverif.dev",
-  port     = 8080,
-  postgres = {
-    backend  = "pgmoon",
-    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
-    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
-    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
-  },
-  measure_performance = true,
+  hostname    = "cosyverif.dev",
+  port        = 8080,
+  num_workers = 4,
+  code_cache  = "on",
 })
 
 Config ("development", {
   hostname = "cosyverif.dev",
   port     = 8080,
-  postgres = {
-    backend  = "pgmoon",
-    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
-    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
-    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
-  },
+  measure_performance = true,
 })
 
 Config ("production", {
   hostname    = "cosyverif.org",
   port        = 80,
-  num_workers = 4,
   code_cache  = "on",
-  postgres = {
-    backend  = "pgmoon",
-    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
-    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
-    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
-    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
-  },
 })
 
 local common = {
@@ -60,8 +40,23 @@ local common = {
     api_token     = os.getenv "AUTH0_API",
     api_url       = "https://" .. (os.getenv "AUTH0_DOMAIN") .. "/api/v2",
   },
+  redis = {
+    host     = "127.0.0.1",
+    port     = 6379,
+    database = 1,
+  },
+  postgres = {
+    backend  = "pgmoon",
+    host     = os.getenv "POSTGRES_PORT_5432_TCP_ADDR",
+    user     = os.getenv "POSTGRES_ENV_POSTGRES_USER",
+    password = os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD",
+    database = os.getenv "POSTGRES_ENV_POSTGRES_DATABASE",
+  },
 }
 
-common.www_prefix  = prefix .. "/share/cosy/www"
+common.www_prefix     = prefix .. "/share/cosy/www"
+common.redis_host     = common.redis.host
+common.redis_port     = common.redis.port
+common.redis_database = common.redis.database
 
 Config ({ "test", "development", "production" }, common)

@@ -5,6 +5,7 @@ services:
        POSTGRES_USER: cosyverif
        POSTGRES_PASSWORD:
        POSTGRES_DATABASE: cosyverif
+  - id: redis
 build:
   steps:
     - script:
