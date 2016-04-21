@@ -331,36 +331,13 @@ describe ("cosyverif api", function ()
       assert.are.same (status, 404)
     end)
 
-    it ("answers to PATCH with Authorization", function ()
+    it ("answers to PATCH with Authorization #current", function ()
       local token  = Test.make_token (Test.identities.rahan)
       local status = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
         method  = "PATCH",
         headers = { Authorization = "Bearer " .. token},
       })
-      assert.are.same (status, 204)
-    end)
-
-    it ("updates resource on PATCH with Authorization", function ()
-      local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
-        method  = "PATCH",
-        headers = {
-          ["Authorization" ] = "Bearer " .. token,
-          ["Content-type"  ] = "application/json",
-        },
-        post = Util.to_json {
-          name        = "a-name",
-          description = "a-description",
-        }
-      })
-      assert.are.same (status, 204)
-      local result
-      status, result = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
-        method = "GET",
-      })
-      assert.are.same (status, 200)
-      result = Util.from_json (result)
-      assert.are.equal (result.name, "a-name")
+      assert.are.same (status, 301)
     end)
 
     it ("answers to DELETE with no Authorization", function ()

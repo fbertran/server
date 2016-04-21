@@ -1,5 +1,3 @@
-pcall (require, "compat52")
-
 local Arguments = require "argparse"
 local Colors    = require 'ansicolors'
 local Et        = require "etlua"
@@ -75,6 +73,17 @@ local status = true
 
 Lfs.mkdir (arguments.output)
 
+
+-- Start runner
+-- ============
+do
+  status = os.execute (Et.render ([[
+    "<%= prefix %>/bin/cosy-runner" &
+  ]], {
+    prefix = prefix,
+  })) == 0 and status
+end
+
 -- luacheck
 -- ========
 
@@ -106,6 +115,16 @@ do
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   print ()
+end
+
+-- Stop runner
+-- ===========
+do
+  status = os.execute (Et.render ([[
+    "<%= prefix %>/bin/cosy-runner" --quit
+  ]], {
+    prefix = prefix,
+  })) == 0 and status
 end
 
 -- luacov
