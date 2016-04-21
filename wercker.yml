@@ -21,7 +21,6 @@ build:
     - script:
         name: "configure"
         code: |
-          env
           cp config-wercker.lua config.lua
           /app/bin/lapis migrate test
     - script:
