@@ -41,8 +41,8 @@ local common = {
     api_url       = "https://" .. (os.getenv "AUTH0_DOMAIN") .. "/api/v2",
   },
   redis = {
-    host     = "127.0.0.1",
-    port     = 6379,
+    host     = (os.getenv "WERCKER_REDIS_URL"):match "redis://(.*):[%d]+",
+    port     = os.getenv "WERCKER_REDIS_PORT",
     database = 1,
   },
   postgres = {
