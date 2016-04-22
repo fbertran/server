@@ -371,7 +371,7 @@ describe ("cosyverif api", function ()
         local connected
         Copas.addthread (function ()
           local ws  = Websocket.client.copas {}
-          connected = print (ws:connect (result.editor, "cosy"))
+          connected = ws:connect (result.editor, "cosy")
         end)
         Copas.loop ()
         assert.is_not_nil (connected)

@@ -81,8 +81,8 @@ return function ()
         end
         break
       end
-      res = redis:get (key)
     end
+    res = redis:get (key)
   end
 
   ngx.var._url = res:gsub ("wss?://", "http://")
