@@ -20,8 +20,8 @@ end
 
 
 local parser = Arguments () {
-  name        = "cosy-runner",
-  description = "",
+  name        = "cosy-taskqueue",
+  description = "task queue for cosy editors and tools",
 }
 parser:flag "--quit" {
   description = "quit",

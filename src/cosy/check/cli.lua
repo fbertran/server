@@ -78,7 +78,7 @@ Lfs.mkdir (arguments.output)
 -- ============
 do
   status = os.execute (Et.render ([[
-    "<%= prefix %>/bin/cosy-runner" &
+    "<%= prefix %>/bin/cosy-taskqueue" &
   ]], {
     prefix = prefix,
   })) == 0 and status
@@ -121,7 +121,7 @@ end
 -- ===========
 do
   status = os.execute (Et.render ([[
-    "<%= prefix %>/bin/cosy-runner" --quit
+    "<%= prefix %>/bin/cosy-taskqueue" --quit
   ]], {
     prefix = prefix,
   })) == 0 and status

@@ -31,7 +31,7 @@ build = {
   modules = {
     ["cosy.check.cli"                ] = "src/cosy/check/cli.lua",
     ["cosy.i18n"                     ] = "src/cosy/i18n/init.lua",
-    ["cosy.runner.cli"               ] = "src/cosy/runner/cli.lua",
+    ["cosy.taskqueue.cli"            ] = "src/cosy/taskqueue/cli.lua",
     ["cosy.updater.cli"              ] = "src/cosy/updater/cli.lua",
     ["cosy.server"                   ] = "src/cosy/server/init.lua",
     ["cosy.server.auth0"             ] = "src/cosy/server/auth0.lua",
@@ -49,10 +49,10 @@ build = {
   },
   install = {
     bin = {
-      ["cosy-check"  ] = "src/cosy/check/bin.lua",
-      ["cosy-server" ] = "src/cosy/server/bin.lua",
-      ["cosy-runner" ] = "src/cosy/runner/bin.lua",
-      ["cosy-updater"] = "src/cosy/updater/bin.lua",
+      ["cosy-check"    ] = "src/cosy/check/bin.lua",
+      ["cosy-server"   ] = "src/cosy/server/bin.lua",
+      ["cosy-taskqueue"] = "src/cosy/taskqueue/bin.lua",
+      ["cosy-updater"  ] = "src/cosy/updater/bin.lua",
     },
   },
 }
