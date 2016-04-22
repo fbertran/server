@@ -8,6 +8,7 @@ local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 local Jwt         = require "jwt"
 local Time        = require "socket".gettime
+local Et          = require "etlua"
 
 local function make_token (sub, contents)
   local claims = {
@@ -127,15 +128,26 @@ return function (app)
       end
       -- FIXME: this code can lead to errors, if the publish takes place
       -- before subscription.
+      local api_url   = Et.render ("http://api.<%= host %>:<%= port %>/projects/<%= project %>/resources/<%= resource %>", {
+        host     = os.getenv "NGINX_HOST", -- or Config.hostname,
+        port     = os.getenv "NGINX_PORT", -- or Config.port,
+        project  = self.project.id,
+        resource = self.resource.id,
+      })
+      local edit_url  = Et.render ("ws://edit.<%= host %>:<%= port %>/<%= resource %>", {
+        host     = os.getenv "NGINX_HOST", -- or Config.hostname,
+        port     = os.getenv "NGINX_PORT", -- or Config.port,
+        resource = self.resource.id,
+      })
       local redis = get_redis ()
                  or Redis.connect (Config.redis.host, Config.redis.port)
       redis:select (Config.redis.database)
       local exists = redis:eval (script, 1, self.resource.id, Util.to_json {
         resource = self.resource.id,
         owner    = make_token (self.project.user_id),
+        api      = api_url,
       })
       if exists ~= 1 then
-        -- TODO: generate a token of the owner for the updater
         redis:subscribe ("resource:" .. self.resource.id)
         for message in redis.read_reply
                    and function () return redis:read_reply () end
@@ -146,25 +158,28 @@ return function (app)
           message.channel = message.channel or message [2]
           message.payload = message.payload or message [3]
           if message.kind == "message" then
+            exists = message
             break
           end
         end
         redis:unsubscribe ("resource:" .. self.resource.id)
       end
-      return {
-        status = 200,
-        json   = {
-          entry    = redis:get ("resource:" .. self.resource.id),
-          token    = make_token (self.authentified.id, {
-            user        = self.authentified.id,
-            resource    = self.resource.id,
-            permissions = {
-              read  = true,
-              write = self.authentified.id == self.project.user_id,
-            },
-          }),
-        },
+      local result = {
+        editor = edit_url,
+        token  = make_token (self.authentified.id, {
+          user        = self.authentified.id,
+          resource    = self.resource.id,
+          permissions = {
+            read  = true,
+            write = self.authentified.id == self.project.user_id,
+          },
+        }),
       }
+      return exists.payload == ""
+         and { status = 404 }
+          or { status = 200,
+               json   = result,
+             }
     end,
     DELETE = Decorators.is_authentified ..
              Decorators.param_is_project "project" ..
