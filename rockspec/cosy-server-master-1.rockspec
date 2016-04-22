@@ -34,6 +34,7 @@ build = {
     ["cosy.taskqueue.cli"            ] = "src/cosy/taskqueue/cli.lua",
     ["cosy.editor.cli"               ] = "src/cosy/editor/cli.lua",
     ["cosy.server"                   ] = "src/cosy/server/init.lua",
+    ["cosy.server.edit_resource"     ] = "src/cosy/server/edit_resource.lua",
     ["cosy.server.auth0"             ] = "src/cosy/server/auth0.lua",
     ["cosy.server.users"             ] = "src/cosy/server/users.lua",
     ["cosy.server.projects"          ] = "src/cosy/server/projects/init.lua",

@@ -24,6 +24,12 @@ parser:option "--port" {
 parser:option "--api" {
   description = "API url",
 }
+parser:option "--user" {
+  description = "user identifier",
+}
+parser:option "--project" {
+  description = "project identifier",
+}
 parser:option "--resource" {
   description = "resource identifier",
 }
@@ -34,11 +40,19 @@ parser:option "--owner" {
 local arguments = parser:parse ()
 
 if not arguments.api
+or not arguments.user
+or not arguments.project
 or not arguments.resource
 or not arguments.owner then
   print (parser:get_help ())
   os.exit (1)
 end
+
+local key = Et.render ("resource:<%= user %>-<%= project %>-<%= resource %>", {
+  user     = arguments.user,
+  project  = arguments.project,
+  resource = arguments.resource,
+})
 
 local redis
 do
@@ -111,8 +125,8 @@ local model = request (arguments.api, {
   headers = { Authorization = "Bearer " .. arguments.owner},
 })
 if not model then
-  redis:del     ("resource:" .. arguments.resource)
-  redis:publish ("resource:" .. arguments.resource, "")
+  redis:del     (key)
+  redis:publish (key, "")
   return
 end
 
@@ -122,8 +136,8 @@ Copas.addserver = function (s, f)
   local host, port = s:getsockname ()
   addserver (s, f)
   local url = "ws://" .. host .. ":" .. tostring (port)
-  redis:set     ("resource:" .. arguments.resource, url)
-  redis:publish ("resource:" .. arguments.resource, url)
+  redis:set     (key, url)
+  redis:publish (key, url)
   print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
     resource = arguments.resource,
     time     = os.date "%c",

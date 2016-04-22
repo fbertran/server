@@ -1,9 +1,7 @@
 local respond_to  = require "lapis.application".respond_to
 local json_params = require "lapis.application".json_params
 local Config      = require "lapis.config".get ()
-local get_redis   = require "lapis.redis".get_redis
 local Util        = require "lapis.util"
-local Redis       = require "redis"
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 local Jwt         = require "jwt"
@@ -51,8 +49,8 @@ return function (app)
         project_id  = self.project.id,
         name        = self.params.name,
         description = self.params.description,
-        history     = self.params.history,
-        data        = self.params.data,
+        history     = self.params.history or Util.to_json {},
+        data        = self.params.data    or "",
       }
       return {
         status = 201,
@@ -77,17 +75,6 @@ return function (app)
     end,
   })
 
-  local script = [[
-    local resource = KEYS [1]
-    local data     = ARGV [1]
-    local exists   = redis.call ("get", "resource:" .. resource)
-    if not exists then
-      redis.call ("set", "resource:" .. resource, "false")
-      redis.call ("publish", "resource:edit", data)
-    end
-    return exists
-  ]]
-
   app:match ("/projects/:project/resources/:resource", respond_to {
     HEAD = Decorators.param_is_project "project" ..
            Decorators.param_is_resource "resource" ..
@@ -97,9 +84,35 @@ return function (app)
     GET = Decorators.param_is_project "project" ..
           Decorators.param_is_resource "resource" ..
           function (self)
+      if self.token then
+        local id = Model.identities:find (self.token.sub)
+        if id then
+          self.authentified = id:get_user ()
+        end
+      end
+      local edit_url  = Et.render ("ws://edit.<%= host %>:<%= port %>/<%= resource %>", {
+        host     = os.getenv "NGINX_HOST", -- or Config.hostname,
+        port     = os.getenv "NGINX_PORT", -- or Config.port,
+        resource = Et.render ("<%= user %>-<%= project %>-<%= resource %>", {
+          user     = self.project.user_id,
+          project  = self.project.id,
+          resource = self.resource.id,
+        }),
+      })
       return {
         status = 200,
-        json   = self.resource,
+        json   = {
+          resource = self.resource,
+          editor   = self.authentified and edit_url,
+          token    = self.authentified and make_token (self.authentified.id, {
+            user        = self.authentified.id,
+            resource    = self.resource.id,
+            permissions = {
+              read  = true,
+              write = self.authentified.id == self.project.user_id,
+            },
+          }),
+        }
       }
     end,
     PUT = json_params ..
@@ -126,60 +139,14 @@ return function (app)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
       end
-      -- FIXME: this code can lead to errors, if the publish takes place
-      -- before subscription.
-      local api_url   = Et.render ("http://api.<%= host %>:<%= port %>/projects/<%= project %>/resources/<%= resource %>", {
-        host     = os.getenv "NGINX_HOST", -- or Config.hostname,
-        port     = os.getenv "NGINX_PORT", -- or Config.port,
-        project  = self.project.id,
-        resource = self.resource.id,
-      })
-      local edit_url  = Et.render ("ws://edit.<%= host %>:<%= port %>/<%= resource %>", {
-        host     = os.getenv "NGINX_HOST", -- or Config.hostname,
-        port     = os.getenv "NGINX_PORT", -- or Config.port,
-        resource = self.resource.id,
-      })
-      local redis = get_redis ()
-                 or Redis.connect (Config.redis.host, Config.redis.port)
-      redis:select (Config.redis.database)
-      local exists = redis:eval (script, 1, self.resource.id, Util.to_json {
-        resource = self.resource.id,
-        owner    = make_token (self.project.user_id),
-        api      = api_url,
-      })
-      if exists ~= 1 then
-        redis:subscribe ("resource:" .. self.resource.id)
-        for message in redis.read_reply
-                   and function () return redis:read_reply () end
-                    or redis:pubsub {
-            subscribe = { "resource:" .. self.resource.id },
-          } do
-          message.kind    = message.kind    or message [1]
-          message.channel = message.channel or message [2]
-          message.payload = message.payload or message [3]
-          if message.kind == "message" then
-            exists = message
-            break
-          end
-        end
-        redis:unsubscribe ("resource:" .. self.resource.id)
-      end
-      local result = {
-        editor = edit_url,
-        token  = make_token (self.authentified.id, {
-          user        = self.authentified.id,
-          resource    = self.resource.id,
-          permissions = {
-            read  = true,
-            write = self.authentified.id == self.project.user_id,
-          },
-        }),
+      -- FIXME: history should be updatable by part
+      self.resource:update {
+        name        = self.params.name,
+        description = self.params.description,
+        history     = self.params.history,
+        data        = self.params.data,
       }
-      return exists.payload == ""
-         and { status = 404 }
-          or { status = 200,
-               json   = result,
-             }
+      return { status = 204 }
     end,
     DELETE = Decorators.is_authentified ..
              Decorators.param_is_project "project" ..

@@ -292,7 +292,7 @@ describe ("cosyverif api", function ()
       })
       assert.are.same (status, 200)
       result = Util.from_json (result)
-      assert.are.equal (result.name, "a-name")
+      assert.are.equal (result.resource.name, "a-name")
     end)
 
     it ("answers to PATCH with no Authorization", function ()
@@ -334,25 +334,47 @@ describe ("cosyverif api", function ()
       assert.are.same (status, 404)
     end)
 
-    it ("answers to PATCH with Authorization #current", function ()
+    it ("answers to PATCH with Authorization", function ()
+      local token  = Test.make_token (Test.identities.rahan)
+      local status = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
+        method  = "PATCH",
+        headers = {
+          ["Authorization" ] = "Bearer " .. token,
+          ["Content-type"  ] = "application/json",
+        },
+        post = Util.to_json {
+          name        = "a-name",
+          description = "a-description",
+        }
+      })
+      assert.are.same (status, 204)
+      local result
+      status, result = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
+        method = "GET",
+      })
+      assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.are.equal (result.resource.name, "a-name")
+    end)
+
+    it ("allows edition #current", function ()
       local token  = Test.make_token (Test.identities.rahan)
       local status, result = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
-        method  = "PATCH",
+        method  = "GET",
         headers = { Authorization = "Bearer " .. token},
       })
+      assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.is_not_nil (result.editor)
+      assert.is_not_nil (result.token)
       if Test.environment.nginx then
-        assert.are.same (status, 200)
-        result = Util.from_json (result)
-        assert.is_not_nil (result.token)
         local connected
         Copas.addthread (function ()
           local ws  = Websocket.client.copas {}
-          connected = ws:connect (result.editor, "cosy")
+          connected = print (ws:connect (result.editor, "cosy"))
         end)
         Copas.loop ()
         assert.is_not_nil (connected)
-      else
-        assert.are.same (status, 404)
       end
     end)
 

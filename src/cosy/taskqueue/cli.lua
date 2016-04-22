@@ -97,10 +97,14 @@ for message in redis.pub:pubsub { subscribe = channels } do
         "<%= prefix %>/bin/cosy-editor" \
           --api="<%= api %>" \
           --owner="<%= owner %>" \
+          --user="<%= user %>" \
+          --project="<%= project %>" \
           --resource="<%= resource %>" &
       ]], {
         prefix   = prefix,
         api      = data.api,
+        user     = data.user,
+        project  = data.project,
         resource = data.resource,
         owner    = data.owner,
       }))
