@@ -7,6 +7,7 @@ local Test = {}
 
 if os.getenv "RUN_COVERAGE" then
   Test.environment = {
+    nginx   = false,
     app     = function ()
       return require "cosy.server"
     end,
@@ -19,6 +20,7 @@ if os.getenv "RUN_COVERAGE" then
   }
 else
   Test.environment = {
+    nginx   = true,
     app     = function ()
       return nil
     end,

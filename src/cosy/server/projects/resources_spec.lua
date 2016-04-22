@@ -1,4 +1,8 @@
-local Test = require "cosy.server.test"
+local Copas     = require "copas.ev"
+Copas:make_default ()
+local Test      = require "cosy.server.test"
+local Websocket = require "websocket"
+local Et        = require "etlua"
 
 describe ("cosyverif api", function ()
   Test.environment.use ()
@@ -331,13 +335,37 @@ describe ("cosyverif api", function ()
       assert.are.same (status, 404)
     end)
 
-    it ("answers to PATCH with Authorization #current", function ()
+    it ("answers to PATCH with Authorization", function ()
       local token  = Test.make_token (Test.identities.rahan)
-      local status = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
+      local status, result = request (app, "/projects/" .. projects.rahan .. "/resources/" .. resources.rahan, {
         method  = "PATCH",
         headers = { Authorization = "Bearer " .. token},
       })
-      assert.are.same (status, 301)
+      assert.are.same (status, 200)
+      result = Util.from_json (result)
+      assert.is_not_nil (result.token)
+      local connected
+      if Test.environment.nginx then
+        local Config = require "lapis.config".get ()
+        local server = require "lapis.spec.server".get_current_server ()
+        local url    = Et.render ("ws://edit.<%= host %>:<%= port %>/<%= resource %>", {
+          host     = Config.hostname,
+          port     = server.app_port,
+          resource = resources.rahan,
+        })
+        Copas.addthread (function ()
+          local ws  = Websocket.client.copas {}
+          connected = ws:connect (url, "cosy")
+        end)
+        Copas.loop ()
+      else
+        Copas.addthread (function ()
+          local ws = Websocket.client.copas {}
+          connected = ws:connect (result.entry, "cosy")
+        end)
+        Copas.loop ()
+      end
+      assert.is_not_nil (connected)
     end)
 
     it ("answers to DELETE with no Authorization", function ()

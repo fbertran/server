@@ -17,7 +17,6 @@ build:
         code: |
           /app/bin/luarocks make rockspec/cosy-server-dev-master-1.rockspec
           /app/bin/luarocks make rockspec/cosy-server-master-1.rockspec
-          patch -i patch-request.txt /app/share/lua/5.1/lapis/spec/request.lua
     - script:
         name: "configure"
         code: |

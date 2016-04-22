@@ -2,9 +2,27 @@ local respond_to  = require "lapis.application".respond_to
 local json_params = require "lapis.application".json_params
 local Config      = require "lapis.config".get ()
 local get_redis   = require "lapis.redis".get_redis
+local Util        = require "lapis.util"
 local Redis       = require "redis"
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
+local Jwt         = require "jwt"
+local Time        = require "socket".gettime
+
+local function make_token (sub, contents)
+  local claims = {
+    iss = "https://cosyverif.eu.auth0.com",
+    sub = sub,
+    aud = Config.auth0.client_id,
+    exp = Time () + 10 * 3600,
+    iat = Time (),
+    contents = contents,
+  }
+  return Jwt.encode (claims, {
+    alg = "HS256",
+    keys = { private = Config.auth0.client_secret },
+  })
+end
 
 return function (app)
 
@@ -60,14 +78,13 @@ return function (app)
 
   local script = [[
     local resource = KEYS [1]
+    local data     = ARGV [1]
     local exists   = redis.call ("get", "resource:" .. resource)
-    if exists then
-      return true
-    else
-      redis.call ("set", "resource:" .. resource, "in-progress")
-      redis.call ("publish", "resource:edit", resource)
-      return false
+    if not exists then
+      redis.call ("set", "resource:" .. resource, "false")
+      redis.call ("publish", "resource:edit", data)
     end
+    return exists
   ]]
 
   app:match ("/projects/:project/resources/:resource", respond_to {
@@ -113,11 +130,21 @@ return function (app)
       local redis = get_redis ()
                  or Redis.connect (Config.redis.host, Config.redis.port)
       redis:select (Config.redis.database)
-      if not redis:eval (script, 1, self.resource.id) then
+      local exists = redis:eval (script, 1, self.resource.id, Util.to_json {
+        resource = self.resource.id,
+        owner    = make_token (self.project.user_id),
+      })
+      if exists ~= 1 then
+        -- TODO: generate a token of the owner for the updater
         redis:subscribe ("resource:" .. self.resource.id)
-        for message in redis.read_reply or redis:pubsub {
+        for message in redis.read_reply
+                   and function () return redis:read_reply () end
+                    or redis:pubsub {
             subscribe = { "resource:" .. self.resource.id },
           } do
+          message.kind    = message.kind    or message [1]
+          message.channel = message.channel or message [2]
+          message.payload = message.payload or message [3]
           if message.kind == "message" then
             break
           end
@@ -125,8 +152,18 @@ return function (app)
         redis:unsubscribe ("resource:" .. self.resource.id)
       end
       return {
-        status      = 301,
-        redirect_to = "ws://edit." .. Config.hostname .. "/" .. self.resource.id,
+        status = 200,
+        json   = {
+          entry    = redis:get ("resource:" .. self.resource.id),
+          token    = make_token (self.authentified.id, {
+            user        = self.authentified.id,
+            resource    = self.resource.id,
+            permissions = {
+              read  = true,
+              write = self.authentified.id == self.project.user_id,
+            },
+          }),
+        },
       }
     end,
     DELETE = Decorators.is_authentified ..

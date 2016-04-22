@@ -2,30 +2,27 @@ local Arguments = require "argparse"
 local Colors    = require "ansicolors"
 local Et        = require "etlua"
 local Config    = require "lapis.config".get ()
+local Util        = require "lapis.util"
 local Redis     = require "redis"
--- local prefix
---
--- do
---   local path = package.searchpath ("cosy.check.cli", package.path)
---   local parts = {}
---   for part in path:gmatch "[^/]+" do
---     parts [#parts+1] = part
---   end
---   for _ = 1, 6 do
---     parts [#parts] = nil
---   end
---   prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
--- end
+
+local prefix
+do
+  local path = package.searchpath ("cosy.check.cli", package.path)
+  local parts = {}
+  for part in path:gmatch "[^/]+" do
+    parts [#parts+1] = part
+  end
+  for _ = 1, 6 do
+    parts [#parts] = nil
+  end
+  prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
+end
 
 
 local parser = Arguments () {
   name        = "cosy-runner",
   description = "",
 }
--- parser:option "--prefix" {
---   description = "install prefix",
---   default     = prefix,
--- }
 parser:flag "--quit" {
   description = "quit",
 }
@@ -95,14 +92,14 @@ for message in redis.pub:pubsub { subscribe = channels } do
         break
       end
     elseif message.channel == "resource:edit" then
-      local resource = message.payload
-      local url      = "ws://localhost:8090/"
-      redis.set:set     ("resource:" .. resource, url)
-      redis.set:publish ("resource:" .. resource, url)
-      print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Launched editor for %{green}<%= resource %>%{reset}.", {
-        resource = resource,
-        time     = os.date "%c"
-      })))
+      local data = Util.from_json (message.payload)
+      os.execute (Et.render ([[
+        "<%= prefix %>/bin/cosy-updater" --owner="<%= owner %>" --resource="<%= resource %>" &
+      ]], {
+        prefix   = prefix,
+        resource = data.resource,
+        owner    = data.owner,
+      }))
     end
   end
 end
