@@ -140,7 +140,7 @@ cosy_temp=$(realpath "${cosy_temp}")
         sudo apt-get update  --yes
         sudo apt-get install --yes make clang gcc diffutils patch curl zip unzip \
                                    perl build-essential wget python python-pip \
-                                   libc6-dev libssl-dev \
+                                   libc6-dev libssl-dev libev-dev \
                                    libreadline-dev libncurses5-dev libpcre3-dev \
                                    npm libc-bin redis-server postgresql shellcheck
         ;;
@@ -151,7 +151,7 @@ cosy_temp=$(realpath "${cosy_temp}")
         export LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LD_LIBRARY_PATH}"
         export DYLD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
         brew update
-        brew install openssl pcre python wget npm libcaca postgresql redis shellcheck
+        brew install libev openssl pcre python wget npm libcaca postgresql redis shellcheck
         brew link --force openssl
         ;;
       *)
