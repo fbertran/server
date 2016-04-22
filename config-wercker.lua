@@ -52,6 +52,9 @@ local common = {
     password = assert (os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD"),
     database = assert (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE"),
   },
+  updater = {
+    timeout = 60, -- seconds
+  },
 }
 
 common.www_prefix     = prefix .. "/share/cosy/www"
