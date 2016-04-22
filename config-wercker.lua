@@ -52,7 +52,7 @@ local common = {
     password = assert (os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD"),
     database = assert (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE"),
   },
-  updater = {
+  editor = {
     timeout = 60, -- seconds
   },
 }

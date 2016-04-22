@@ -109,7 +109,7 @@ do
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%= prefix %>/bin/busted" --coverage "<%= tags %>" --verbose src/
+    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%= prefix %>/bin/busted" --verbose --coverage "<%= tags %>" --verbose src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,

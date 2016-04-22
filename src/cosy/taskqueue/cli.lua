@@ -94,7 +94,7 @@ for message in redis.pub:pubsub { subscribe = channels } do
     elseif message.channel == "resource:edit" then
       local data = Util.from_json (message.payload)
       os.execute (Et.render ([[
-        "<%= prefix %>/bin/cosy-updater" \
+        "<%= prefix %>/bin/cosy-editor" \
           --api="<%= api %>" \
           --owner="<%= owner %>" \
           --resource="<%= resource %>" &

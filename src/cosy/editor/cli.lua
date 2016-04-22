@@ -13,8 +13,8 @@ local Ltn12     = require "ltn12"
 local Http      = require "socket.http"
 
 local parser = Arguments () {
-  name        = "cosy-updater",
-  description = "",
+  name        = "cosy-editor",
+  description = "editor for cosy models",
 }
 parser:option "--port" {
   description = "port",
@@ -97,8 +97,8 @@ local socket
 
 Copas.addthread (function ()
   while true do
-    Copas.sleep (Config.updater.timeout)
-    if last_access + Config.updater.timeout <= Time () then
+    Copas.sleep (Config.editor.timeout)
+    if last_access + Config.editor.timeout <= Time () then
       redis:del ("resource:" .. arguments.resource)
       Copas.removeserver (socket)
       break
