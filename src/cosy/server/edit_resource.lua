@@ -7,23 +7,26 @@ local Jwt     = require "jwt"
 local Time    = require "socket".gettime
 
 return function ()
+  local pubsub = Redis:new ()
   local redis  = Redis:new ()
-  local ngx     = _G.ngx
-  local req     = _G.req
+  local ngx    = _G.ngx
+  local req    = _G.req
 
-  local ok = redis:connect (Config.redis.host, Config.redis.port)
-  if not ok then
-    return ngx.exit (500)
+  for _, r in ipairs { pubsub, redis } do
+    local ok = r:connect (Config.redis.host, Config.redis.port)
+    if not ok then
+      return ngx.exit (500)
+    end
+    r:select (Config.redis.database)
   end
-  redis:select (Config.redis.database)
 
   local key = Et.render ("resource:<%= user %>-<%= project %>-<%= resource %>", {
     user     = ngx.var.user,
     project  = ngx.var.project,
     resource = ngx.var.resource,
   })
+  pubsub:subscribe (key)
   local res  = redis:get (key)
-  local wait = false
 
   if res == ngx.null then
     local script = [[
@@ -56,26 +59,22 @@ return function ()
       project  = ngx.var.project,
       resource = ngx.var.resource,
     })
-    local exists = redis:eval (script, 1, key, Cjson.encode {
+    redis:eval (script, 1, key, Cjson.encode {
       user     = ngx.var.user,
       project  = ngx.var.project,
       resource = ngx.var.resource,
       owner    = make_token (ngx.var.user),
       api      = api_url,
     })
-    if exists == 0 then
-      wait = true
-    end
   end
 
-  if res == ngx.null or res == "..." or wait then
-    redis:subscribe (key)
-    for message in function () return redis:read_reply () end do
+  if res == ngx.null or res == "..." then
+    for message in function () return pubsub:read_reply () end do
       message.kind    = message.kind    or message [1]
       message.channel = message.channel or message [2]
       message.payload = message.payload or message [3]
       if message.kind == "message" then
-        redis:unsubscribe (key)
+        pubsub:unsubscribe (key)
         if message.payload == "" then
           ngx.exit(404)
         end
@@ -83,6 +82,8 @@ return function ()
       end
     end
     res = redis:get (key)
+  else
+    pubsub:unsubscribe (key)
   end
 
   ngx.var._url = res:gsub ("wss?://", "http://")
