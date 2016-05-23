@@ -32,9 +32,8 @@ function I18n.__add (i18n, translations)
   for i = 1, #sources do
     t [i] = sources [i]
   end
-  t [#t+1] = Layer.new {
-    data = translations,
-  }
+  t [#t+1] = Layer.new {}
+  Layer.Proxy.replacewith (t [#t], translations)
   local result = setmetatable ({}, I18n)
   Hidden [result] = {
     locale       = Hidden [i18n].locale,
