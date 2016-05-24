@@ -36,9 +36,11 @@ else
   }
 end
 
+-- Users Rahan and Naouna are supposed to exist, whereas Crao does not exist.
 Test.identities = {
-  rahan = "github|1818862",
-  crao  = "google-oauth2|103410538451613086005",
+  rahan  = "github|1818862",
+  crao   = "google-oauth2|103410538451613086005",
+  naouna = "twitter|2572672862",
 }
 
 function Test.make_token (user_id)

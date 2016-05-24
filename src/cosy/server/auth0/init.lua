@@ -3,18 +3,6 @@ Cjson.encode_empty_table = function () end -- Fix for Jwt
 local Jwt    = require "jwt"
 local Config = require "lapis.config".get ()
 
--- local Basexx = require "basexx"
--- local function tobase64 (secret)
---   local r = #secret % 4
---   if     r == 2 then secret = secret .. "=="
---   elseif r == 3 then secret = secret .. "="
---   end
---   secret = secret
---          : gsub ("-", "+")
---          : gsub ("_", "/")
---   return Basexx.from_base64 (secret)
--- end
-
 return function (app)
 
   app:before_filter (function (self)

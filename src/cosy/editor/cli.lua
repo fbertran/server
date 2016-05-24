@@ -21,37 +21,29 @@ parser:option "--port" {
   default     = "0",
   convert     = tonumber,
 }
-parser:option "--api" {
-  description = "API url",
-}
-parser:option "--user" {
-  description = "user identifier",
-}
-parser:option "--project" {
-  description = "project identifier",
-}
-parser:option "--resource" {
-  description = "resource identifier",
-}
-parser:option "--owner" {
-  description = "owner token",
+parser:option "--token" {
+  description = "resource token",
 }
 
 local arguments = parser:parse ()
 
-if not arguments.api
-or not arguments.user
-or not arguments.project
-or not arguments.resource
-or not arguments.owner then
+if not arguments.token then
   print (parser:get_help ())
   os.exit (1)
 end
 
+local data, err = Jwt.decode (arguments.token)
+if not data then
+  print (Colors (Et.render ("Failed to parse token: %{red}<%= error %>%{reset}", {
+    error = err,
+  })))
+  os.exit (1)
+end
+
 local key = Et.render ("resource:<%= user %>-<%= project %>-<%= resource %>", {
-  user     = arguments.user,
-  project  = arguments.project,
-  resource = arguments.resource,
+  user     = data.user,
+  project  = data.project,
+  resource = data.resource,
 })
 
 local redis
@@ -113,9 +105,12 @@ Copas.addthread (function ()
   while true do
     Copas.sleep (Config.editor.timeout)
     if last_access + Config.editor.timeout <= Time () then
+      -- FIXME: save model
+    end
+    if last_access + Config.editor.timeout <= Time () then
       redis:del ("resource:" .. arguments.resource)
       Copas.removeserver (socket)
-      break
+      return
     end
   end
 end)
@@ -150,6 +145,7 @@ Websocket.server.copas.listen
   port      = arguments.port,
   protocols = {
     cosy = function (ws)
+      last_access = Time ()
       local message   = ws:receive ()
       local greetings = message and Util.from_json (message)
       if not greetings then

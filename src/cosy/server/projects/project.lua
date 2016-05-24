@@ -1,10 +1,10 @@
 local respond_to  = require "lapis.application".respond_to
-local Model       = require "cosy.server.model"
+local json_params = require "lapis.application".json_params
 local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
-  app:match ("/projects/:project/stars", respond_to {
+  app:match ("/projects/:project", respond_to {
     HEAD = Decorators.param_is_project "project" ..
            function ()
       return {
@@ -17,50 +17,44 @@ return function (app)
     end,
     GET = Decorators.param_is_project "project" ..
           function (self)
-      local stars = self.project:get_stars () or {}
+      self.project.tags      = self.project:get_tags      () or {}
+      self.project.resources = self.project:get_resources () or {}
       return {
         status = 200,
-        json   = stars,
+        json   = self.project,
       }
     end,
-    PUT = Decorators.param_is_project "project" ..
-          Decorators.is_authentified ..
-          function (self)
-      local exists = Model.stars:find {
-        user_id    = self.authentified.id,
-        project_id = self.project.id,
-      }
-      if exists then
+    PATCH = json_params ..
+            Decorators.param_is_project "project" ..
+            Decorators.is_authentified ..
+            function (self)
+      if self.authentified.id ~= self.project.user_id then
         return {
-          status = 202,
+          status = 403,
         }
       end
-      Model.stars:create {
-        user_id    = self.authentified.id,
-        project_id = self.project.id,
+      self.project:update {
+        name        = self.params.name,
+        description = self.params.description,
       }
       return {
-        status = 201,
+        status = 204,
       }
     end,
     DELETE = Decorators.param_is_project "project" ..
              Decorators.is_authentified ..
              function (self)
-      local exists = Model.stars:find {
-        user_id    = self.authentified.id,
-        project_id = self.project.id,
-      }
-      if not exists then
+      if self.authentified.id ~= self.project.user_id then
         return {
-          status = 404,
+          status = 403,
         }
       end
-      exists:delete ()
+      self.project:delete ()
       return {
         status = 204,
       }
     end,
-    PATCH = Decorators.param_is_project "project" ..
+    PUT = Decorators.param_is_project "project" ..
           function ()
       return { status = 405 }
     end,

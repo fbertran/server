@@ -5,24 +5,28 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
-  app:match ("/projects/:project/resources", respond_to {
-    HEAD = Decorators.param_is_project "project" ..
+  app:match ("/users/:user/projects", respond_to {
+    HEAD = Decorators.param_is_user "user" ..
            function ()
       return { status = 204 }
     end,
-    GET = Decorators.param_is_project "project" ..
+    OPTIONS = Decorators.param_is_user "user" ..
+              function ()
+      return { status = 204 }
+    end,
+    GET = Decorators.param_is_user "user" ..
           function (self)
       return {
         status = 200,
-        json   = self.project:get_resources () or {},
+        json   = self.user:get_projects () or {},
       }
     end,
     POST = json_params ..
+           Decorators.param_is_user "user" ..
            Decorators.is_authentified ..
-           Decorators.param_is_project "project" ..
            function (self)
-      local resource = Model.resources:create {
-        project_id  = self.project.id,
+      local resource = Model.projects:create {
+        user_id     = self.user.id,
         name        = self.params.name,
         description = self.params.description,
       }
@@ -31,19 +35,15 @@ return function (app)
         json   = resource,
       }
     end,
-    OPTIONS = Decorators.param_is_project "project" ..
-              function ()
-      return { status = 204 }
-    end,
-    DELETE = Decorators.param_is_project "project" ..
+    DELETE = Decorators.param_is_user "user" ..
              function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.param_is_project "project" ..
+    PATCH = Decorators.param_is_user "user" ..
             function ()
       return { status = 405 }
     end,
-    PUT = Decorators.param_is_project "project" ..
+    PUT = Decorators.param_is_user "user" ..
           function ()
       return { status = 405 }
     end,

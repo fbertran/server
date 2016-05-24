@@ -4,67 +4,60 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
-  app:match ("/projects/:project/stars", respond_to {
+  app:match ("/projects/:project/tags/:tag", respond_to {
     HEAD = Decorators.param_is_project "project" ..
+           Decorators.param_is_tag "tag" ..
            function ()
-      return {
-        status = 204,
-      }
+      return { status = 204 }
     end,
     OPTIONS = Decorators.param_is_project "project" ..
+              Decorators.param_is_tag "tag" ..
               function ()
       return { status = 204 }
     end,
     GET = Decorators.param_is_project "project" ..
+          Decorators.param_is_tag "tag" ..
           function (self)
-      local stars = self.project:get_stars () or {}
       return {
         status = 200,
-        json   = stars,
+        json   = self.tag,
       }
     end,
     PUT = Decorators.param_is_project "project" ..
+          Decorators.optional (Decorators.param_is_tag "tag") ..
           Decorators.is_authentified ..
           function (self)
-      local exists = Model.stars:find {
-        user_id    = self.authentified.id,
-        project_id = self.project.id,
-      }
-      if exists then
-        return {
-          status = 202,
-        }
+      if self.authentified.id ~= self.project.user_id then
+        return { status = 403 }
       end
-      Model.stars:create {
-        user_id    = self.authentified.id,
-        project_id = self.project.id,
-      }
-      return {
-        status = 201,
-      }
+      if self.tag then
+        self.tag:update {}
+        return { status = 204 }
+      else
+        Model.tags:create {
+          id         = self.params.tag,
+          project_id = self.project.id,
+        }
+        return { status = 201 }
+      end
     end,
     DELETE = Decorators.param_is_project "project" ..
+             Decorators.param_is_tag "tag" ..
              Decorators.is_authentified ..
              function (self)
-      local exists = Model.stars:find {
-        user_id    = self.authentified.id,
-        project_id = self.project.id,
-      }
-      if not exists then
-        return {
-          status = 404,
-        }
+      if self.authentified.id ~= self.project.user_id then
+        return { status = 403 }
       end
-      exists:delete ()
-      return {
-        status = 204,
-      }
+      self.tag:delete ()
+      return { status = 204 }
     end,
     PATCH = Decorators.param_is_project "project" ..
-          function ()
+            Decorators.param_is_tag "tag" ..
+            function ()
       return { status = 405 }
     end,
     POST = Decorators.param_is_project "project" ..
+           Decorators.param_is_tag "tag" ..
            function ()
       return { status = 405 }
     end,

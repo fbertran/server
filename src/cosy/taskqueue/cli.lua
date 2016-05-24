@@ -2,7 +2,7 @@ local Arguments = require "argparse"
 local Colors    = require "ansicolors"
 local Et        = require "etlua"
 local Config    = require "lapis.config".get ()
-local Util        = require "lapis.util"
+local Util      = require "lapis.util"
 local Redis     = require "redis"
 
 local prefix
@@ -17,7 +17,6 @@ do
   end
   prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
 end
-
 
 local parser = Arguments () {
   name        = "cosy-taskqueue",

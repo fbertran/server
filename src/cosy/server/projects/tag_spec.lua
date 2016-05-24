@@ -1,6 +1,6 @@
 local Test = require "cosy.server.test"
 
-describe ("route /projects/:project/stars", function ()
+describe ("route /projects/:project/tags/:tag", function ()
 
   Test.environment.use ()
 
@@ -45,7 +45,14 @@ describe ("route /projects/:project/stars", function ()
     result = Util.from_json (result)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
-    route   = "/projects/" .. result.id .. "/stars"
+    route   = "/projects/" .. result.id .. "/tags/rahan"
+    status  = request (app, route, {
+      method  = "PUT",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+    })
+    assert.are.same (status, 201)
   end)
 
   describe ("accessed as", function ()
@@ -172,75 +179,19 @@ describe ("route /projects/:project/stars", function ()
           end)
         end
 
-        describe ("with existing star", function ()
-
-          before_each (function ()
-            local token  = Test.make_token (Test.identities.rahan)
+        for _, method in ipairs { "DELETE", "PUT" } do
+          it ("answers to " .. method, function ()
             local status = request (app, route, {
-              method  = "PUT",
-              headers = {
-                Authorization = "Bearer " .. token,
-              },
+              method = method,
             })
-            assert.are.same (status, 201)
+            assert.are.same (status, 401)
           end)
-
-          for _, method in ipairs { "DELETE" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.rahan)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 204)
-            end)
-          end
-
-          for _, method in ipairs { "PUT" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.rahan)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 202)
-            end)
-          end
-
-        end)
-
-        describe ("without existing star", function ()
-
-          for _, method in ipairs { "DELETE" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.rahan)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 404)
-            end)
-          end
-
-          for _, method in ipairs { "PUT" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.rahan)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 201)
-            end)
-          end
-
-        end)
+        end
 
         for _, method in ipairs { "PATCH", "POST" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              method = method,
             })
             assert.are.same (status, 405)
           end)
@@ -272,75 +223,19 @@ describe ("route /projects/:project/stars", function ()
           end)
         end
 
-        describe ("with existing star", function ()
-
-          before_each (function ()
-            local token  = Test.make_token (Test.identities.naouna)
+        for _, method in ipairs { "DELETE", "PUT" } do
+          it ("answers to " .. method, function ()
             local status = request (app, route, {
-              method  = "PUT",
-              headers = {
-                Authorization = "Bearer " .. token,
-              },
+              method = method,
             })
-            assert.are.same (status, 201)
+            assert.are.same (status, 401)
           end)
-
-          for _, method in ipairs { "DELETE" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.naouna)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 204)
-            end)
-          end
-
-          for _, method in ipairs { "PUT" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.naouna)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 202)
-            end)
-          end
-
-        end)
-
-        describe ("without existing star", function ()
-
-          for _, method in ipairs { "DELETE" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.naouna)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 404)
-            end)
-          end
-
-          for _, method in ipairs { "PUT" } do
-            it ("answers to " .. method, function ()
-              local token  = Test.make_token (Test.identities.naouna)
-              local status = request (app, route, {
-                method  = method,
-                headers = { Authorization = "Bearer " .. token},
-              })
-              assert.are.same (status, 201)
-            end)
-          end
-
-        end)
+        end
 
         for _, method in ipairs { "PATCH", "POST" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.naouna)
             local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              method = method,
             })
             assert.are.same (status, 405)
           end)

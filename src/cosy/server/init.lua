@@ -4,13 +4,11 @@ local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local app        = Lapis.Application ()
 
-require "cosy.server.auth0"              (app)
-require "cosy.server.tags"               (app)
-require "cosy.server.users"              (app)
-require "cosy.server.projects"           (app)
-require "cosy.server.projects.resources" (app)
-require "cosy.server.projects.stars"     (app)
-require "cosy.server.projects.tags"      (app)
+require "cosy.server.auth0"     (app)
+require "cosy.server.tags"      (app)
+require "cosy.server.users"     (app)
+require "cosy.server.projects"  (app)
+require "cosy.server.resources" (app)
 
 app.layout = false
 
@@ -19,12 +17,6 @@ app.handle_404 = function ()
     status = 404,
   }
 end
-
--- app.handle_error = function () -- (_, err, trace)
---   return {
---     status = 200,
---   }
--- end
 
 app:match ("/", respond_to {
   GET = function (self)
@@ -49,8 +41,11 @@ app:match ("/", respond_to {
       }
     }
   end,
+  HEAD = function ()
+    return { status = 204 }
+  end,
   OPTIONS = function ()
-    return { status = 200 }
+    return { status = 204 }
   end,
   DELETE = function ()
     return { status = 405 }

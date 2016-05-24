@@ -5,11 +5,19 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
+  require "cosy.server.projects.project"   (app)
+  require "cosy.server.projects.resources" (app)
+  require "cosy.server.projects.stars"     (app)
+  require "cosy.server.projects.tags"      (app)
+
   app:match ("/projects", respond_to {
     HEAD = function ()
       return {
         status = 204,
       }
+    end,
+    OPTIONS = function ()
+      return { status = 204 }
     end,
     GET = function ()
       local projects = Model.projects:select () or {}
@@ -35,9 +43,6 @@ return function (app)
         json   = project,
       }
     end,
-    OPTIONS = function ()
-      return { status = 204 }
-    end,
     DELETE = function ()
       return { status = 405 }
     end,
@@ -45,66 +50,6 @@ return function (app)
       return { status = 405 }
     end,
     PUT = function ()
-      return { status = 405 }
-    end,
-  })
-
-  app:match ("/projects/:project", respond_to {
-    HEAD = Decorators.param_is_project "project" ..
-           function ()
-      return {
-        status = 204,
-      }
-    end,
-    GET = Decorators.param_is_project "project" ..
-          function (self)
-      self.project.tags      = self.project:get_tags      () or {}
-      self.project.resources = self.project:get_resources () or {}
-      return {
-        status = 200,
-        json   = self.project,
-      }
-    end,
-    PATCH = json_params ..
-            Decorators.is_authentified ..
-            Decorators.param_is_project "project" ..
-            function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return {
-          status = 403,
-        }
-      end
-      self.project:update {
-        name        = self.params.name,
-        description = self.params.description,
-      }
-      return {
-        status = 204,
-      }
-    end,
-    DELETE = Decorators.is_authentified ..
-             Decorators.param_is_project "project" ..
-             function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return {
-          status = 403,
-        }
-      end
-      self.project:delete ()
-      return {
-        status = 204,
-      }
-    end,
-    OPTIONS = Decorators.param_is_serial "project" ..
-              function ()
-      return { status = 204 }
-    end,
-    PUT = Decorators.param_is_serial "project" ..
-          function ()
-      return { status = 405 }
-    end,
-    POST = Decorators.param_is_serial "project" ..
-           function ()
       return { status = 405 }
     end,
   })

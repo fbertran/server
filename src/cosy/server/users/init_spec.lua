@@ -1,6 +1,6 @@
 local Test = require "cosy.server.test"
 
-describe ("route /projects", function ()
+describe ("route /users", function ()
 
   Test.environment.use ()
 
@@ -13,30 +13,6 @@ describe ("route /projects", function ()
     app     = Test.environment.app     ()
   end)
 
-  before_each (function ()
-    local token  = Test.make_token (Test.identities.naouna)
-    local status = request (app, "/users", {
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    })
-    assert.are.same (status, 201)
-  end)
-
-  before_each (function ()
-    local token = Test.make_token (Test.identities.rahan)
-    local status, result = request (app, "/users", {
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    })
-    assert.are.same (status, 201)
-    result = Util.from_json (result)
-    assert.is.not_nil (result.id)
-  end)
-
   describe ("accessed as", function ()
 
     describe ("an existing collection", function ()
@@ -45,7 +21,7 @@ describe ("route /projects", function ()
 
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method = method,
             })
             assert.are.same (status, 204)
@@ -54,7 +30,7 @@ describe ("route /projects", function ()
 
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method = method,
             })
             assert.are.same (status, 200)
@@ -63,7 +39,7 @@ describe ("route /projects", function ()
 
         it ("answers to POST", function ()
           local token  = Test.make_token (Test.identities.rahan)
-          local status, result = request (app, "/projects", {
+          local status, result = request (app, "/users", {
             method  = "POST",
             headers = {
               Authorization = "Bearer " .. token,
@@ -74,9 +50,23 @@ describe ("route /projects", function ()
           assert.is.not_nil (result.id)
         end)
 
+        it ("answers to forced Auth0 POST", function ()
+          local token  = Test.make_token (Test.identities.rahan)
+          local status, result = request (app, "/users", {
+            method  = "POST",
+            headers = {
+              Authorization = "Bearer " .. token,
+              Force         = "true",
+            },
+          })
+          assert.are.same (status, 201)
+          result = Util.from_json (result)
+          assert.is.not_nil (result.id)
+        end)
+
         for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
           it ("answers to " .. method, function ()
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method = method,
             })
             assert.are.same (status, 405)
@@ -89,7 +79,7 @@ describe ("route /projects", function ()
 
         before_each (function ()
           local token  = Test.make_token (Test.identities.rahan)
-          local status = request (app, "/projects", {
+          local status = request (app, "/users", {
             method  = "POST",
             headers = { Authorization = "Bearer " .. token},
           })
@@ -99,7 +89,7 @@ describe ("route /projects", function ()
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
@@ -110,7 +100,7 @@ describe ("route /projects", function ()
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
@@ -120,11 +110,11 @@ describe ("route /projects", function ()
 
         it ("answers to POST", function ()
           local token  = Test.make_token (Test.identities.rahan)
-          local status, result = request (app, "/projects", {
+          local status, result = request (app, "/users", {
             method  = "POST",
             headers = { Authorization = "Bearer " .. token},
           })
-          assert.are.same (status, 201)
+          assert.are.same (status, 202)
           result = Util.from_json (result)
           assert.is.not_nil (result.id)
         end)
@@ -132,7 +122,7 @@ describe ("route /projects", function ()
         for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
@@ -147,7 +137,7 @@ describe ("route /projects", function ()
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
@@ -158,7 +148,7 @@ describe ("route /projects", function ()
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
@@ -168,17 +158,19 @@ describe ("route /projects", function ()
 
         it ("answers to POST", function ()
           local token  = Test.make_token (Test.identities.crao)
-          local status = request (app, "/projects", {
+          local status, result = request (app, "/users", {
             method  = "POST",
             headers = { Authorization = "Bearer " .. token},
           })
-          assert.are.same (status, 401)
+          assert.are.same (status, 201)
+          result = Util.from_json (result)
+          assert.is.not_nil (result.id)
         end)
 
         for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, "/projects", {
+            local status = request (app, "/users", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })

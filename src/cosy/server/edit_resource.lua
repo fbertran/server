@@ -6,6 +6,21 @@ Cjson.encode_empty_table = function () end -- Fix for Jwt
 local Jwt     = require "jwt"
 local Time    = require "socket".gettime
 
+local function make_token (sub, contents)
+  local claims = {
+    iss = "https://cosyverif.eu.auth0.com",
+    sub = sub,
+    aud = Config.auth0.client_id,
+    exp = Time () + 10 * 3600,
+    iat = Time (),
+    contents = contents,
+  }
+  return Jwt.encode (claims, {
+    alg = "HS256",
+    keys = { private = Config.auth0.client_secret },
+  })
+end
+
 return function ()
   local pubsub = Redis:new ()
   local redis  = Redis:new ()
@@ -39,20 +54,6 @@ return function ()
       end
       return exists
     ]]
-    local function make_token (sub, contents)
-      local claims = {
-        iss = "https://cosyverif.eu.auth0.com",
-        sub = sub,
-        aud = Config.auth0.client_id,
-        exp = Time () + 10 * 3600,
-        iat = Time (),
-        contents = contents,
-      }
-      return Jwt.encode (claims, {
-        alg = "HS256",
-        keys = { private = Config.auth0.client_secret },
-      })
-    end
     local api_url = Et.render ("http://api.<%= host %>:<%= port %>/projects/<%= project %>/resources/<%= resource %>", {
       host     = os.getenv "NGINX_HOST",
       port     = os.getenv "NGINX_PORT",
