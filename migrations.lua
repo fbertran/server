@@ -17,7 +17,7 @@ return {
       { "user_id", Schema.types.serial },
       [[ FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ]],
     })
-    Schema.create_table ("reputation", {
+    Schema.create_table ("reputations", {
       { "user_id"   , Schema.types.serial  },
       { "request"   , Schema.types.text    },
       { "value"     , Schema.types.integer },
