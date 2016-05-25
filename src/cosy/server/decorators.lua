@@ -13,31 +13,22 @@ end
 
 local Decorators = {}
 
-function Decorators.optional (option)
-  return function (f)
-    return function (self)
-      local result = option (f) (self)
-      if type (result) == "table" and result.status ~= 404 then
-        return result
-      end
-      return f (self)
-    end
-  end
-end
-
 function Decorators.is_authentified (f)
   return function (self)
     self.decorators = self.decorators or {}
     if not self.decorators.is_authentified then
       self.decorators.is_authentified = true
-      if not self.token then
+      self.optionals = self.optionals or {}
+      if not self.token and not self.optionals.authentified then
         return { status = 401 }
       end
-      local id = Model.identities:find (self.token.sub)
-      if not id then
-        return { status = 401 }
+      if self.token then
+        local id = Model.identities:find (self.token.sub)
+        if not id then
+          return { status = 401 }
+        end
+        self.authentified = id:get_user ()
       end
-      self.authentified = id:get_user ()
     end
     return f (self)
   end
@@ -120,17 +111,20 @@ local function permission (self)
       user_id    = self.authentified.id,
       project_id = self.project.id,
     }
-    return p and p.permission
-        or self.project.permission_user
-        or "none"
+    if p then
+      return p.permission
+    else
+      return self.project.permission_user
+    end
   else
     return self.project.permission_anonymous
-        or "none"
   end
 end
 
 function Decorators.can_read (f)
-  return Decorators.fetch_params ..
+  return Decorators.optionals { "authentified" } ..
+         Decorators.fetch_params ..
+         Decorators.is_authentified ..
          function (self)
     self.decorators = self.decorators or {}
     if not self.decorators.can_read then
@@ -172,7 +166,6 @@ function Decorators.can_admin (f)
       self.decorators.can_admin = true
       local p = permission (self)
       if p ~= "admin" then
-        print "here"
         return { status = 403 }
       end
     end

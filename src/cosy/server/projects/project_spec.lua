@@ -524,25 +524,14 @@ describe ("route /projects/:project", function ()
           assert.are.same (status, 201)
         end)
 
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
+        for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.naouna)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.naouna)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
+            assert.are.same (status, 403)
           end)
         end
 
@@ -570,27 +559,264 @@ describe ("route /projects/:project", function ()
 
       end)
 
+      describe ("with valid authentication", function ()
+
+        describe ("with default admin permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/user", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "admin" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 202)
+          end)
+
+          for _, method in ipairs { "HEAD", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "GET" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 200)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+        describe ("with default write permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/user", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "write" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 202)
+          end)
+
+          for _, method in ipairs { "HEAD", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "GET" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 200)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 403)
+            end)
+          end
+
+          for _, method in ipairs { "PATCH" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+        describe ("with default read permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/user", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "read" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 202)
+          end)
+
+          for _, method in ipairs { "HEAD", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "GET" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 200)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 403)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+        describe ("with default none permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/user", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "none" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 202)
+          end)
+
+          for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 403)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 403)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local token  = Test.make_token (Test.identities.naouna)
+              local status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+      end)
+
       describe ("with invalid authentication", function ()
 
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
+        for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.crao)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
+            assert.are.same (status, 401)
           end)
         end
 

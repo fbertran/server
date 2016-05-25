@@ -20,7 +20,7 @@ describe ("cosyverif api", function ()
     -- Create the user:
     status, result = request (app, "/users", {
       method  = "POST",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
     assert.is.not_nil (Util.from_json (result).id)
@@ -28,13 +28,13 @@ describe ("cosyverif api", function ()
     -- Update user info:
     status = request (app, "/users/" .. user.id, {
       method  = "PATCH",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 204)
     -- Create a project:
     status, result = request (app, "/projects", {
       method  = "POST",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
     assert.is.not_nil (Util.from_json (result).id)
@@ -42,47 +42,47 @@ describe ("cosyverif api", function ()
     -- Star project:
     status = request (app, "/projects/" .. project .. "/stars", {
       method  = "PUT",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
     -- Tag project:
     status = request (app, "/projects/" .. project .. "/tags/mytag", {
       method  = "PUT",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
     -- Get user:
     status = request (app, "/users/" .. user.id, {
       method  = "GET",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
     -- print (result)
     -- Get all users:
     status = request (app, "/users", {
       method  = "GET",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
     -- print (result)
     -- Delete user:
     status = request (app, "/users/" .. user.id, {
       method  = "DELETE",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 204)
     -- Check that user has been deleted:
     status = request (app, "/users/" .. user.id, {
       method  = "GET",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 404)
-    -- Check that project has not been deleted:
+    -- Check that project cannot be accessed:
     status = request (app, "/projects/" .. project, {
       method  = "GET",
-      headers = { Authorization = "Bearer " .. token},
+      headers = { Authorization = "Bearer " .. token },
     })
-    assert.are.same (status, 200)
+    assert.are.same (status, 401)
   end)
 
 end)
