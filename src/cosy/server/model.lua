@@ -15,11 +15,61 @@ result.users = Model:extend ("users", {
   relations   = {
     {
       "projects",
-      has_many = "projects",
+      belongs_to = "projects",
     },
     {
       "identities",
-      has_many = "identities",
+      belongs_to = "identities",
+    },
+  },
+})
+
+result.reputations = Model:extend ("reputations", {
+  timestamp   = true,
+  relations   = {
+    {
+      "user",
+      belongs_to = "users",
+    },
+  },
+})
+
+result.projects = Model:extend ("projects", {
+  timestamp   = true,
+  relations   = {
+    {
+      "permissions",
+      has_many = "permissions",
+    },
+    {
+      "resources",
+      has_many = "resources",
+    },
+    {
+      "tags",
+      has_many = "tags",
+    },
+    {
+      "stars",
+      has_many = "stars",
+    },
+  },
+})
+
+result.permissions = Model:extend ("permissions", {
+  timestamp   = true,
+  primary_key = {
+      "user_id",
+      "project_id",
+  },
+  relations   = {
+    {
+      "user",
+      belongs_to = "users",
+    },
+    {
+      "project",
+      belongs_to = "projects",
     },
   },
 })
@@ -37,40 +87,23 @@ result.stars = Model:extend ("stars", {
     },
     {
       "project",
-      has_many = "projects",
+      belongs_to = "projects",
     },
   }
-})
-
-result.projects = Model:extend ("projects", {
-  timestamp   = true,
-  relations   = {
-    {
-      "user",
-      belongs_to = "users",
-    },
-    {
-      "resources",
-      has_many = "resources",
-    },
-    {
-      "tags",
-      has_many = "tags",
-    },
-    {
-      "stars",
-      has_many = "stars",
-    },
-  },
 })
 
 result.tags = Model:extend ("tags", {
   timestamp   = true,
   primary_key = {
       "id",
+      "user_id",
       "project_id",
   },
   relations   = {
+    {
+      "user",
+      belongs_to = "users",
+    },
     {
       "project",
       belongs_to = "projects",

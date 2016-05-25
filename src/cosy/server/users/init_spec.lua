@@ -115,8 +115,6 @@ describe ("route /users", function ()
             headers = { Authorization = "Bearer " .. token},
           })
           assert.are.same (status, 202)
-          result = Util.from_json (result)
-          assert.is.not_nil (result.id)
         end)
 
         for _, method in ipairs { "DELETE", "PATCH", "PUT" } do

@@ -129,4 +129,55 @@ function Decorators.param_is_resource (parameter)
   end
 end
 
+local function permission (self)
+  if self.authentified then
+    local p = Model.permissions:find {
+      user_id    = self.authentified.id,
+      project_id = self.project.id,
+    }
+    return p and p.permission
+        or self.project.permission_user
+        or "none"
+  else
+    return self.project.permission_anonymous
+        or "none"
+  end
+end
+
+function Decorators.can_read (f)
+  return function (self)
+    local p = permission (self)
+    if p == "admin"
+    or p == "write"
+    or p == "read" then
+      return f (self)
+    else
+      return { status = 403 }
+    end
+  end
+end
+
+function Decorators.can_write (f)
+  return function (self)
+    local p = permission (self)
+    if p == "admin"
+    or p == "write" then
+      return f (self)
+    else
+      return { status = 403 }
+    end
+  end
+end
+
+function Decorators.can_admin (f)
+  return function (self)
+    local p = permission (self)
+    if p == "admin" then
+      return f (self)
+    else
+      return { status = 403 }
+    end
+  end
+end
+
 return Decorators

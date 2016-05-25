@@ -72,17 +72,17 @@ describe ("cosyverif api", function ()
     })
     assert.are.same (status, 204)
     -- Check that user has been deleted:
-    status = request (app, "/projects/" .. user.id, {
+    status = request (app, "/users/" .. user.id, {
       method  = "GET",
       headers = { Authorization = "Bearer " .. token},
     })
     assert.are.same (status, 404)
-    -- Check that project has been deleted:
+    -- Check that project has not been deleted:
     status = request (app, "/projects/" .. project, {
       method  = "GET",
       headers = { Authorization = "Bearer " .. token},
     })
-    assert.are.same (status, 404)
+    assert.are.same (status, 200)
   end)
 
 end)

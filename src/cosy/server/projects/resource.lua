@@ -29,6 +29,10 @@ return function (app)
            function ()
       return { status = 204 }
     end,
+    OPTIONS = Decorators.param_is_resource "resource" ..
+              function ()
+      return { status = 204 }
+    end,
     GET = Decorators.param_is_resource "resource" ..
           function (self)
       if self.token then
@@ -96,10 +100,6 @@ return function (app)
         return { status = 403 }
       end
       self.resource:delete ()
-      return { status = 204 }
-    end,
-    OPTIONS = Decorators.param_is_resource "resource" ..
-              function ()
       return { status = 204 }
     end,
     POST = Decorators.param_is_resource "resource" ..

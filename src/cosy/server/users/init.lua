@@ -6,8 +6,7 @@ local auth0       = require "cosy.server.users.auth0"
 
 return function (app)
 
-  require "cosy.server.users.user"     (app)
-  require "cosy.server.users.projects" (app)
+  require "cosy.server.users.user" (app)
 
   app:match ("/users", respond_to {
     HEAD = function ()

@@ -6,16 +6,19 @@ return function (app)
 
   app:match ("/projects/:project", respond_to {
     HEAD = Decorators.param_is_project "project" ..
+           Decorators.can_read ..
            function ()
       return {
         status = 204,
       }
     end,
     OPTIONS = Decorators.param_is_project "project" ..
+              Decorators.can_read ..
               function ()
       return { status = 204 }
     end,
     GET = Decorators.param_is_project "project" ..
+          Decorators.can_read ..
           function (self)
       self.project.tags      = self.project:get_tags      () or {}
       self.project.resources = self.project:get_resources () or {}
@@ -27,12 +30,8 @@ return function (app)
     PATCH = json_params ..
             Decorators.param_is_project "project" ..
             Decorators.is_authentified ..
+            Decorators.can_write ..
             function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return {
-          status = 403,
-        }
-      end
       self.project:update {
         name        = self.params.name,
         description = self.params.description,
@@ -43,12 +42,8 @@ return function (app)
     end,
     DELETE = Decorators.param_is_project "project" ..
              Decorators.is_authentified ..
+             Decorators.can_admin ..
              function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return {
-          status = 403,
-        }
-      end
       self.project:delete ()
       return {
         status = 204,

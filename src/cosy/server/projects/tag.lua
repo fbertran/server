@@ -24,31 +24,36 @@ return function (app)
       }
     end,
     PUT = Decorators.param_is_project "project" ..
-          Decorators.optional (Decorators.param_is_tag "tag") ..
           Decorators.is_authentified ..
           function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return { status = 403 }
+      local tag = Model.tags:find {
+        id         = self.params.tag,
+        user_id    = self.authentified.id,
+        project_id = self.project.id,
+      }
+      if tag then
+        return { status = 202 }
       end
-      if self.tag then
-        self.tag:update {}
-        return { status = 204 }
-      else
-        Model.tags:create {
-          id         = self.params.tag,
-          project_id = self.project.id,
-        }
-        return { status = 201 }
-      end
+      Model.tags:create {
+        id         = self.params.tag,
+        user_id    = self.authentified.id,
+        project_id = self.project.id,
+      }
+      return { status = 201 }
     end,
     DELETE = Decorators.param_is_project "project" ..
              Decorators.param_is_tag "tag" ..
              Decorators.is_authentified ..
              function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return { status = 403 }
+      local tag = Model.tags:find {
+        id         = self.params.tag,
+        user_id    = self.authentified.id,
+        project_id = self.project.id,
+      }
+      if not tag then
+       return { status = 404 }
       end
-      self.tag:delete ()
+      tag:delete ()
       return { status = 204 }
     end,
     PATCH = Decorators.param_is_project "project" ..

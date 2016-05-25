@@ -5,10 +5,11 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
-  require "cosy.server.projects.project"   (app)
-  require "cosy.server.projects.resources" (app)
-  require "cosy.server.projects.stars"     (app)
-  require "cosy.server.projects.tags"      (app)
+  require "cosy.server.projects.project"     (app)
+  require "cosy.server.projects.permissions" (app)
+  require "cosy.server.projects.resources"   (app)
+  require "cosy.server.projects.stars"       (app)
+  require "cosy.server.projects.tags"        (app)
 
   app:match ("/projects", respond_to {
     HEAD = function ()
@@ -34,9 +35,15 @@ return function (app)
            Decorators.is_authentified ..
            function (self)
       local project = Model.projects:create {
-        user_id     = self.authentified.id,
         name        = self.params.name,
         description = self.params.description,
+        permission_anonymous = "read",
+        permission_user      = "read",
+      }
+      Model.permissions:create {
+        user_id    = self.authentified.id,
+        project_id = project.id,
+        permission = "admin",
       }
       return {
         status = 201,

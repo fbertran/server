@@ -4,11 +4,10 @@ local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local app        = Lapis.Application ()
 
-require "cosy.server.auth0"     (app)
-require "cosy.server.tags"      (app)
-require "cosy.server.users"     (app)
-require "cosy.server.projects"  (app)
-require "cosy.server.resources" (app)
+require "cosy.server.auth0"    (app)
+require "cosy.server.tags"     (app)
+require "cosy.server.users"    (app)
+require "cosy.server.projects" (app)
 
 app.layout = false
 
