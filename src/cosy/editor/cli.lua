@@ -106,6 +106,7 @@ Copas.addthread (function ()
     Copas.sleep (Config.editor.timeout)
     if last_access + Config.editor.timeout <= Time () then
       -- FIXME: save model
+      local _ = false
     end
     if last_access + Config.editor.timeout <= Time () then
       redis:del ("resource:" .. arguments.resource)
