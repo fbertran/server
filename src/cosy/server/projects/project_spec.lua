@@ -112,41 +112,208 @@ describe ("route /projects/:project", function ()
 
       describe ("without authentication", function ()
 
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
-          it ("answers to " .. method, function ()
-            local status = request (app, route, {
-              method = method,
-            })
-            assert.are.same (status, 204)
-          end)
-        end
+        describe ("with default admin permission", function ()
 
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local status = request (app, route, {
-              method = method,
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/anonymous", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "admin" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
             })
-            assert.are.same (status, 200)
+            assert.are.same (status, 202)
           end)
-        end
 
-        for _, method in ipairs { "DELETE", "PATCH" } do
-          it ("answers to " .. method, function ()
-            local status = request (app, route, {
-              method = method,
-            })
-            assert.are.same (status, 401)
-          end)
-        end
+          for _, method in ipairs { "HEAD", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 204)
+            end)
+          end
 
-        for _, method in ipairs { "POST", "PUT" } do
-          it ("answers to " .. method, function ()
-            local status = request (app, route, {
-              method = method,
+          for _, method in ipairs { "GET" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 200)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 401)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+        describe ("with default write permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/anonymous", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "write" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
             })
-            assert.are.same (status, 405)
+            assert.are.same (status, 202)
           end)
-        end
+
+          for _, method in ipairs { "HEAD", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "GET" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 200)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 401)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+        describe ("with default read permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/anonymous", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "read" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 202)
+          end)
+
+          for _, method in ipairs { "HEAD", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 204)
+            end)
+          end
+
+          for _, method in ipairs { "GET" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 200)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 401)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
+
+        describe ("with default none permission", function ()
+
+          before_each (function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, route .. "/permissions/anonymous", {
+              method  = "PUT",
+              post    = Util.to_json { permission = "none" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 202)
+          end)
+
+          for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 403)
+            end)
+          end
+
+          for _, method in ipairs { "DELETE", "PATCH" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 401)
+            end)
+          end
+
+          for _, method in ipairs { "POST", "PUT" } do
+            it ("answers to " .. method, function ()
+              local status = request (app, route, {
+                method = method,
+              })
+              assert.are.same (status, 405)
+            end)
+          end
+
+        end)
 
       end)
 

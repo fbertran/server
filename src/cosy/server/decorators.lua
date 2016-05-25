@@ -27,105 +27,90 @@ end
 
 function Decorators.is_authentified (f)
   return function (self)
-    if not self.token then
-      return { status = 401 }
+    self.decorators = self.decorators or {}
+    if not self.decorators.is_authentified then
+      self.decorators.is_authentified = true
+      if not self.token then
+        return { status = 401 }
+      end
+      local id = Model.identities:find (self.token.sub)
+      if not id then
+        return { status = 401 }
+      end
+      self.authentified = id:get_user ()
     end
-    local id = Model.identities:find (self.token.sub)
-    if not id then
-      return { status = 401 }
-    end
-    self.authentified = id:get_user ()
     return f (self)
   end
 end
 
-function Decorators.param_is_identifier (parameter)
+function Decorators.optionals (t)
   return function (f)
     return function (self)
-      self.params [parameter] = Util.unescape (self.params [parameter])
-      if not self.params [parameter]:match "[%w-_]+" then
-        return { status = 400 }
+      self.decorators = self.decorators or {}
+      self.optionals  = self.optionals  or {}
+      for _, key in ipairs (t) do
+        self.optionals [key] = true
       end
       return f (self)
     end
   end
 end
 
-function Decorators.param_is_serial (parameter)
-  return function (f)
-    return function (self)
-      self.params [parameter] = Util.unescape (self.params [parameter])
-      if not tonumber (self.params [parameter]) then
-        return { status = 400 }
+function Decorators.fetch_params (f)
+  return function (self)
+    self.decorators = self.decorators or {}
+    if not self.decorators.fetch_params then
+      self.optionals = self.optionals or {}
+      self.decorators.fetch_params = true
+      if self.params.user then
+        local id = Util.unescape (self.params.user)
+        if not tonumber (id) then
+          return { status = 400 }
+        end
+        self.user = Model.users:find (id)
+        if not self.user and not self.optionals.user then
+          return { status = 404 }
+        end
       end
-      return f (self)
+      if self.params.project then
+        local id = Util.unescape (self.params.project)
+        if not tonumber (id) then
+          return { status = 400 }
+        end
+        self.project = Model.projects:find (id)
+        if not self.project and not self.optionals.project then
+          return { status = 404 }
+        end
+      end
+      if self.params.tag then
+        local id = Util.unescape (self.params.tag)
+        print ("tag", id, id:match "^[%w%-]+$")
+        if not id:match "^[%w%-]+$" then
+          return { status = 400 }
+        end
+        self.tag = Model.tags:find {
+          id         = id,
+          project_id = self.project and self.project.id,
+        }
+        if not self.tag and not self.optionals.tag then
+          return { status = 404 }
+        end
+      end
+      if self.params.resource then
+        local id = Util.unescape (self.params.resource)
+        if not tonumber (id) then
+          return { status = 400 }
+        end
+        self.resource = Model.resources:find {
+          id         = id,
+          project_id = self.project and self.project.id,
+        }
+        if not self.resource and not self.optionals.resource then
+          return { status = 404 }
+        end
+      end
     end
-  end
-end
-
-function Decorators.param_is_user (parameter)
-  return function (f)
-    return Decorators.param_is_serial (parameter) ..
-           function (self)
-      local id   = self.params [parameter]
-      local user = Model.users:find (id)
-      if not user then
-        return { status = 404 }
-      end
-      self.user = user
-      return f (self)
-    end
-  end
-end
-
-function Decorators.param_is_project (parameter)
-  return function (f)
-    return Decorators.param_is_serial (parameter) ..
-           function (self)
-      local id      = self.params [parameter]
-      local project = Model.projects:find (id)
-      if not project then
-        return { status = 404 }
-      end
-      self.project = project
-      return f (self)
-    end
-  end
-end
-
-function Decorators.param_is_tag (parameter)
-  return function (f)
-    return Decorators.param_is_identifier (parameter) ..
-           function (self)
-      local id  = self.params [parameter]
-      local tag = Model.tags:find {
-        id         = id,
-        project_id = self.project.id,
-      }
-      if not tag then
-        return { status = 404 }
-      end
-      self.tag = tag
-      return f (self)
-    end
-  end
-end
-
-function Decorators.param_is_resource (parameter)
-  return function (f)
-    return Decorators.param_is_serial (parameter) ..
-           function (self)
-      local id       = self.params [parameter]
-      local resource = Model.resources:find (id)
-      if not resource then
-        return { status = 404 }
-      end
-      if resource.project_id ~= self.project.id then
-        return { status = 404 }
-      end
-      self.resource = resource
-      return f (self)
-    end
+    return f (self)
   end
 end
 
@@ -145,38 +130,53 @@ local function permission (self)
 end
 
 function Decorators.can_read (f)
-  return function (self)
-    local p = permission (self)
-    if p == "admin"
-    or p == "write"
-    or p == "read" then
-      return f (self)
-    else
-      return { status = 403 }
+  return Decorators.fetch_params ..
+         function (self)
+    self.decorators = self.decorators or {}
+    if not self.decorators.can_read then
+      self.decorators.can_read = true
+      local p = permission (self)
+      if  p ~= "admin"
+      and p ~= "write"
+      and p ~= "read" then
+        return { status = 403 }
+      end
     end
+    return f (self)
   end
 end
 
 function Decorators.can_write (f)
-  return function (self)
-    local p = permission (self)
-    if p == "admin"
-    or p == "write" then
-      return f (self)
-    else
-      return { status = 403 }
+  return Decorators.fetch_params ..
+         Decorators.is_authentified ..
+         function (self)
+    self.decorators = self.decorators or {}
+    if not self.decorators.can_write then
+      self.decorators.can_write = true
+      local p = permission (self)
+      if  p ~= "admin"
+      and p ~= "write" then
+        return { status = 403 }
+      end
     end
+    return f (self)
   end
 end
 
 function Decorators.can_admin (f)
-  return function (self)
-    local p = permission (self)
-    if p == "admin" then
-      return f (self)
-    else
-      return { status = 403 }
+  return Decorators.fetch_params ..
+         Decorators.is_authentified ..
+         function (self)
+    self.decorators = self.decorators or {}
+    if not self.decorators.can_admin then
+      self.decorators.can_admin = true
+      local p = permission (self)
+      if p ~= "admin" then
+        print "here"
+        return { status = 403 }
+      end
     end
+    return f (self)
   end
 end
 

@@ -13,20 +13,74 @@ end
 
 return function (app)
 
+  for _, special in ipairs { "anonymous", "user" } do
+    app:match ("/projects/:project/permissions/" .. special, respond_to {
+      HEAD = Decorators.fetch_params ..
+             Decorators.is_authentified ..
+             Decorators.can_admin ..
+             function ()
+        return { status = 204 }
+      end,
+      OPTIONS = Decorators.fetch_params ..
+                Decorators.is_authentified ..
+                Decorators.can_admin ..
+                function ()
+        return { status = 204 }
+      end,
+      GET = Decorators.fetch_params ..
+            Decorators.is_authentified ..
+            Decorators.can_admin ..
+            function (self)
+        return {
+          status = 200,
+          json   = {
+            project_id = self.project.id,
+            permission = self.project.permission,
+          },
+        }
+      end,
+      PUT = json_params ..
+            Decorators.fetch_params ..
+            Decorators.is_authentified ..
+            Decorators.can_admin ..
+            function (self)
+        if not is_permission (self.params.permission) then
+          return { status = 400 }
+        end
+        self.project:update {
+          ["permission_" .. special] = self.params.permission,
+        }
+        return { status = 202 }
+      end,
+      DELETE = Decorators.fetch_params ..
+               function ()
+        return { status = 405 }
+      end,
+      PATCH = Decorators.fetch_params ..
+              function ()
+        return { status = 405 }
+      end,
+      POST = Decorators.fetch_params ..
+             function ()
+        return { status = 405 }
+      end,
+    })
+  end
+
   app:match ("/projects/:project/permissions/:user", respond_to {
-    HEAD = Decorators.param_is_project "project" ..
+    HEAD = Decorators.fetch_params ..
            Decorators.is_authentified ..
            Decorators.can_admin ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.param_is_project "project" ..
+    OPTIONS = Decorators.fetch_params ..
               Decorators.is_authentified ..
               Decorators.can_admin ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.param_is_project "project" ..
+    GET = Decorators.fetch_params ..
           Decorators.is_authentified ..
           Decorators.can_admin ..
           function (self)
@@ -39,7 +93,7 @@ return function (app)
       }
     end,
     PUT = json_params ..
-          Decorators.param_is_project "project" ..
+          Decorators.fetch_params ..
           Decorators.is_authentified ..
           Decorators.can_admin ..
           function (self)
@@ -64,7 +118,7 @@ return function (app)
         return { status = 201 }
       end
     end,
-    DELETE = Decorators.param_is_project "project" ..
+    DELETE = Decorators.fetch_params ..
              Decorators.is_authentified ..
              Decorators.can_admin ..
              function (self)
@@ -82,72 +136,18 @@ return function (app)
       permission:delete ()
       return { status = 204 }
     end,
-    PATCH = Decorators.param_is_project "project" ..
+    PATCH = Decorators.fetch_params ..
             Decorators.is_authentified ..
             Decorators.can_admin ..
             function ()
       return { status = 405 }
     end,
-    POST = Decorators.param_is_project "project" ..
+    POST = Decorators.fetch_params ..
            Decorators.is_authentified ..
            Decorators.can_admin ..
            function ()
       return { status = 405 }
     end,
   })
-
-  for _, special in ipairs { "anonymous", "user" } do
-    app:match ("/projects/:project/permissions/" .. special, respond_to {
-      HEAD = Decorators.param_is_project "project" ..
-             Decorators.is_authentified ..
-             Decorators.can_admin ..
-             function ()
-        return { status = 204 }
-      end,
-      OPTIONS = Decorators.param_is_project "project" ..
-                Decorators.is_authentified ..
-                Decorators.can_admin ..
-                function ()
-        return { status = 204 }
-      end,
-      GET = Decorators.param_is_project "project" ..
-            Decorators.is_authentified ..
-            Decorators.can_admin ..
-            function (self)
-        return {
-          status = 200,
-          json   = {
-            project_id = self.project.id,
-            permission = self.project.permission,
-          },
-        }
-      end,
-      PUT = json_params ..
-            Decorators.param_is_project "project" ..
-            Decorators.is_authentified ..
-            Decorators.can_admin ..
-            function (self)
-        if not is_permission (self.params.permission) then
-          return { status = 400 }
-        end
-        self.project:update {
-          ["permission_" .. special] = self.params.permission,
-        }
-        return { status = 202 }
-      end,
-      DELETE = Decorators.param_is_project "project" ..
-               function ()
-        return { status = 405 }
-      end,
-      PATCH = Decorators.param_is_project "project" ..
-              function ()
-        return { status = 405 }
-      end,
-      POST = Decorators.param_is_project "project" ..
-             function ()
-        return { status = 405 }
-      end,
-    })
-  end
 
 end

@@ -25,15 +25,15 @@ end
 return function (app)
 
   app:match ("/resources/:resource", respond_to {
-    HEAD = Decorators.param_is_resource "resource" ..
+    HEAD = Decorators.fetch_params ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.param_is_resource "resource" ..
+    OPTIONS = Decorators.fetch_params ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.param_is_resource "resource" ..
+    GET = Decorators.fetch_params ..
           function (self)
       if self.token then
         local id = Model.identities:find (self.token.sub)
@@ -63,8 +63,8 @@ return function (app)
       }
     end,
     PUT = json_params ..
+          Decorators.fetch_params ..
           Decorators.is_authentified ..
-          Decorators.param_is_resource "resource" ..
           function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -78,8 +78,8 @@ return function (app)
       return { status = 204 }
     end,
     PATCH = json_params ..
+            Decorators.fetch_params ..
             Decorators.is_authentified ..
-            Decorators.param_is_resource "resource" ..
             function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -93,8 +93,8 @@ return function (app)
       }
       return { status = 204 }
     end,
-    DELETE = Decorators.is_authentified ..
-             Decorators.param_is_resource "resource" ..
+    DELETE = Decorators.fetch_params ..
+             Decorators.is_authentified ..
              function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -102,7 +102,7 @@ return function (app)
       self.resource:delete ()
       return { status = 204 }
     end,
-    POST = Decorators.param_is_resource "resource" ..
+    POST = Decorators.fetch_params ..
            function ()
       return { status = 405 }
     end,

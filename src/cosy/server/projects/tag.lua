@@ -5,25 +5,23 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project/tags/:tag", respond_to {
-    HEAD = Decorators.param_is_project "project" ..
-           Decorators.param_is_tag "tag" ..
+    HEAD = Decorators.fetch_params ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.param_is_project "project" ..
-              Decorators.param_is_tag "tag" ..
+    OPTIONS = Decorators.fetch_params ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.param_is_project "project" ..
-          Decorators.param_is_tag "tag" ..
+    GET = Decorators.fetch_params ..
           function (self)
       return {
         status = 200,
         json   = self.tag,
       }
     end,
-    PUT = Decorators.param_is_project "project" ..
+    PUT = Decorators.optionals { "tag" } ..
+          Decorators.fetch_params ..
           Decorators.is_authentified ..
           function (self)
       local tag = Model.tags:find {
@@ -41,8 +39,7 @@ return function (app)
       }
       return { status = 201 }
     end,
-    DELETE = Decorators.param_is_project "project" ..
-             Decorators.param_is_tag "tag" ..
+    DELETE = Decorators.fetch_params ..
              Decorators.is_authentified ..
              function (self)
       local tag = Model.tags:find {
@@ -56,13 +53,11 @@ return function (app)
       tag:delete ()
       return { status = 204 }
     end,
-    PATCH = Decorators.param_is_project "project" ..
-            Decorators.param_is_tag "tag" ..
+    PATCH = Decorators.fetch_params ..
             function ()
       return { status = 405 }
     end,
-    POST = Decorators.param_is_project "project" ..
-           Decorators.param_is_tag "tag" ..
+    POST = Decorators.fetch_params ..
            function ()
       return { status = 405 }
     end,

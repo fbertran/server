@@ -5,19 +5,19 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project", respond_to {
-    HEAD = Decorators.param_is_project "project" ..
+    HEAD = Decorators.fetch_params ..
            Decorators.can_read ..
            function ()
       return {
         status = 204,
       }
     end,
-    OPTIONS = Decorators.param_is_project "project" ..
+    OPTIONS = Decorators.fetch_params ..
               Decorators.can_read ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.param_is_project "project" ..
+    GET = Decorators.fetch_params ..
           Decorators.can_read ..
           function (self)
       self.project.tags      = self.project:get_tags      () or {}
@@ -28,7 +28,7 @@ return function (app)
       }
     end,
     PATCH = json_params ..
-            Decorators.param_is_project "project" ..
+            Decorators.fetch_params ..
             Decorators.is_authentified ..
             Decorators.can_write ..
             function (self)
@@ -40,7 +40,7 @@ return function (app)
         status = 204,
       }
     end,
-    DELETE = Decorators.param_is_project "project" ..
+    DELETE = Decorators.fetch_params ..
              Decorators.is_authentified ..
              Decorators.can_admin ..
              function (self)
@@ -49,11 +49,11 @@ return function (app)
         status = 204,
       }
     end,
-    PUT = Decorators.param_is_project "project" ..
+    PUT = Decorators.fetch_params ..
           function ()
       return { status = 405 }
     end,
-    POST = Decorators.param_is_project "project" ..
+    POST = Decorators.fetch_params ..
            function ()
       return { status = 405 }
     end,

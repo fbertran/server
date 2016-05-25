@@ -6,11 +6,11 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project/resources", respond_to {
-    HEAD = Decorators.param_is_project "project" ..
+    HEAD = Decorators.fetch_params ..
            function ()
       return { status = 204 }
     end,
-    GET = Decorators.param_is_project "project" ..
+    GET = Decorators.fetch_params ..
           function (self)
       return {
         status = 200,
@@ -18,8 +18,8 @@ return function (app)
       }
     end,
     POST = json_params ..
+           Decorators.fetch_params ..
            Decorators.is_authentified ..
-           Decorators.param_is_project "project" ..
            function (self)
       local resource = Model.resources:create {
         project_id  = self.project.id,
@@ -31,19 +31,19 @@ return function (app)
         json   = resource,
       }
     end,
-    OPTIONS = Decorators.param_is_project "project" ..
+    OPTIONS = Decorators.fetch_params ..
               function ()
       return { status = 204 }
     end,
-    DELETE = Decorators.param_is_project "project" ..
+    DELETE = Decorators.fetch_params ..
              function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.param_is_project "project" ..
+    PATCH = Decorators.fetch_params ..
             function ()
       return { status = 405 }
     end,
-    PUT = Decorators.param_is_project "project" ..
+    PUT = Decorators.fetch_params ..
           function ()
       return { status = 405 }
     end,

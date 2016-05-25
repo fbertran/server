@@ -5,7 +5,7 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/tags/(:tag)", respond_to {
-    HEAD = Decorators.param_is_identifier "tag" ..
+    HEAD = Decorators.fetch_params ..
            function (self)
       local id   = self.params.tag
       local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
@@ -18,7 +18,7 @@ return function (app)
         status = 204,
       }
     end,
-    OPTIONS = Decorators.param_is_identifier "tag" ..
+    OPTIONS = Decorators.fetch_params ..
               function (self)
       local id   = self.params.tag
       local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
@@ -31,7 +31,7 @@ return function (app)
         status = 204,
       }
     end,
-    GET = Decorators.param_is_identifier "tag" ..
+    GET = Decorators.fetch_params ..
           function (self)
       local id   = self.params.tag
       local tags = Db.select ("id, project_id, created_at, updated_at from tags where id = ?", id) or {}
