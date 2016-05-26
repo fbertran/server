@@ -13,6 +13,17 @@ describe ("route /projects", function ()
     app     = Test.environment.app     ()
   end)
 
+  before_each (function ()
+    local token  = Test.make_token (Test.identities.rahan)
+    local status = request (app, "/projects", {
+      method  = "POST",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+    })
+    assert.are.same (status, 201)
+  end)
+
   describe ("accessed as", function ()
 
     describe ("an existing collection", function ()

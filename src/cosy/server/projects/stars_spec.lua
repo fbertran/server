@@ -257,6 +257,11 @@ describe ("route /projects/:project/stars", function ()
                 headers = { Authorization = "Bearer " .. token},
               })
               assert.are.same (status, 204)
+              status = request (app, route, {
+                method  = method,
+                headers = { Authorization = "Bearer " .. token},
+              })
+              assert.are.same (status, 404)
             end)
           end
 

@@ -35,9 +35,7 @@ function Decorators.exists (except)
 end
 
 local function permission (self)
-  if not self.project then
-    return
-  end
+  assert (self.project)
   if self.authentified then
     local p = Model.permissions:find {
       user_id    = self.authentified.id,

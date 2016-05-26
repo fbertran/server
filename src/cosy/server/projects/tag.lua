@@ -51,9 +51,6 @@ return function (app)
         user_id    = self.authentified.id,
         project_id = self.project.id,
       }
-      if not tag then
-       return { status = 404 }
-      end
       tag:delete ()
       return { status = 204 }
     end,

@@ -6,25 +6,13 @@ return function (app)
 
   app:match ("/tags/:tag", respond_to {
     HEAD = Decorators.exists {} ..
-           function (self)
-      local tags = Db.select ("id from tags where id = ? limit 1", self.tag.id) or {}
-      if #tags == 0 then
-        return {
-          status = 404,
-        }
-      end
+           function ()
       return {
         status = 204,
       }
     end,
     OPTIONS = Decorators.exists {} ..
-              function (self)
-      local tags = Db.select ("id from tags where id = ? limit 1", self.tag.id) or {}
-      if #tags == 0 then
-        return {
-          status = 404,
-        }
-      end
+              function ()
       return {
         status = 204,
       }
@@ -32,11 +20,6 @@ return function (app)
     GET = Decorators.exists {} ..
           function (self)
       local tags = Db.select ("* from tags where id = ?", self.tag.id) or {}
-      if #tags == 0 then
-        return {
-          status = 404,
-        }
-      end
       return {
         status = 200,
         json   = tags,
