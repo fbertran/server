@@ -1,5 +1,32 @@
 local Test = require "cosy.server.test"
 
+describe ("route /anything-not-existing", function ()
+  Test.environment.use ()
+
+  local request
+  local app
+
+  before_each (function ()
+    Test.clean_db ()
+    request = Test.environment.request ()
+    app     = Test.environment.app ()
+  end)
+
+  describe ("without authentication", function ()
+
+    for _, method in ipairs { "HEAD", "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+      it ("answers to " .. method, function ()
+        local status = request (app, "/anything-not-existing", {
+          method = method,
+        })
+        assert.are.same (status, 404)
+      end)
+    end
+
+  end)
+
+end)
+
 describe ("route /", function ()
   Test.environment.use ()
 

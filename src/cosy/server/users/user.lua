@@ -37,11 +37,6 @@ return function (app)
           }
         end
       end
-      self.user.projects = self.user:get_projects () or {}
-      for _, project in ipairs (self.user.projects) do
-        project.stars = # project:get_stars ()
-        project.tags  = project:get_tags  ()
-      end
       return {
         status = 200,
         json   = self.user,

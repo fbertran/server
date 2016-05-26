@@ -50,6 +50,21 @@ describe ("route /projects/:project", function ()
     route = "/projects/" .. result.id
   end)
 
+  describe ("with invalid id", function ()
+
+    for _, method in ipairs { "HEAD", "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+      it ("answers to " .. method, function ()
+        local token  = Test.make_token (Test.identities.naouna)
+        local status = request (app, "/projects/abcde", {
+          method  = method,
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 400)
+      end)
+    end
+
+  end)
+
   describe ("accessed as", function ()
 
     describe ("a non-existing resource", function ()

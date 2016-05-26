@@ -75,10 +75,6 @@ function Decorators.fetch_params (f)
       end
       if self.params.tag then
         local id = Util.unescape (self.params.tag)
-        print ("tag", id, id:match "^[%w%-]+$")
-        if not id:match "^[%w%-]+$" then
-          return { status = 400 }
-        end
         self.tag = Model.tags:find {
           id         = id,
           project_id = self.project and self.project.id,
