@@ -65,11 +65,11 @@ describe ("route /users/:user", function ()
 
       end)
 
-      describe ("with non-owner authentication", function ()
+      describe ("with valid authentication", function ()
 
         for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.naouna)
+            local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
@@ -84,12 +84,12 @@ describe ("route /users/:user", function ()
 
         for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
+            local token  = Test.make_false_token (Test.identities.rahan)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
-            assert.are.same (status, 404)
+            assert.are.same (status, 401)
           end)
         end
 
@@ -254,36 +254,14 @@ describe ("route /users/:user", function ()
 
       describe ("with invalid authentication", function ()
 
-        for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
+        for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
+            local token  = Test.make_false_token (Test.identities.rahan)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 401)
-          end)
-        end
-
-        for _, method in ipairs { "DELETE", "PATCH" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 401)
-          end)
-        end
-
-        for _, method in ipairs { "POST", "PUT" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 405)
           end)
         end
 

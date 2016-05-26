@@ -6,14 +6,17 @@ return function (app)
 
   app:match ("/projects/:project/tags/:tag", respond_to {
     HEAD = Decorators.exists {} ..
+           Decorators.can_read ..
            function ()
       return { status = 204 }
     end,
     OPTIONS = Decorators.exists {} ..
+              Decorators.can_read ..
               function ()
       return { status = 204 }
     end,
     GET = Decorators.exists {} ..
+          Decorators.can_read ..
           function (self)
       return {
         status = 200,
@@ -21,6 +24,7 @@ return function (app)
       }
     end,
     PUT = Decorators.exists { tag = true } ..
+          Decorators.can_read ..
           Decorators.is_authentified ..
           function (self)
       local tag = Model.tags:find {
@@ -39,6 +43,8 @@ return function (app)
       return { status = 201 }
     end,
     DELETE = Decorators.exists {} ..
+             Decorators.can_read ..
+             Decorators.is_authentified ..
              function (self)
       local tag = Model.tags:find {
         id         = self.params.tag,

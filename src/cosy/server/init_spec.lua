@@ -111,7 +111,7 @@ describe ("route /", function ()
 
     for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
       it ("answers to " .. method, function ()
-        local token  = Test.make_false_token (Test.identities.crao)
+        local token  = Test.make_false_token (Test.identities.rahan)
         local status = request (app, "/", {
           method  = method,
           headers = { Authorization = "Bearer " .. token},

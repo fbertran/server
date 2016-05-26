@@ -5,16 +5,26 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project/resources", respond_to {
-    HEAD = function ()
+    HEAD = Decorators.exists {} ..
+           Decorators.can_read ..
+           function ()
       return { status = 204 }
     end,
-    GET = function (self)
+    OPTIONS = Decorators.exists {} ..
+              Decorators.can_read ..
+              function ()
+      return { status = 204 }
+    end,
+    GET = Decorators.exists {} ..
+          Decorators.can_read ..
+          function (self)
       return {
         status = 200,
         json   = self.project:get_resources () or {},
       }
     end,
-    POST = Decorators.can_write ..
+    POST = Decorators.exists {} ..
+           Decorators.can_write ..
            function (self)
       local resource = Model.resources:create {
         project_id  = self.project.id,
@@ -26,16 +36,16 @@ return function (app)
         json   = resource,
       }
     end,
-    OPTIONS = function ()
-      return { status = 204 }
-    end,
-    DELETE = function ()
+    DELETE = Decorators.exists {} ..
+             function ()
       return { status = 405 }
     end,
-    PATCH = function ()
+    PATCH = Decorators.exists {} ..
+            function ()
       return { status = 405 }
     end,
-    PUT = function ()
+    PUT = Decorators.exists {} ..
+          function ()
       return { status = 405 }
     end,
   })

@@ -74,7 +74,7 @@ return function (app)
       local id = Util.unescape (self.params.tag)
       self.tag = Model.tags:find {
         id         = id,
-        project_id = self.project and self.project.id,
+        project_id = self.project and self.project.id or nil,
       } or false
     end
     if self.params.resource then

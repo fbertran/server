@@ -24,13 +24,19 @@ end
 return function (app)
 
   app:match ("/resources/:resource", respond_to {
-    HEAD = function ()
+    HEAD = Decorators.exists {} ..
+           Decorators.can_read ..
+           function ()
       return { status = 204 }
     end,
-    OPTIONS = function ()
+    OPTIONS = Decorators.exists {} ..
+              Decorators.can_read ..
+              function ()
       return { status = 204 }
     end,
-    GET = function (self)
+    GET = Decorators.exists {} ..
+          Decorators.can_read ..
+          function (self)
       if self.token then
         local id = Model.identities:find (self.token.sub)
         if id then
@@ -58,7 +64,8 @@ return function (app)
         }
       }
     end,
-    PUT = Decorators.can_write ..
+    PUT = Decorators.exists {} ..
+          Decorators.can_write ..
           function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -71,7 +78,8 @@ return function (app)
       }
       return { status = 204 }
     end,
-    PATCH = Decorators.can_write ..
+    PATCH = Decorators.exists {} ..
+            Decorators.can_write ..
             function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -85,7 +93,8 @@ return function (app)
       }
       return { status = 204 }
     end,
-    DELETE = Decorators.can_write ..
+    DELETE = Decorators.exists {} ..
+             Decorators.can_write ..
              function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -93,7 +102,8 @@ return function (app)
       self.resource:delete ()
       return { status = 204 }
     end,
-    POST = function ()
+    POST = Decorators.exists {} ..
+           function ()
       return { status = 405 }
     end,
   })

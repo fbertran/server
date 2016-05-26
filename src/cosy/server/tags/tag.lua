@@ -1,12 +1,13 @@
-local respond_to  = require "lapis.application".respond_to
-local Db          = require "lapis.db"
+local respond_to = require "lapis.application".respond_to
+local Db         = require "lapis.db"
+local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
-  app:match ("/tags/(:tag)", respond_to {
-    HEAD = function (self)
-      local id   = self.json.tag
-      local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
+  app:match ("/tags/:tag", respond_to {
+    HEAD = Decorators.exists {} ..
+           function (self)
+      local tags = Db.select ("id from tags where id = ? limit 1", self.tag.id) or {}
       if #tags == 0 then
         return {
           status = 404,
@@ -16,9 +17,9 @@ return function (app)
         status = 204,
       }
     end,
-    OPTIONS = function (self)
-      local id   = self.json.tag
-      local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
+    OPTIONS = Decorators.exists {} ..
+              function (self)
+      local tags = Db.select ("id from tags where id = ? limit 1", self.tag.id) or {}
       if #tags == 0 then
         return {
           status = 404,
@@ -28,9 +29,9 @@ return function (app)
         status = 204,
       }
     end,
-    GET = function (self)
-      local id   = self.json.tag
-      local tags = Db.select ("id, project_id, created_at, updated_at from tags where id = ?", id) or {}
+    GET = Decorators.exists {} ..
+          function (self)
+      local tags = Db.select ("* from tags where id = ?", self.tag.id) or {}
       if #tags == 0 then
         return {
           status = 404,
@@ -41,16 +42,20 @@ return function (app)
         json   = tags,
       }
     end,
-    DELETE = function ()
+    DELETE = Decorators.exists {} ..
+             function ()
       return { status = 405 }
     end,
-    PATCH = function ()
+    PATCH = Decorators.exists {} ..
+            function ()
       return { status = 405 }
     end,
-    POST = function ()
+    POST = Decorators.exists {} ..
+           function ()
       return { status = 405 }
     end,
-    PUT = function ()
+    PUT = Decorators.exists {} ..
+          function ()
       return { status = 405 }
     end,
   })
