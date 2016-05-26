@@ -6,21 +6,15 @@ return function (app)
   require "cosy.server.projects.permission" (app)
 
   app:match ("/projects/:project/permissions", respond_to {
-    HEAD = Decorators.fetch_params ..
-           Decorators.is_authentified ..
-           Decorators.can_admin ..
+    HEAD = Decorators.can_admin ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.fetch_params ..
-              Decorators.is_authentified ..
-              Decorators.can_admin ..
+    OPTIONS = Decorators.can_admin ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.fetch_params ..
-          Decorators.is_authentified ..
-          Decorators.can_admin ..
+    GET = Decorators.can_admin ..
           function (self)
       return {
         status = 200,
@@ -31,20 +25,16 @@ return function (app)
         },
       }
     end,
-    DELETE = Decorators.fetch_params ..
-             function ()
+    DELETE = function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.fetch_params ..
-            function ()
+    PATCH = function ()
       return { status = 405 }
     end,
-    POST = Decorators.fetch_params ..
-           function ()
+    POST = function ()
       return { status = 405 }
     end,
-    PUT = Decorators.fetch_params ..
-          function ()
+    PUT = function ()
       return { status = 405 }
     end,
   })

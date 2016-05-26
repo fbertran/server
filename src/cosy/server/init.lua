@@ -5,6 +5,7 @@ local Model      = require "cosy.server.model"
 local app        = Lapis.Application ()
 
 require "cosy.server.auth0"    (app)
+require "cosy.server.before"   (app)
 require "cosy.server.tags"     (app)
 require "cosy.server.users"    (app)
 require "cosy.server.projects" (app)
@@ -18,6 +19,12 @@ app.handle_404 = function ()
 end
 
 app:match ("/", respond_to {
+  HEAD = function ()
+    return { status = 204 }
+  end,
+  OPTIONS = function ()
+    return { status = 204 }
+  end,
   GET = function (self)
     local user
     if self.token then
@@ -39,12 +46,6 @@ app:match ("/", respond_to {
         },
       }
     }
-  end,
-  HEAD = function ()
-    return { status = 204 }
-  end,
-  OPTIONS = function ()
-    return { status = 204 }
   end,
   DELETE = function ()
     return { status = 405 }

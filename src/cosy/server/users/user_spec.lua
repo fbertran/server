@@ -14,38 +14,24 @@ describe ("route /users/:user", function ()
   end)
 
   before_each (function ()
-    local token  = Test.make_token (Test.identities.naouna)
-    local status = request (app, "/users", {
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    })
-    assert.are.same (status, 201)
-  end)
-
-  before_each (function ()
     local token = Test.make_token (Test.identities.rahan)
-    local status, result = request (app, "/users", {
-      method  = "POST",
+    local status, result = request (app, "/", {
+      method  = "GET",
       headers = {
         Authorization = "Bearer " .. token,
       },
     })
-    assert.are.same (status, 201)
+    assert.are.same (status, 200)
     result = Util.from_json (result)
-    assert.is.not_nil (result.id)
-    route = "/users/" .. result.id
+    route = "/users/" .. result.user.id
   end)
 
   describe ("with invalid id", function ()
 
     for _, method in ipairs { "HEAD", "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
       it ("answers to " .. method, function ()
-        local token  = Test.make_token (Test.identities.naouna)
         local status = request (app, "/users/abcde", {
           method  = method,
-          headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 400)
       end)
@@ -268,27 +254,14 @@ describe ("route /users/:user", function ()
 
       describe ("with invalid authentication", function ()
 
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
+        for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.crao)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
-            local status, result = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
-            result = Util.from_json (result)
-            assert.are.same (result.nickname, "saucisson")
+            assert.are.same (status, 401)
           end)
         end
 

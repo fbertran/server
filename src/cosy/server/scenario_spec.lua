@@ -18,13 +18,12 @@ describe ("cosyverif api", function ()
     local status, result
     local token = Test.make_token (Test.identities.rahan)
     -- Create the user:
-    status, result = request (app, "/users", {
-      method  = "POST",
+    status, result = request (app, "/", {
+      method  = "GET",
       headers = { Authorization = "Bearer " .. token },
     })
-    assert.are.same (status, 201)
-    assert.is.not_nil (Util.from_json (result).id)
-    local user = Util.from_json (result)
+    assert.are.same (status, 200)
+    local user = assert (Util.from_json (result).user)
     -- Update user info:
     status = request (app, "/users/" .. user.id, {
       method  = "PATCH",
@@ -77,12 +76,6 @@ describe ("cosyverif api", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 404)
-    -- Check that project cannot be accessed:
-    status = request (app, "/projects/" .. project, {
-      method  = "GET",
-      headers = { Authorization = "Bearer " .. token },
-    })
-    assert.are.same (status, 401)
   end)
 
 end)

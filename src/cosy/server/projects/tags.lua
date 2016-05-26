@@ -1,20 +1,20 @@
-local respond_to  = require "lapis.application".respond_to
-local Decorators  = require "cosy.server.decorators"
+local respond_to = require "lapis.application".respond_to
+local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
   require "cosy.server.projects.tag" (app)
 
   app:match ("/projects/:project/tags", respond_to {
-    HEAD = Decorators.fetch_params ..
+    HEAD = Decorators.exists {} ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.fetch_params ..
+    OPTIONS = Decorators.exists {} ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.fetch_params ..
+    GET = Decorators.exists {} ..
           function (self)
       local tags = self.project:get_tags () or {}
       return {
@@ -22,19 +22,19 @@ return function (app)
         json   = tags,
       }
     end,
-    DELETE = Decorators.fetch_params ..
+    DELETE = Decorators.exists {} ..
              function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.fetch_params ..
+    PATCH = Decorators.exists {} ..
             function ()
       return { status = 405 }
     end,
-    POST = Decorators.fetch_params ..
+    POST = Decorators.exists {} ..
            function ()
       return { status = 405 }
     end,
-    PUT = Decorators.fetch_params ..
+    PUT = Decorators.exists {} ..
           function ()
       return { status = 405 }
     end,

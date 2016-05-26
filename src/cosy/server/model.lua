@@ -24,16 +24,6 @@ result.users = Model:extend ("users", {
   },
 })
 
-result.reputations = Model:extend ("reputations", {
-  timestamp   = true,
-  relations   = {
-    {
-      "user",
-      belongs_to = "users",
-    },
-  },
-})
-
 result.projects = Model:extend ("projects", {
   timestamp   = true,
   relations   = {

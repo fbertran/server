@@ -1,5 +1,4 @@
 local respond_to  = require "lapis.application".respond_to
-local json_params = require "lapis.application".json_params
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 
@@ -31,12 +30,11 @@ return function (app)
         json   = projects,
       }
     end,
-    POST = json_params ..
-           Decorators.is_authentified ..
+    POST = Decorators.is_authentified ..
            function (self)
       local project = Model.projects:create {
-        name        = self.params.name,
-        description = self.params.description,
+        name        = self.json.name,
+        description = self.json.description,
         permission_anonymous = "read",
         permission_user      = "read",
       }

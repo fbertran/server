@@ -1,5 +1,4 @@
 local respond_to  = require "lapis.application".respond_to
-local json_params = require "lapis.application".json_params
 local Config      = require "lapis.config".get ()
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
@@ -25,16 +24,13 @@ end
 return function (app)
 
   app:match ("/resources/:resource", respond_to {
-    HEAD = Decorators.fetch_params ..
-           function ()
+    HEAD = function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.fetch_params ..
-              function ()
+    OPTIONS = function ()
       return { status = 204 }
     end,
-    GET = Decorators.fetch_params ..
-          function (self)
+    GET = function (self)
       if self.token then
         local id = Model.identities:find (self.token.sub)
         if id then
@@ -62,9 +58,7 @@ return function (app)
         }
       }
     end,
-    PUT = json_params ..
-          Decorators.fetch_params ..
-          Decorators.is_authentified ..
+    PUT = Decorators.can_write ..
           function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -77,9 +71,7 @@ return function (app)
       }
       return { status = 204 }
     end,
-    PATCH = json_params ..
-            Decorators.fetch_params ..
-            Decorators.is_authentified ..
+    PATCH = Decorators.can_write ..
             function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -93,8 +85,7 @@ return function (app)
       }
       return { status = 204 }
     end,
-    DELETE = Decorators.fetch_params ..
-             Decorators.is_authentified ..
+    DELETE = Decorators.can_write ..
              function (self)
       if self.authentified.id ~= self.project.user_id then
         return { status = 403 }
@@ -102,8 +93,7 @@ return function (app)
       self.resource:delete ()
       return { status = 204 }
     end,
-    POST = Decorators.fetch_params ..
-           function ()
+    POST = function ()
       return { status = 405 }
     end,
   })

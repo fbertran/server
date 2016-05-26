@@ -5,23 +5,22 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project/tags/:tag", respond_to {
-    HEAD = Decorators.fetch_params ..
+    HEAD = Decorators.exists {} ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.fetch_params ..
+    OPTIONS = Decorators.exists {} ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.fetch_params ..
+    GET = Decorators.exists {} ..
           function (self)
       return {
         status = 200,
         json   = self.tag,
       }
     end,
-    PUT = Decorators.optionals { "tag" } ..
-          Decorators.fetch_params ..
+    PUT = Decorators.exists { tag = true } ..
           Decorators.is_authentified ..
           function (self)
       local tag = Model.tags:find {
@@ -39,8 +38,7 @@ return function (app)
       }
       return { status = 201 }
     end,
-    DELETE = Decorators.fetch_params ..
-             Decorators.is_authentified ..
+    DELETE = Decorators.exists {} ..
              function (self)
       local tag = Model.tags:find {
         id         = self.params.tag,
@@ -53,11 +51,11 @@ return function (app)
       tag:delete ()
       return { status = 204 }
     end,
-    PATCH = Decorators.fetch_params ..
+    PATCH = Decorators.exists {} ..
             function ()
       return { status = 405 }
     end,
-    POST = Decorators.fetch_params ..
+    POST = Decorators.exists {} ..
            function ()
       return { status = 405 }
     end,

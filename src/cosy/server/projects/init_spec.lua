@@ -13,30 +13,6 @@ describe ("route /projects", function ()
     app     = Test.environment.app     ()
   end)
 
-  before_each (function ()
-    local token  = Test.make_token (Test.identities.naouna)
-    local status = request (app, "/users", {
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    })
-    assert.are.same (status, 201)
-  end)
-
-  before_each (function ()
-    local token = Test.make_token (Test.identities.rahan)
-    local status, result = request (app, "/users", {
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    })
-    assert.are.same (status, 201)
-    result = Util.from_json (result)
-    assert.is.not_nil (result.id)
-  end)
-
   describe ("accessed as", function ()
 
     describe ("an existing collection", function ()
@@ -62,16 +38,10 @@ describe ("route /projects", function ()
         end
 
         it ("answers to POST", function ()
-          local token  = Test.make_token (Test.identities.rahan)
-          local status, result = request (app, "/projects", {
+          local status = request (app, "/projects", {
             method  = "POST",
-            headers = {
-              Authorization = "Bearer " .. token,
-            },
           })
-          assert.are.same (status, 201)
-          result = Util.from_json (result)
-          assert.is.not_nil (result.id)
+          assert.are.same (status, 401)
         end)
 
         for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
@@ -86,15 +56,6 @@ describe ("route /projects", function ()
       end)
 
       describe ("with authentication", function ()
-
-        before_each (function ()
-          local token  = Test.make_token (Test.identities.rahan)
-          local status = request (app, "/projects", {
-            method  = "POST",
-            headers = { Authorization = "Bearer " .. token},
-          })
-          assert.are.same (status, 201)
-        end)
 
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
@@ -118,16 +79,18 @@ describe ("route /projects", function ()
           end)
         end
 
-        it ("answers to POST", function ()
-          local token  = Test.make_token (Test.identities.rahan)
-          local status, result = request (app, "/projects", {
-            method  = "POST",
-            headers = { Authorization = "Bearer " .. token},
-          })
-          assert.are.same (status, 201)
-          result = Util.from_json (result)
-          assert.is.not_nil (result.id)
-        end)
+        for _, method in ipairs { "POST" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status, result = request (app, "/projects", {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 201)
+            result = Util.from_json (result)
+            assert.is.not_nil (result.id)
+          end)
+        end
 
         for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
           it ("answers to " .. method, function ()
@@ -144,45 +107,14 @@ describe ("route /projects", function ()
 
       describe ("with invalid authentication", function ()
 
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
+        for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
+            local token  = Test.make_false_token (Test.identities.rahan)
             local status = request (app, "/projects", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, "/projects", {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
-          end)
-        end
-
-        it ("answers to POST", function ()
-          local token  = Test.make_token (Test.identities.crao)
-          local status = request (app, "/projects", {
-            method  = "POST",
-            headers = { Authorization = "Bearer " .. token},
-          })
-          assert.are.same (status, 401)
-        end)
-
-        for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.crao)
-            local status = request (app, "/projects", {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 405)
+            assert.are.same (status, 401)
           end)
         end
 

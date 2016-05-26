@@ -1,13 +1,11 @@
 local respond_to  = require "lapis.application".respond_to
 local Db          = require "lapis.db"
-local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
   app:match ("/tags/(:tag)", respond_to {
-    HEAD = Decorators.fetch_params ..
-           function (self)
-      local id   = self.params.tag
+    HEAD = function (self)
+      local id   = self.json.tag
       local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
       if #tags == 0 then
         return {
@@ -18,9 +16,8 @@ return function (app)
         status = 204,
       }
     end,
-    OPTIONS = Decorators.fetch_params ..
-              function (self)
-      local id   = self.params.tag
+    OPTIONS = function (self)
+      local id   = self.json.tag
       local tags = Db.select ("id from tags where id = ? limit 1", id) or {}
       if #tags == 0 then
         return {
@@ -31,9 +28,8 @@ return function (app)
         status = 204,
       }
     end,
-    GET = Decorators.fetch_params ..
-          function (self)
-      local id   = self.params.tag
+    GET = function (self)
+      local id   = self.json.tag
       local tags = Db.select ("id, project_id, created_at, updated_at from tags where id = ?", id) or {}
       if #tags == 0 then
         return {

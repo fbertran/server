@@ -1,31 +1,23 @@
 local respond_to  = require "lapis.application".respond_to
-local json_params = require "lapis.application".json_params
 local Util        = require "lapis.util"
-local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 local auth0       = require "cosy.server.users.auth0"
 
 return function (app)
 
   app:match ("/users/:user", respond_to {
-    HEAD = Decorators.fetch_params ..
+    HEAD = Decorators.exists {} ..
            function ()
       return {
         status = 204,
       }
     end,
-    OPTIONS = Decorators.fetch_params ..
+    OPTIONS = Decorators.exists {} ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.fetch_params ..
+    GET = Decorators.exists {} ..
           function (self)
-      if self.token then
-        local id = Model.identities:find (self.token.sub)
-        if id then
-          self.authentified = id:get_user ()
-        end
-      end
       if self.authentified and self.authentified.id == self.user.id then
         local info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
         if status == 200 then
@@ -42,8 +34,7 @@ return function (app)
         json   = self.user,
       }
     end,
-    PATCH = json_params ..
-            Decorators.fetch_params ..
+    PATCH = Decorators.exists {} ..
             Decorators.is_authentified ..
             function (self)
       if self.authentified.id ~= self.user.id then
@@ -56,7 +47,7 @@ return function (app)
         status = 204,
       }
     end,
-    DELETE = Decorators.fetch_params ..
+    DELETE = Decorators.exists {} ..
              Decorators.is_authentified ..
              function (self)
       if self.authentified.id ~= self.user.id then
@@ -69,11 +60,11 @@ return function (app)
         status = 204,
       }
     end,
-    PUT = Decorators.fetch_params ..
+    PUT = Decorators.exists {} ..
           function ()
       return { status = 405 }
     end,
-    POST = Decorators.fetch_params ..
+    POST = Decorators.exists {} ..
            function ()
       return { status = 405 }
     end,

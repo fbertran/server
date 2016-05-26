@@ -5,17 +5,17 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project/stars", respond_to {
-    HEAD = Decorators.fetch_params ..
+    HEAD = Decorators.exists {} ..
            function ()
       return {
         status = 204,
       }
     end,
-    OPTIONS = Decorators.fetch_params ..
+    OPTIONS = Decorators.exists {} ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.fetch_params ..
+    GET = Decorators.exists {} ..
           function (self)
       local stars = self.project:get_stars () or {}
       return {
@@ -23,7 +23,7 @@ return function (app)
         json   = stars,
       }
     end,
-    PUT = Decorators.fetch_params ..
+    PUT = Decorators.exists {} ..
           Decorators.is_authentified ..
           function (self)
       local exists = Model.stars:find {
@@ -43,7 +43,7 @@ return function (app)
         status = 201,
       }
     end,
-    DELETE = Decorators.fetch_params ..
+    DELETE = Decorators.exists {} ..
              Decorators.is_authentified ..
              function (self)
       local exists = Model.stars:find {
@@ -60,11 +60,11 @@ return function (app)
         status = 204,
       }
     end,
-    PATCH = Decorators.fetch_params ..
-          function ()
+    PATCH = Decorators.exists {} ..
+            function ()
       return { status = 405 }
     end,
-    POST = Decorators.fetch_params ..
+    POST = Decorators.exists {} ..
            function ()
       return { status = 405 }
     end,

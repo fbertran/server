@@ -1,11 +1,10 @@
 local Model = require "cosy.server.model"
-local Util  = require "lapis.util"
 
 do
   local Function = debug.getmetatable (function () end) or {}
   function Function.__concat (lhs, rhs)
-    assert (type (lhs) == "function")
-    assert (type (rhs) == "function")
+    assert (type (lhs) == "function", debug.traceback ())
+    assert (type (rhs) == "function", debug.traceback ())
     return lhs (rhs)
   end
   debug.setmetatable (function () end, Function)
@@ -15,93 +14,30 @@ local Decorators = {}
 
 function Decorators.is_authentified (f)
   return function (self)
-    self.decorators = self.decorators or {}
-    if not self.decorators.is_authentified then
-      self.decorators.is_authentified = true
-      self.optionals = self.optionals or {}
-      if not self.token and not self.optionals.authentified then
-        return { status = 401 }
-      end
-      if self.token then
-        local id = Model.identities:find (self.token.sub)
-        if not id then
-          return { status = 401 }
-        end
-        self.authentified = id:get_user ()
-      end
+    if not self.authentified then
+      return { status = 401 }
     end
     return f (self)
   end
 end
 
-function Decorators.optionals (t)
+function Decorators.exists (except)
   return function (f)
     return function (self)
-      self.decorators = self.decorators or {}
-      self.optionals  = self.optionals  or {}
-      for _, key in ipairs (t) do
-        self.optionals [key] = true
+      for name in pairs (self.params) do
+        if not self [name] and not except [name] then
+          return { status = 404 }
+        end
       end
       return f (self)
     end
   end
 end
 
-function Decorators.fetch_params (f)
-  return function (self)
-    self.decorators = self.decorators or {}
-    if not self.decorators.fetch_params then
-      self.optionals = self.optionals or {}
-      self.decorators.fetch_params = true
-      if self.params.user then
-        local id = Util.unescape (self.params.user)
-        if not tonumber (id) then
-          return { status = 400 }
-        end
-        self.user = Model.users:find (id)
-        if not self.user and not self.optionals.user then
-          return { status = 404 }
-        end
-      end
-      if self.params.project then
-        local id = Util.unescape (self.params.project)
-        if not tonumber (id) then
-          return { status = 400 }
-        end
-        self.project = Model.projects:find (id)
-        if not self.project and not self.optionals.project then
-          return { status = 404 }
-        end
-      end
-      if self.params.tag then
-        local id = Util.unescape (self.params.tag)
-        self.tag = Model.tags:find {
-          id         = id,
-          project_id = self.project and self.project.id,
-        }
-        if not self.tag and not self.optionals.tag then
-          return { status = 404 }
-        end
-      end
-      if self.params.resource then
-        local id = Util.unescape (self.params.resource)
-        if not tonumber (id) then
-          return { status = 400 }
-        end
-        self.resource = Model.resources:find {
-          id         = id,
-          project_id = self.project and self.project.id,
-        }
-        if not self.resource and not self.optionals.resource then
-          return { status = 404 }
-        end
-      end
-    end
-    return f (self)
-  end
-end
-
 local function permission (self)
+  if not self.project then
+    return
+  end
   if self.authentified then
     local p = Model.permissions:find {
       user_id    = self.authentified.id,
@@ -118,10 +54,7 @@ local function permission (self)
 end
 
 function Decorators.can_read (f)
-  return Decorators.optionals { "authentified" } ..
-         Decorators.fetch_params ..
-         Decorators.is_authentified ..
-         function (self)
+  return function (self)
     self.decorators = self.decorators or {}
     if not self.decorators.can_read then
       self.decorators.can_read = true
@@ -137,8 +70,7 @@ function Decorators.can_read (f)
 end
 
 function Decorators.can_write (f)
-  return Decorators.fetch_params ..
-         Decorators.is_authentified ..
+  return Decorators.is_authentified ..
          function (self)
     self.decorators = self.decorators or {}
     if not self.decorators.can_write then
@@ -154,8 +86,7 @@ function Decorators.can_write (f)
 end
 
 function Decorators.can_admin (f)
-  return Decorators.fetch_params ..
-         Decorators.is_authentified ..
+  return Decorators.is_authentified ..
          function (self)
     self.decorators = self.decorators or {}
     if not self.decorators.can_admin then

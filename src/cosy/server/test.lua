@@ -58,13 +58,27 @@ function Test.make_token (user_id)
   })
 end
 
+function Test.make_false_token (user_id)
+  local Config = require "lapis.config".get ()
+  local claims = {
+    iss = "https://cosyverif.eu.auth0.com",
+    sub = user_id,
+    aud = Config.auth0.client_id,
+    exp = Time () + 10 * 3600,
+    iat = Time (),
+  }
+  return Jwt.encode (claims, {
+    alg = "HS256",
+    keys = { private = Config.auth0.client_id }
+  })
+end
+
 function Test.clean_db ()
   local Db = require "lapis.db"
   Db.delete "executions"
   Db.delete "identities"
   Db.delete "permissions"
   Db.delete "projects"
-  Db.delete "reputations"
   Db.delete "resources"
   Db.delete "stars"
   Db.delete "tags"
