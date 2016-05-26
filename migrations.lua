@@ -4,25 +4,18 @@ local Database = require "lapis.db"
 return {
   [1] = function ()
     Schema.create_table ("users", {
-      { "id"        , Schema.types.serial { primary_key = true } },
-      { "email"     , Schema.types.text   { null = true } },
-      { "name"      , Schema.types.text   { null = true } },
-      { "picture"   , Schema.types.text   { null = true } },
-      { "nickname"  , Schema.types.text   },
-      { "created_at", Schema.types.time   },
-      { "updated_at", Schema.types.time   },
+      { "id"        , Schema.types.serial  { primary_key = true } },
+      { "email"     , Schema.types.text    { null = true } },
+      { "name"      , Schema.types.text    { null = true } },
+      { "picture"   , Schema.types.text    { null = true } },
+      { "nickname"  , Schema.types.text    },
+      { "reputation", Schema.types.integer },
+      { "created_at", Schema.types.time    },
+      { "updated_at", Schema.types.time    },
     })
     Schema.create_table ("identities", {
       { "id"     , Schema.types.text { primary_key = true } },
       { "user_id", Schema.types.serial },
-      [[ FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ]],
-    })
-    Schema.create_table ("reputations", {
-      { "user_id"   , Schema.types.serial  },
-      { "request"   , Schema.types.text    },
-      { "value"     , Schema.types.integer },
-      { "created_at", Schema.types.time    },
-      { "updated_at", Schema.types.time    },
       [[ FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ]],
     })
   end,
@@ -34,15 +27,15 @@ return {
       { "id"         , Schema.types.serial { primary_key = true } },
       { "name"       , Schema.types.text   { null = true } },
       { "description", Schema.types.text   { null = true } },
-      { "permission_anonymous", [[ permission NOT NULL DEFAULT 'none' ]] },
-      { "permission_user"     , [[ permission NOT NULL DEFAULT 'none' ]] },
+      { "permission_anonymous", [[ permission NOT NULL ]] },
+      { "permission_user"     , [[ permission NOT NULL ]] },
       { "created_at" , Schema.types.time    },
       { "updated_at" , Schema.types.time    },
     })
     Schema.create_table ("permissions", {
       { "user_id"   , Schema.types.serial  },
       { "project_id", Schema.types.serial  },
-      { "permission", [[ permission NOT NULL DEFAULT 'none' ]] },
+      { "permission", [[ permission NOT NULL ]] },
       { "created_at", Schema.types.time    },
       { "updated_at", Schema.types.time    },
       [[ PRIMARY KEY ("user_id", "project_id") ]],
