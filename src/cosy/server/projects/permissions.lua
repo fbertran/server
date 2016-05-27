@@ -6,15 +6,18 @@ return function (app)
   require "cosy.server.projects.permission" (app)
 
   app:match ("/projects/:project/permissions", respond_to {
-    HEAD = Decorators.can_admin ..
+    HEAD = Decorators.exists {} ..
+           Decorators.can_admin ..
            function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.can_admin ..
+    OPTIONS = Decorators.exists {} ..
+              Decorators.can_admin ..
               function ()
       return { status = 204 }
     end,
-    GET = Decorators.can_admin ..
+    GET = Decorators.exists {} ..
+          Decorators.can_admin ..
           function (self)
       return {
         status = 200,
@@ -25,16 +28,20 @@ return function (app)
         },
       }
     end,
-    DELETE = function ()
+    DELETE = Decorators.exists {} ..
+             function ()
       return { status = 405 }
     end,
-    PATCH = function ()
+    PATCH = Decorators.exists {} ..
+            function ()
       return { status = 405 }
     end,
-    POST = function ()
+    POST = Decorators.exists {} ..
+           function ()
       return { status = 405 }
     end,
-    PUT = function ()
+    PUT = Decorators.exists {} ..
+          function ()
       return { status = 405 }
     end,
   })
