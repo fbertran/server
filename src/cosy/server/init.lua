@@ -12,10 +12,11 @@ require "cosy.server.projects" (app)
 
 app.layout = false
 
+-- app.handle_error = function ()
+--   return { status = 500 }
+-- end
 app.handle_404 = function ()
-  return {
-    status = 404,
-  }
+  return { status = 404 }
 end
 
 app:match ("/", respond_to {

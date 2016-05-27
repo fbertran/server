@@ -53,15 +53,11 @@ end
 
 function Decorators.can_read (f)
   return function (self)
-    self.decorators = self.decorators or {}
-    if not self.decorators.can_read then
-      self.decorators.can_read = true
-      local p = permission (self)
-      if  p ~= "admin"
-      and p ~= "write"
-      and p ~= "read" then
-        return { status = 403 }
-      end
+    local p = permission (self)
+    if  p ~= "admin"
+    and p ~= "write"
+    and p ~= "read" then
+      return { status = 403 }
     end
     return f (self)
   end
@@ -70,14 +66,10 @@ end
 function Decorators.can_write (f)
   return Decorators.is_authentified ..
          function (self)
-    self.decorators = self.decorators or {}
-    if not self.decorators.can_write then
-      self.decorators.can_write = true
-      local p = permission (self)
-      if  p ~= "admin"
-      and p ~= "write" then
-        return { status = 403 }
-      end
+    local p = permission (self)
+    if  p ~= "admin"
+    and p ~= "write" then
+      return { status = 403 }
     end
     return f (self)
   end
@@ -86,13 +78,9 @@ end
 function Decorators.can_admin (f)
   return Decorators.is_authentified ..
          function (self)
-    self.decorators = self.decorators or {}
-    if not self.decorators.can_admin then
-      self.decorators.can_admin = true
-      local p = permission (self)
-      if p ~= "admin" then
-        return { status = 403 }
-      end
+    local p = permission (self)
+    if p ~= "admin" then
+      return { status = 403 }
     end
     return f (self)
   end

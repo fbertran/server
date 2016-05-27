@@ -36,7 +36,9 @@ return function (app)
       else
         local status
         info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
-        assert (status == 200)
+        if status ~= 200 then
+          return { status = 500 }
+        end
       end
       self.authentified = Model.users:create {
         email    = info.email,
