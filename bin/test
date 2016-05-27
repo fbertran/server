@@ -1,0 +1,6 @@
+#! /bin/bash
+
+dropdb cosyverif-test                                              && \
+createdb cosyverif-test                                            && \
+./install/bin/luarocks make rockspec/cosy-server-master-1.rockspec && \
+./install/bin/lapis migrate test && ./install/bin/cosy-check $*
