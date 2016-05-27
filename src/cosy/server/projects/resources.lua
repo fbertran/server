@@ -28,8 +28,9 @@ return function (app)
            function (self)
       local resource = Model.resources:create {
         project_id  = self.project.id,
-        name        = self.params.name,
-        description = self.params.description,
+        name        = self.json.name,
+        description = self.json.description,
+        data        = self.json.data or [[ return function () end ]],
       }
       return {
         status = 201,

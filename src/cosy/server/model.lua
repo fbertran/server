@@ -115,6 +115,24 @@ result.resources = Model:extend ("resources", {
   },
 })
 
+result.history = Model:extend ("history", {
+  timestamp   = true,
+  primary_key = {
+      "id",
+      "resource_id",
+  },
+  relations   = {
+    {
+      "user",
+      belongs_to = "users",
+    },
+    {
+      "resource",
+      has_many = "resources",
+    },
+  },
+})
+
 result.executions = Model:extend ("executions", {
   timestamp   = true,
   relations   = {
