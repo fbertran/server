@@ -87,7 +87,7 @@ return function (app)
       end
       self.resource = Model.resources:find {
         id         = id,
-        project_id = self.project and self.project.id,
+        project_id = self.project and self.project.id or nil,
       } or false
     end
   end

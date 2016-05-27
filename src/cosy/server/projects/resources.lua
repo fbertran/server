@@ -4,6 +4,8 @@ local Decorators  = require "cosy.server.decorators"
 
 return function (app)
 
+  require "cosy.server.projects.resource" (app)
+
   app:match ("/projects/:project/resources", respond_to {
     HEAD = Decorators.exists {} ..
            Decorators.can_read ..

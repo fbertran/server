@@ -23,7 +23,7 @@ end
 
 return function (app)
 
-  app:match ("/resources/:resource", respond_to {
+  app:match ("/projects/:project/resources/:resource", respond_to {
     HEAD = Decorators.exists {} ..
            Decorators.can_read ..
            function ()
@@ -67,9 +67,6 @@ return function (app)
     PUT = Decorators.exists {} ..
           Decorators.can_write ..
           function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return { status = 403 }
-      end
       self.resource:update {
         name        = self.params.name,
         description = self.params.description,
@@ -81,10 +78,6 @@ return function (app)
     PATCH = Decorators.exists {} ..
             Decorators.can_write ..
             function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return { status = 403 }
-      end
-      -- FIXME: history should be updatable by part
       self.resource:update {
         name        = self.params.name,
         description = self.params.description,
@@ -96,9 +89,6 @@ return function (app)
     DELETE = Decorators.exists {} ..
              Decorators.can_write ..
              function (self)
-      if self.authentified.id ~= self.project.user_id then
-        return { status = 403 }
-      end
       self.resource:delete ()
       return { status = 204 }
     end,

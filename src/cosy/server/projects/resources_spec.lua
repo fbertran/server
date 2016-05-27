@@ -1,6 +1,6 @@
 local Test = require "cosy.server.test"
 
-describe ("#current route /projects/:project/resources", function ()
+describe ("route /projects/:project/resources", function ()
 
   Test.environment.use ()
 
