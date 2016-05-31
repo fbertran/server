@@ -39,7 +39,7 @@ app:match ("/", respond_to {
       json   = {
         user   = user,
         server = {
-          hostname = Config.hostname,
+          hostname = "api." .. Config.hostname,
         },
         auth = {
           domain    = Config.auth0.domain,

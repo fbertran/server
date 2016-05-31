@@ -14,23 +14,18 @@ local Http      = require "socket.http"
 
 local parser = Arguments () {
   name        = "cosy-editor",
-  description = "editor for cosy models",
+  description = "collaborative editor for cosy models",
 }
 parser:option "--port" {
   description = "port",
   default     = "0",
   convert     = tonumber,
 }
-parser:option "--token" {
+parser:argument "token" {
   description = "resource token",
 }
 
 local arguments = parser:parse ()
-
-if not arguments.token then
-  print (parser:get_help ())
-  os.exit (1)
-end
 
 local data, err = Jwt.decode (arguments.token)
 if not data then
@@ -39,12 +34,6 @@ if not data then
   })))
   os.exit (1)
 end
-
-local key = Et.render ("resource:<%= user %>-<%= project %>-<%= resource %>", {
-  user     = data.user,
-  project  = data.project,
-  resource = data.resource,
-})
 
 local redis
 do
@@ -116,13 +105,15 @@ Copas.addthread (function ()
   end
 end)
 
-local model = request (arguments.api, {
+local model = request (Et.render (data.api .. "/projects/<%= project %>/resources/<%= resource %>", data), {
   method = "GET",
-  headers = { Authorization = "Bearer " .. arguments.owner},
+  headers = { Authorization = "Bearer " .. data.token},
 })
 if not model then
-  redis:del     (key)
-  redis:publish (key, "")
+  redis:del     (data.key)
+  redis:publish (data.key, Util.to_json {
+    status = "finished",
+  })
   return
 end
 
@@ -132,10 +123,17 @@ Copas.addserver = function (s, f)
   local host, port = s:getsockname ()
   addserver (s, f)
   local url = "ws://" .. host .. ":" .. tostring (port)
-  redis:set     (key, url)
-  redis:publish (key, url)
-  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
-    resource = arguments.resource,
+  redis:set (data.key, Util.to_json {
+    status = "started",
+    url    = url,
+  })
+  redis:publish (data.key, Util.to_json {
+    status = "started",
+    url    = url,
+  })
+  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= project %>/<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
+    project  = data.project,
+    resource = data.resource,
     time     = os.date "%c",
     url      = url,
   })))
@@ -159,7 +157,7 @@ Websocket.server.copas.listen
         }
       })
       if not token
-      or token.resource ~= arguments.resource
+      or token.resource ~= data.resource
       or not token.user
       or not token.permissions
       or not token.permissions.read then
@@ -182,7 +180,8 @@ Websocket.server.copas.listen
 
 Copas.loop ()
 
-print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= resource %>%{reset}.", {
-  resource = arguments.resource,
+print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= project %>/<%= resource %>%{reset}.", {
+  project  = data.project,
+  resource = data.resource,
   time     = os.date "%c",
 })))

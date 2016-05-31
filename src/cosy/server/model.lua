@@ -14,12 +14,12 @@ result.users = Model:extend ("users", {
   timestamp   = true,
   relations   = {
     {
-      "projects",
-      belongs_to = "projects",
+      "executions",
+      has_many = "executions",
     },
     {
       "identities",
-      belongs_to = "identities",
+      has_many = "identities",
     },
   },
 })
@@ -136,6 +136,10 @@ result.history = Model:extend ("history", {
 result.executions = Model:extend ("executions", {
   timestamp   = true,
   relations   = {
+    {
+      "user",
+      belongs_to = "users",
+    },
     {
       "resource",
       belongs_to = "resources",

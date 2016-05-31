@@ -25,6 +25,7 @@ dependencies = {
   "luacov",
   "luacov-coveralls",
   "luafilesystem",
+  "luarestyredis",
   "luasec",
 }
 

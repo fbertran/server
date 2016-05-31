@@ -17,6 +17,9 @@ if os.getenv "RUN_COVERAGE" then
     request = function ()
       return require "lapis.spec.request".mock_request
     end,
+    server = function ()
+      return nil
+    end,
   }
 else
   Test.environment = {
@@ -32,6 +35,9 @@ else
       return function (_, ...)
         return require "lapis.spec.server".request (...)
       end
+    end,
+    server = function ()
+      return require "lapis.spec.server".get_current_server ()
     end,
   }
 end

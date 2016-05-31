@@ -4,6 +4,7 @@ local Et        = require "etlua"
 local Config    = require "lapis.config".get ()
 local Util      = require "lapis.util"
 local Redis     = require "redis"
+local channels  = require "cosy.taskqueue.channels"
 
 local prefix
 do
@@ -35,11 +36,6 @@ function _G.string.split (s, delimiter)
   end
   return result
 end
-
-local channels = {
-  "control",
-  "resource:edit",
-}
 
 local redis = {
   pub = true,
@@ -77,35 +73,32 @@ print (Colors (Et.render ("Runner listening on redis instance %{green}<%= host %
 })))
 
 if arguments.quit then
-  redis.pub:publish ("control", "quit")
+  redis.pub:publish ("control", Util.to_json {
+    control = "quit",
+  })
   os.exit (0)
 end
 
-for message in redis.pub:pubsub { subscribe = channels } do
+local channels_list = {}
+for _, channel in pairs (channels) do
+  channels_list [#channels_list+1] = channel
+end
+
+for message in redis.pub:pubsub { subscribe = channels_list } do
   if message.kind == "message" then
-    if message.channel == "control" then
-      if message.payload == 'quit' then
+    if message.channel == channels.control then
+      local data = Util.from_json (message.payload)
+      if data.control == "quit" then
         print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Received order to quit.", {
-          time     = os.date "%c"
+          time = os.date "%c"
         })))
         break
       end
-    elseif message.channel == "resource:edit" then
+    elseif message.channel == channels.edition then
       local data = Util.from_json (message.payload)
-      os.execute (Et.render ([[
-        "<%= prefix %>/bin/cosy-editor" \
-          --api="<%= api %>" \
-          --owner="<%= owner %>" \
-          --user="<%= user %>" \
-          --project="<%= project %>" \
-          --resource="<%= resource %>" &
-      ]], {
-        prefix   = prefix,
-        api      = data.api,
-        user     = data.user,
-        project  = data.project,
-        resource = data.resource,
-        owner    = data.owner,
+      os.execute (Et.render ([[ "<%= prefix %>/bin/cosy-editor" "<%= token %>" ]], {
+        prefix = prefix,
+        token  = data.token,
       }))
     end
   end
