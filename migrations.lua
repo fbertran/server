@@ -85,14 +85,16 @@ return {
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("executions", {
-      { "id"         , Schema.types.serial { primary_key = true } },
+      { "id"         , Schema.types.serial  { primary_key = true  } },
+      { "user_id"    , Schema.types.serial  },
       { "resource_id", Schema.types.serial  },
-      { "name"       , Schema.types.text { null = true } },
-      { "description", Schema.types.text { null = true } },
-      { "running"    , Schema.types.boolean },
-      { "canceled"   , Schema.types.boolean },
+      { "name"       , Schema.types.text    { null        = true  } },
+      { "description", Schema.types.text    { null        = true  } },
+      { "running"    , Schema.types.boolean { default     = false } },
+      { "canceled"   , Schema.types.boolean { default     = false } },
       { "created_at" , Schema.types.time    },
       { "updated_at" , Schema.types.time    },
+      [[ FOREIGN KEY ("user_id"    ) REFERENCES "users"     ("id") ON DELETE CASCADE ]],
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
     })
   end,
