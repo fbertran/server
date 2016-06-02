@@ -78,7 +78,7 @@ Lfs.mkdir (arguments.output)
 -- ============
 do
   status = os.execute (Et.render ([[
-    "<%= prefix %>/bin/cosy-taskqueue" &
+    "<%- prefix %>/bin/cosy-taskqueue" &
   ]], {
     prefix = prefix,
   })) == 0 and status
@@ -89,7 +89,7 @@ end
 
 do
   status = os.execute (Et.render ([[
-    "<%= prefix %>/bin/luacheck" --std max --std +busted "<%= source %>"
+    "<%- prefix %>/bin/luacheck" --std max --std +busted "<%- source %>"
   ]], {
     prefix = prefix,
     source = source,
@@ -103,13 +103,13 @@ do
     rm -f luacov.*
   ]]
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/busted" "<%= tags %>" --verbose src/
+    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/busted" "<%- tags %>" --verbose src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%= prefix %>/bin/busted" --verbose --coverage "<%= tags %>" --verbose src/
+    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%- prefix %>/bin/busted" --verbose --coverage "<%- tags %>" --verbose src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
@@ -121,7 +121,7 @@ end
 -- ===========
 do
   status = os.execute (Et.render ([[
-    "<%= prefix %>/bin/cosy-taskqueue" --quit
+    "<%- prefix %>/bin/cosy-taskqueue" --quit
   ]], {
     prefix = prefix,
   })) == 0 and status
@@ -237,7 +237,7 @@ do
     if  module ~= "." and module ~= ".."
     and Lfs.attributes (path, "mode") == "directory" then
       if Lfs.attributes (path .. "/i18n.lua", "mode") == "file" then
-        local translations = require (Et.render ("cosy.<%= module %>.i18n", {
+        local translations = require (Et.render ("cosy.<%- module %>.i18n", {
           module = module,
         }))
         for key, t in pairs (translations) do
@@ -249,7 +249,7 @@ do
           end
           messages [key].defined [module] = true
           if not t.en then
-            print (Colors (Et.render ("Translation key %{red}<%= key %>%{reset} defined in %{blue}<%= module %>%{reset} does not have an 'en' translation.", {
+            print (Colors (Et.render ("Translation key %{red}<%- key %>%{reset} defined in %{blue}<%- module %>%{reset} does not have an 'en' translation.", {
               key    = key,
               module = "cosy." .. module,
             })))
@@ -259,10 +259,10 @@ do
           local times = 0
           local lines = {}
           for line in io.lines (path .. "/i18n.lua") do
-            if line:match (Et.render ('%["<%= key %>"%]', {
+            if line:match (Et.render ('%["<%- key %>"%]', {
               key = key,
             })) then
-              lines [#lines+1] = Et.render ("%{blue}<%= line %>%{reset}", {
+              lines [#lines+1] = Et.render ("%{blue}<%- line %>%{reset}", {
                 line = linen,
               })
               times = times + 1
@@ -270,7 +270,7 @@ do
             linen = linen + 1
           end
           if times > 1 then
-            print (Colors (Et.render ("Translation key %{red}<%= key %>%{reset} is defined several times in %{blue}<%= module %>%{reset}, lines <%= lines %>.", {
+            print (Colors (Et.render ("Translation key %{red}<%- key %>%{reset} is defined several times in %{blue}<%- module %>%{reset}, lines <%- lines %>.", {
               key    = key,
               module = module,
               lines  = table.concat (lines, ", "),
@@ -300,7 +300,7 @@ do
               if messages [key] then
                 messages [key].used [module .. "." .. submodule] = true
               else
-                print (Colors (Et.render ("Translation key %{red}<%= key %>%{reset} is used in %{blue}<%= module %>%{reset}, but never defined.", {
+                print (Colors (Et.render ("Translation key %{red}<%- key %>%{reset} is used in %{blue}<%- module %>%{reset}, but never defined.", {
                   key    = key,
                   module = "cosy." .. module .. "." .. submodule,
                 })))
@@ -319,12 +319,12 @@ do
       local modules = {}
       for module in pairs (t.defined) do
         times = times + 1
-        modules [#modules+1] = Et.render ("%{blue}<%= module %>%{reset}", {
+        modules [#modules+1] = Et.render ("%{blue}<%- module %>%{reset}", {
           module = module,
         })
       end
       if times > 1 then
-        print (Colors (Et.render ("Translation key %{red}<%= key %>%{reset} is defined <%= n %> times in modules <%= modules %>.", {
+        print (Colors (Et.render ("Translation key %{red}<%- key %>%{reset} is defined <%- n %> times in modules <%- modules %>.", {
           key     = key,
           modules = table.concat (modules, ", "),
           n       = times,
@@ -348,7 +348,7 @@ do
         end
       end
       if #modules ~= 0 then
-        print (Colors (Et.render ("Translation key %{red}<%= key %>%{reset} is defined in <%= module %>, but never used.", {
+        print (Colors (Et.render ("Translation key %{red}<%- key %>%{reset} is defined in <%- module %>, but never used.", {
           key    = key,
           module = table.concat (modules, ", "),
         })))
@@ -361,7 +361,7 @@ do
     print (Colors ("Translations checks detect %{bright green}no problems%{reset}."))
     status = status and true
   else
-    print (Colors (Et.render ("Translations checks detect %{bright red}<%= problems %> problems%{reset}."), {
+    print (Colors (Et.render ("Translations checks detect %{bright red}<%- problems %> problems%{reset}."), {
       problems = problems,
     }))
   status = status and false
@@ -380,7 +380,7 @@ do
   if os.execute "command -v shellcheck > /dev/null 2>&1" == 0 then
     local s = os.execute (Et.render ([[
       if [ -d bin ]; then
-        . "<%= prefix %>/bin/realpath.sh"
+        . "<%- prefix %>/bin/realpath.sh"
         shellcheck $(realpath bin/*)
       fi
     ]], {

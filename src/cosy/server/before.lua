@@ -53,7 +53,6 @@ return function (app)
       else
         assert (false)
       end
-      self.authentified.type = self.identity.type
     else -- automatically create account
       local info
       if Config._name == "test" and not self.req.headers ["Force"] then
@@ -67,7 +66,7 @@ return function (app)
         local status
         info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
         if status ~= 200 then
-          return { status = 401 }
+          return { status = 415 }
         end
       end
       self.identity = Model.identities:create {

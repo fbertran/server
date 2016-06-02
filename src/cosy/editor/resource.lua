@@ -4,9 +4,11 @@ local Util       = require "lapis.util"
 local Decorators = require "cosy.server.decorators"
 local Channels   = require "cosy.taskqueue.channels"
 local Redis      = require "resty.redis"
+local Http       = require "resty.http"
 local Et         = require "etlua"
 local Jwt        = require "jwt"
 local Time       = require "socket".gettime
+local Url        = require "socket.url"
 
 return function (app)
 
@@ -50,18 +52,15 @@ return function (app)
         r:select (Config.redis.database)
       end
 
-      local key = Et.render ("/projects/<%= project %>/resources/<%= resource %>", {
+      local key = Et.render ("/projects/<%- project %>/resources/<%- resource %>", {
         project  = self.project.id,
         resource = self.resource.id,
       })
-      pubsub:subscribe {
-        key,
-        Channels.edition,
-      }
+      assert (pubsub:subscribe (key))
 
       local state = redis:get (key)
-      print ("state", state)
       state = state ~= _G.ngx.null and Util.from_json (state) or nil
+
       do -- if editor is closing, wait until it is finished
         if state and state.status == "closing" then
           for message in function () return pubsub:read_reply () end do
@@ -79,15 +78,30 @@ return function (app)
         end
       end
 
+      if state and state.status == "started" then
+        local parts  = Url.parse (state.url)
+        local client = Http.new ()
+        if not client:connect (parts.host, parts.port) then
+          state = nil
+          redis:del (key)
+        end
+      end
+
       if not state or state.status ~= "started" then
         -- try to set status as "opening", and request editor launch
         if redis:setnx (key, Util.to_json {
           status = "opening",
         }) == 1 then
-          print ("publish:", Channels.edition)
-          print (redis:publish (Channels.edition, Util.to_json {
-            token = make_token ("cosy:edition", {
-              api      = Et.render ("http://api.<%= host %>:<%= port %>/", {
+          redis:expire (key, Config.editor.sleep_timeout)
+          redis:publish (Channels.edition, Util.to_json {
+            token = make_token (Et.render ("/projects/<%- project %>", {
+              project = self.project.id,
+            }), {
+              api      = Et.render ("http://api.<%- host %>:<%- port %>/", {
+                host = os.getenv "NGINX_HOST",
+                port = os.getenv "NGINX_PORT",
+              }),
+              url      = Et.render ("http://api.<%- host %>:<%- port %>" .. key, {
                 host = os.getenv "NGINX_HOST",
                 port = os.getenv "NGINX_PORT",
               }),
@@ -95,21 +109,20 @@ return function (app)
               project  = self.project.id,
               resource = self.resource.id,
             })
-          }))
+          })
         end
       end
 
       if not state or state.status ~= "started" then
         -- if editor is opening, wait until it is running
         state = redis:get (key)
-        print ("state", state)
         state = state ~= _G.ngx.null and Util.from_json (state) or nil
         if state and state.status == "opening" then
           for message in function () return pubsub:read_reply () end do
             message.kind    = message.kind    or message [1]
             message.channel = message.channel or message [2]
             message.payload = message.payload or message [3]
-            if message.kind == "message" then
+            if message.channel == key and message.kind == "message" then
               local payload = message.payload and Util.from_json (message.payload)
               if payload and payload.status == "started" then
                 break
@@ -120,19 +133,21 @@ return function (app)
           end
         end
       end
-      pubsub:unsubscribe (key)
 
       if not state or state.status ~= "started" then
         state = redis:get (key)
         state = state ~= _G.ngx.null and Util.from_json (state) or nil
       end
 
-      -- redirect to editor
-      if not state then
+      redis :close ()
+      pubsub:close ()
+
+      if not state or state.status ~= "started" then
         return { status = 404 }
       end
-      state = Util.from_json (state)
-      _G.ngx.var._url = state.url:gsub ("wss?://", "http://")
+
+      -- redirect to editor
+      _G.ngx.var._url = state.url
       return {
         status = 200,
         json   = state.url:gsub ("wss?://", "http://"),

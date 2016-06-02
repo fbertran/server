@@ -1,6 +1,5 @@
-local Test   = require "cosy.server.test"
-local Config = require "lapis.config".get ()
-local Et     = require "etlua"
+local Test = require "cosy.server.test"
+local Et   = require "etlua"
 
 describe ("route /projects", function ()
 
@@ -148,10 +147,8 @@ describe ("route /projects", function ()
         })
         assert.are.same (status, 201)
         local project = Util.from_json (result)
-        token = Test.make_token (Et.render ("<%= host %>:<%= port %>/projects/<%= id %>", {
-          host = Config.hostname,
-          port = Config.port,
-          id   = project.id,
+        token = Test.make_token (Et.render ("/projects/<%- id %>", {
+          id = project.id,
         }))
         status = request (app, "/projects", {
           method  = method,

@@ -69,10 +69,10 @@ describe ("route /projects/:project/resources/:resource", function ()
     --   print (k, v)
     -- end
     -- Config.port = server.app_port
-    -- local url = Et.render ([[http://api.<%= hostname %>:<%= port %>/]], Config)
+    -- local url = Et.render ([[http://api.<%- hostname %>:<%- port %>/]], Config)
     -- print (url)
     -- print (url, request (app, url))
-    -- url = Et.render ([[ws://api.<%= hostname %>:<%= port %>]], Config)
+    -- url = Et.render ([[ws://api.<%- hostname %>:<%- port %>]], Config)
     -- print (url .. route)
     -- Copas.addthread (function ()
     --   local ws = Websocket.client.copas {}

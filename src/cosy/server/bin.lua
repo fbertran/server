@@ -14,7 +14,7 @@ end
 local prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
 
 os.execute (Et.render ([[
-  LAPIS_OPENRESTY="<%= prefix %>/nginx/sbin/nginx" "<%= prefix %>/bin/lapis" server
+  LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/lapis" server
 ]], {
   prefix = prefix,
 }))

@@ -1,5 +1,4 @@
 local Et         = require "etlua"
-local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
@@ -42,10 +41,8 @@ return function (app)
         type       = "project",
       }
       identity:update {
-        identifier = Et.render ("<%= host %>:<%= port %>/projects/<%= id %>", {
-          host = Config.hostname,
-          port = Config.port,
-          id   = identity.id,
+        identifier = Et.render ("/projects/<%- id %>", {
+          id = identity.id,
         }),
       }
       local project = Model.projects:create {

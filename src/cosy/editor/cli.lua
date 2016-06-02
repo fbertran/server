@@ -27,18 +27,14 @@ parser:argument "token" {
 
 local arguments = parser:parse ()
 
-local data, err = Jwt.decode (arguments.token)
-if not data then
+local decoded, err = Jwt.decode (arguments.token)
+if not decoded then
   print (Colors (Et.render ("Failed to parse token: %{red}<%= error %>%{reset}", {
     error = err,
   })))
   os.exit (1)
 end
-
-data = data.contents
-for k, v in pairs (data) do
-  print (k, v)
-end
+local data = decoded.contents
 
 local redis
 do
@@ -97,12 +93,12 @@ local socket
 
 Copas.addthread (function ()
   while true do
-    Copas.sleep (Config.editor.timeout)
-    if last_access + Config.editor.timeout <= Time () then
+    Copas.sleep (Config.editor.sleep_timeout)
+    if last_access + Config.editor.sleep_timeout <= Time () then
       -- FIXME: save model
       local _ = false
     end
-    if last_access + Config.editor.timeout <= Time () then
+    if last_access + Config.editor.sleep_timeout <= Time () then
       redis:del (data.key)
       Copas.removeserver (socket)
       return
@@ -110,11 +106,10 @@ Copas.addthread (function ()
   end
 end)
 
-local _, status = request (Et.render (data.api .. data.key), {
+local _, status = request (Et.render (data.url), {
   method = "GET",
   headers = { Authorization = "Bearer " .. arguments.token},
 })
-print (status)
 if status ~= 200 then
   redis:del     (data.key)
   redis:publish (data.key, Util.to_json {
@@ -125,11 +120,10 @@ end
 
 local addserver = Copas.addserver
 Copas.addserver = function (s, f)
-  print "here"
   socket = s
   local host, port = s:getsockname ()
   addserver (s, f)
-  local url = "ws://" .. host .. ":" .. tostring (port)
+  local url = "ws://" .. host .. ":" .. tostring (port) .. "/"
   redis:set (data.key, Util.to_json {
     status = "started",
     url    = url,
@@ -138,10 +132,8 @@ Copas.addserver = function (s, f)
     status = "started",
     url    = url,
   })
-  print "published"
-  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= project %>/<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
-    project  = data.project,
-    resource = data.resource,
+  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
+    resource = decoded.sub,
     time     = os.date "%c",
     url      = url,
   })))
@@ -152,6 +144,10 @@ Websocket.server.copas.listen
   port      = arguments.port,
   protocols = {
     cosy = function (ws)
+      print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} New connection for %{green}<%= resource %>%{reset}{reset}.", {
+        resource = decoded.sub,
+        time     = os.date "%c",
+      })))
       last_access = Time ()
       local message   = ws:receive ()
       local greetings = message and Util.from_json (message)
@@ -188,8 +184,7 @@ Websocket.server.copas.listen
 
 Copas.loop ()
 
-print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= project %>/<%= resource %>%{reset}.", {
-  project  = data.project,
-  resource = data.resource,
+print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= resource %>.", {
+  resource = decoded.sub,
   time     = os.date "%c",
 })))

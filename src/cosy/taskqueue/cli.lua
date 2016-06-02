@@ -45,7 +45,7 @@ local redis = {
 for key in pairs (redis) do
   local ok, res = pcall (Redis.connect, Config.redis.host, Config.redis.port)
   if not ok then
-    print (Colors (Et.render ("Runner failed to connect to redis instance %{green}<%= host %>%{reset}:%{green}<%= port %>%{reset}: %{red}<%= error %>%{reset}", {
+    print (Colors (Et.render ("Runner failed to connect to redis instance %{green}<%- host %>%{reset}:%{green}<%- port %>%{reset}: %{red}<%- error %>%{reset}", {
       host     = Config.redis.host,
       port     = Config.redis.port,
       database = Config.redis.database,
@@ -56,7 +56,7 @@ for key in pairs (redis) do
   redis [key] = res
   ok, res = pcall (res.select, res, Config.redis.database)
   if not ok then
-    print (Colors (Et.render ("Runner failed to switch to redis database %{green}<%= database %>%{reset}: %{red}<%= error %>%{reset}", {
+    print (Colors (Et.render ("Runner failed to switch to redis database %{green}<%- database %>%{reset}: %{red}<%- error %>%{reset}", {
       host     = Config.redis.host,
       port     = Config.redis.port,
       database = Config.redis.database,
@@ -66,7 +66,7 @@ for key in pairs (redis) do
   end
 end
 
-print (Colors (Et.render ("Runner listening on redis instance %{green}<%= host %>%{reset}:%{green}<%= port %>%{reset} database %{green}<%= database %>%{reset}.", {
+print (Colors (Et.render ("Runner listening on redis instance %{green}<%- host %>%{reset}:%{green}<%- port %>%{reset} database %{green}<%- database %>%{reset}.", {
   host     = Config.redis.host,
   port     = Config.redis.port,
   database = Config.redis.database,
@@ -89,21 +89,28 @@ for message in redis.pub:pubsub { subscribe = channels_list } do
     if message.channel == channels.control then
       local data = Util.from_json (message.payload)
       if data.control == "quit" then
-        print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Received order to quit.", {
+        print (Colors (Et.render ("%{blue}[<%- time %>]%{reset} Received order to quit.", {
           time = os.date "%c"
         })))
         break
       end
     elseif message.channel == channels.edition then
-      local data = Util.from_json (message.payload)
-      print (Colors (Et.render ([[Launching %{blue}"<%= prefix %>/bin/cosy-editor" "<%= token %>"%{reset}.]], {
+      local data    = Util.from_json (message.payload)
+      local command = Et.render ([[ command -v "<%- prefix %>/bin/cosy-editor" && { "<%- prefix %>/bin/cosy-editor" "<%- token %>" & } || false ]], {
         prefix = prefix,
         token  = data.token,
-      })))
-      os.execute (Et.render ([[ "<%= prefix %>/bin/cosy-editor" "<%= token %>" ]], {
-        prefix = prefix,
-        token  = data.token,
-      }))
+      })
+      local ok, err = os.execute (command)
+      print (ok, err)
+      if ok == 0 then
+        print (Colors (Et.render ([[Launched %{blue}<%- command %>%{reset}.]], {
+          command = command,
+        })))
+      else
+        print (Colors (Et.render ([[Failed at launching %{red}"<%- command %>"%{reset}.]], {
+          command = command,
+        })))
+      end
     end
   end
 end

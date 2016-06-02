@@ -36,7 +36,7 @@ return function (app)
     GET = Decorators.exists {} ..
           Decorators.can_read ..
           function (self)
-      local edit_url  = Et.render ("ws://edit.<%= host %>:<%= port %>/resources/<%= resource %>", {
+      local edit_url  = Et.render ("ws://edit.<%- host %>:<%- port %>/resources/<%- resource %>", {
         host     = os.getenv "NGINX_HOST", -- or Config.hostname,
         port     = os.getenv "NGINX_PORT", -- or Config.port,
         resource = self.resource.id,
