@@ -24,6 +24,8 @@ dependencies = {
   "lua-websockets",
   "lustache",
   "redis-lua",
+  "luarestyredis",
+  "lua-resty-http",
 }
 
 build = {
