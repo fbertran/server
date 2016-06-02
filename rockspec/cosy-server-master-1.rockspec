@@ -37,7 +37,6 @@ build = {
     ["cosy.editor.cli"                 ] = "src/cosy/editor/cli.lua",
     ["cosy.editor.resource"            ] = "src/cosy/editor/resource.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
-    ["cosy.server.auth0"               ] = "src/cosy/server/auth0/init.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
     ["cosy.server.users"               ] = "src/cosy/server/users/init.lua",
     ["cosy.server.users.auth0"         ] = "src/cosy/server/users/auth0.lua",

@@ -23,7 +23,7 @@ describe ("route /users/:user", function ()
     })
     assert.are.same (status, 200)
     result = Util.from_json (result)
-    route = "/users/" .. result.user.id
+    route = "/users/" .. result.authentified.id
   end)
 
   describe ("with invalid id", function ()

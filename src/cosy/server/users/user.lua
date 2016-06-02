@@ -55,7 +55,7 @@ return function (app)
           status = 403,
         }
       end
-      self.user:delete ()
+      self.user:get_identity():delete ()
       return {
         status = 204,
       }

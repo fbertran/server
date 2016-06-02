@@ -1,9 +1,32 @@
-local Config     = require "lapis.config".get ()
-local Util       = require "lapis.util"
-local Model      = require "cosy.server.model"
-local auth0      = require "cosy.server.users.auth0"
+local Cjson  = require "cjson"
+Cjson.encode_empty_table = function () end -- Fix for Jwt
+local Jwt    = require "jwt"
+local Config = require "lapis.config".get ()
+local Util   = require "lapis.util"
+local Model  = require "cosy.server.model"
+local auth0  = require "cosy.server.users.auth0"
 
 return function (app)
+
+  local function check_token (self)
+    local header = self.req.headers ["Authorization"]
+    if not header then
+      return nil
+    end
+    local token = header:match "Bearer%s+(.+)"
+    if not token then
+      return { status = 401 }
+    end
+    local jwt = Jwt.decode (token, {
+      keys = {
+        public = Config.auth0.client_secret
+      }
+    })
+    if not jwt then
+      return { status = 401 }
+    end
+    self.token = jwt
+  end
 
   local function read_json (self)
     local content_type = self.req.headers ["content-type"]
@@ -19,11 +42,18 @@ return function (app)
     if not self.token then
       return
     end
-    local id = Model.identities:find {
-      id = self.token.sub
+    self.identity = Model.identities:find {
+      identifier = self.token.sub
     }
-    if id then
-      self.authentified = id:get_user ()
+    if self.identity then
+      if self.identity.type == "user" then
+        self.authentified = assert (self.identity:get_user ())
+      elseif self.identity.type == "project" then
+        self.authentified = assert (self.identity:get_project ())
+      else
+        assert (false)
+      end
+      self.authentified.type = self.identity.type
     else -- automatically create account
       local info
       if Config._name == "test" and not self.req.headers ["Force"] then
@@ -37,18 +67,19 @@ return function (app)
         local status
         info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
         if status ~= 200 then
-          return { status = 500 }
+          return { status = 401 }
         end
       end
+      self.identity = Model.identities:create {
+        identifier = self.token.sub,
+        type       = "user",
+      }
       self.authentified = Model.users:create {
+        id       = self.identity.id,
         email    = info.email,
         name     = info.name,
         nickname = info.nickname,
         picture  = info.picture,
-      }
-      Model.identities:create {
-        id      = self.token.sub,
-        user_id = self.authentified.id,
       }
     end
   end
@@ -94,7 +125,8 @@ return function (app)
 
   app:before_filter (function (self)
     self.json = {}
-    local result = authenticate (self)
+    local result = check_token  (self)
+                or authenticate (self)
                 or read_json    (self)
                 or fetch_params (self)
     if result then

@@ -30,8 +30,8 @@ describe ("route /projects/:project/resources/:resource", function ()
     })
     assert.are.same (status, 200)
     result = Util.from_json (result)
-    assert.is.not_nil (result.user.id)
-    naouna = result.user.id
+    assert.is.not_nil (result.authentified.id)
+    naouna = result.authentified.id
   end)
 
   before_each (function ()
@@ -61,25 +61,25 @@ describe ("route /projects/:project/resources/:resource", function ()
     route   = project.. "/resources/" .. result.id
   end)
 
-  it ("#current ???", function ()
+  it ("???", function ()
     if not Test.environment.nginx then
       return
     end
     -- for k, v in pairs (server) do
     --   print (k, v)
     -- end
-    Config.port = server.app_port
-    local url = Et.render ([[http://api.<%= hostname %>:<%= port %>/]], Config)
-    print (url)
-    print (url, request (app, url))
-    url = Et.render ([[ws://api.<%= hostname %>:<%= port %>]], Config)
-    print (url .. route)
-    Copas.addthread (function ()
-      local ws = Websocket.client.copas {}
-      print (ws:connect (url .. route))
-      ws:close ()
-    end)
-    Copas.loop ()
+    -- Config.port = server.app_port
+    -- local url = Et.render ([[http://api.<%= hostname %>:<%= port %>/]], Config)
+    -- print (url)
+    -- print (url, request (app, url))
+    -- url = Et.render ([[ws://api.<%= hostname %>:<%= port %>]], Config)
+    -- print (url .. route)
+    -- Copas.addthread (function ()
+    --   local ws = Websocket.client.copas {}
+    --   print (ws:connect (url .. route))
+    --   ws:close ()
+    -- end)
+    -- Copas.loop ()
   end)
 
 end)

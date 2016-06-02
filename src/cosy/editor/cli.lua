@@ -1,10 +1,10 @@
+local Copas     = require "copas.ev"
+Copas:make_default ()
 local Arguments = require "argparse"
 local Colors    = require "ansicolors"
 local Et        = require "etlua"
 local Redis     = require "redis"
 local Jwt       = require "jwt"
-local Copas     = require "copas.ev"
-Copas:make_default ()
 local Websocket = require "websocket"
 local Time      = require "socket".gettime
 local Util      = require "lapis.util"
@@ -33,6 +33,11 @@ if not data then
     error = err,
   })))
   os.exit (1)
+end
+
+data = data.contents
+for k, v in pairs (data) do
+  print (k, v)
 end
 
 local redis
@@ -98,18 +103,19 @@ Copas.addthread (function ()
       local _ = false
     end
     if last_access + Config.editor.timeout <= Time () then
-      redis:del ("resource:" .. arguments.resource)
+      redis:del (data.key)
       Copas.removeserver (socket)
       return
     end
   end
 end)
 
-local model = request (Et.render (data.api .. "/projects/<%= project %>/resources/<%= resource %>", data), {
+local _, status = request (Et.render (data.api .. data.key), {
   method = "GET",
-  headers = { Authorization = "Bearer " .. data.token},
+  headers = { Authorization = "Bearer " .. arguments.token},
 })
-if not model then
+print (status)
+if status ~= 200 then
   redis:del     (data.key)
   redis:publish (data.key, Util.to_json {
     status = "finished",
@@ -119,6 +125,7 @@ end
 
 local addserver = Copas.addserver
 Copas.addserver = function (s, f)
+  print "here"
   socket = s
   local host, port = s:getsockname ()
   addserver (s, f)
@@ -131,6 +138,7 @@ Copas.addserver = function (s, f)
     status = "started",
     url    = url,
   })
+  print "published"
   print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= project %>/<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
     project  = data.project,
     resource = data.resource,

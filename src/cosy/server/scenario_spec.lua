@@ -23,7 +23,7 @@ describe ("cosyverif api", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    local user = assert (Util.from_json (result).user)
+    local user = assert (Util.from_json (result).authentified)
     -- Update user info:
     status = request (app, "/users/" .. user.id, {
       method  = "PATCH",

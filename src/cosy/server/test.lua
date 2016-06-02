@@ -82,6 +82,7 @@ end
 function Test.clean_db ()
   local Db = require "lapis.db"
   Db.delete "executions"
+  Db.delete "history"
   Db.delete "identities"
   Db.delete "permissions"
   Db.delete "projects"

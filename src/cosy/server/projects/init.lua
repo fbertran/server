@@ -1,6 +1,8 @@
-local respond_to  = require "lapis.application".respond_to
-local Model       = require "cosy.server.model"
-local Decorators  = require "cosy.server.decorators"
+local Et         = require "etlua"
+local Config     = require "lapis.config".get ()
+local respond_to = require "lapis.application".respond_to
+local Model      = require "cosy.server.model"
+local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
@@ -32,16 +34,36 @@ return function (app)
     end,
     POST = Decorators.is_authentified ..
            function (self)
+      if self.identity.type ~= "user" then
+        return { status = 403 }
+      end
+      local identity = Model.identities:create {
+        identifier = nil,
+        type       = "project",
+      }
+      identity:update {
+        identifier = Et.render ("<%= host %>:<%= port %>/projects/<%= id %>", {
+          host = Config.hostname,
+          port = Config.port,
+          id   = identity.id,
+        }),
+      }
       local project = Model.projects:create {
+        id          = identity.id,
         name        = self.json.name,
         description = self.json.description,
         permission_anonymous = "read",
         permission_user      = "read",
       }
       Model.permissions:create {
-        user_id    = self.authentified.id,
-        project_id = project.id,
-        permission = "admin",
+        identity_id = identity.id,
+        project_id  = project.id,
+        permission  = "admin",
+      }
+      Model.permissions:create {
+        identity_id = self.identity.id,
+        project_id  = project.id,
+        permission  = "admin",
       }
       return {
         status = 201,

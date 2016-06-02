@@ -96,6 +96,10 @@ for message in redis.pub:pubsub { subscribe = channels_list } do
       end
     elseif message.channel == channels.edition then
       local data = Util.from_json (message.payload)
+      print (Colors (Et.render ([[Launching %{blue}"<%= prefix %>/bin/cosy-editor" "<%= token %>"%{reset}.]], {
+        prefix = prefix,
+        token  = data.token,
+      })))
       os.execute (Et.render ([[ "<%= prefix %>/bin/cosy-editor" "<%= token %>" ]], {
         prefix = prefix,
         token  = data.token,

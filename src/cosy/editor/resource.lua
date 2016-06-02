@@ -60,6 +60,7 @@ return function (app)
       }
 
       local state = redis:get (key)
+      print ("state", state)
       state = state ~= _G.ngx.null and Util.from_json (state) or nil
       do -- if editor is closing, wait until it is finished
         if state and state.status == "closing" then
@@ -83,8 +84,9 @@ return function (app)
         if redis:setnx (key, Util.to_json {
           status = "opening",
         }) == 1 then
-          pubsub:publish (Channels.edition, Util.to_json {
-            token    = make_token ("cosy:edition", {
+          print ("publish:", Channels.edition)
+          print (redis:publish (Channels.edition, Util.to_json {
+            token = make_token ("cosy:edition", {
               api      = Et.render ("http://api.<%= host %>:<%= port %>/", {
                 host = os.getenv "NGINX_HOST",
                 port = os.getenv "NGINX_PORT",
@@ -93,13 +95,14 @@ return function (app)
               project  = self.project.id,
               resource = self.resource.id,
             })
-          })
+          }))
         end
       end
 
       if not state or state.status ~= "started" then
         -- if editor is opening, wait until it is running
         state = redis:get (key)
+        print ("state", state)
         state = state ~= _G.ngx.null and Util.from_json (state) or nil
         if state and state.status == "opening" then
           for message in function () return pubsub:read_reply () end do
@@ -130,6 +133,10 @@ return function (app)
       end
       state = Util.from_json (state)
       _G.ngx.var._url = state.url:gsub ("wss?://", "http://")
+      return {
+        status = 200,
+        json   = state.url:gsub ("wss?://", "http://"),
+      }
     end,
     DELETE = Decorators.exists {} ..
              function ()

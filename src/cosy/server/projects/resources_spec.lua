@@ -21,8 +21,8 @@ describe ("route /projects/:project/resources", function ()
     })
     assert.are.same (status, 200)
     result = Util.from_json (result)
-    assert.is.not_nil (result.user.id)
-    naouna = result.user.id
+    assert.is.not_nil (result.authentified.id)
+    naouna = result.authentified.id
   end)
 
   before_each (function ()

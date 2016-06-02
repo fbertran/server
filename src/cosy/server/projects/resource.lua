@@ -1,6 +1,5 @@
 local respond_to  = require "lapis.application".respond_to
 local Config      = require "lapis.config".get ()
-local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 local Jwt         = require "jwt"
 local Time        = require "socket".gettime
@@ -37,12 +36,6 @@ return function (app)
     GET = Decorators.exists {} ..
           Decorators.can_read ..
           function (self)
-      if self.token then
-        local id = Model.identities:find (self.token.sub)
-        if id then
-          self.authentified = id:get_user ()
-        end
-      end
       local edit_url  = Et.render ("ws://edit.<%= host %>:<%= port %>/resources/<%= resource %>", {
         host     = os.getenv "NGINX_HOST", -- or Config.hostname,
         port     = os.getenv "NGINX_PORT", -- or Config.port,

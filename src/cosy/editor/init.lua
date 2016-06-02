@@ -1,12 +1,21 @@
-local Lapis      = require "lapis"
-local respond_to = require "lapis.application".respond_to
-local app        = Lapis.Application ()
+local Lapis  = require "lapis"
+local Config = require "lapis.config".get ()
+local app    = Lapis.Application ()
 
 app.layout = false
 
--- app.handle_error = function ()
---   return { status = 500 }
--- end
+if Config._name ~= "production" then
+  app.handle_error = function (_, err, trace)
+    return {
+      status = 500,
+      headers = {
+        ["Cosy-trace"] = tostring (trace),
+        ["Cosy-error"] = tostring (err),
+      }
+     }
+  end
+end
+
 app.handle_404 = function ()
   return { status = 404 }
 end

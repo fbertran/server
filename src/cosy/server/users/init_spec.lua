@@ -4,10 +4,9 @@ describe ("route /users", function ()
 
   Test.environment.use ()
 
-  local Util, app, request
+  local app, request
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app     ()

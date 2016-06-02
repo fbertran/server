@@ -78,8 +78,8 @@ return function (app)
       return {
         status = 200,
         json   = Model.permissions:find {
-          user_id    = self.user.id,
-          project_id = self.project.id,
+          identity_id = self.user.id,
+          project_id  = self.project.id,
         },
       }
     end,
@@ -90,8 +90,8 @@ return function (app)
         return { status = 400 }
       end
       local permission = Model.permissions:find {
-        user_id    = self.user.id,
-        project_id = self.project.id,
+        identity_id = self.user.id,
+        project_id  = self.project.id,
       }
       if permission then
         permission:update {
@@ -100,9 +100,9 @@ return function (app)
         return { status = 202 }
       else
         Model.permissions:create {
-          user_id    = self.user.id,
-          project_id = self.project.id,
-          permission = self.json.permission,
+          identity_id = self.user.id,
+          project_id  = self.project.id,
+          permission  = self.json.permission,
         }
         return { status = 201 }
       end
@@ -111,13 +111,13 @@ return function (app)
              Decorators.can_admin ..
              function (self)
       local permission = Model.permissions:find {
-        user_id    = self.user.id,
-        project_id = self.project.id,
+        identity_id = self.user.id,
+        project_id  = self.project.id,
       }
       if not permission then
        return { status = 404 }
       end
-      local count = Model.permissions:count ([[ project_id = ? and permission = 'admin' ]], self.project.id)
+      local count = Model.permissions:count ([[ project_id = ? and permission = 'admin' and identity_id != ? ]], self.project.id, self.project.id)
       if count < 2 then
         return { status = 409 }
       end

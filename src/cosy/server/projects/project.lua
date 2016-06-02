@@ -40,7 +40,7 @@ return function (app)
     DELETE = Decorators.exists {} ..
              Decorators.can_admin ..
              function (self)
-      self.project:delete ()
+      self.project:get_identity():delete ()
       return {
         status = 204,
       }

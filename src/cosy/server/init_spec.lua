@@ -166,6 +166,17 @@ describe ("route /", function ()
       end)
     end
 
+    for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+      it ("answers to " .. method, function ()
+        local token  = Test.make_token (Test.identities.rahan)
+        local status = request (app, "/", {
+          method  = method,
+          headers = { Authorization = "Invalid " .. token},
+        })
+        assert.are.same (status, 401)
+      end)
+    end
+
   end)
 
 end)

@@ -5,7 +5,13 @@ result.identities = Model:extend ("identities", {
   relations = {
     {
       "user",
-      belongs_to = "users",
+      has_one = "users",
+      key     = "id",
+    },
+    {
+      "project",
+      has_one = "projects",
+      key     = "id",
     },
   },
 })
@@ -13,6 +19,11 @@ result.identities = Model:extend ("identities", {
 result.users = Model:extend ("users", {
   timestamp   = true,
   relations   = {
+    {
+      "identity",
+      belongs_to = "identities",
+      key        = "id",
+    },
     {
       "executions",
       has_many = "executions",
@@ -27,6 +38,11 @@ result.users = Model:extend ("users", {
 result.projects = Model:extend ("projects", {
   timestamp   = true,
   relations   = {
+    {
+      "identity",
+      belongs_to = "identities",
+      key        = "id",
+    },
     {
       "permissions",
       has_many = "permissions",
@@ -49,13 +65,13 @@ result.projects = Model:extend ("projects", {
 result.permissions = Model:extend ("permissions", {
   timestamp   = true,
   primary_key = {
-      "user_id",
-      "project_id",
+    "identity_id",
+    "project_id",
   },
   relations   = {
     {
-      "user",
-      belongs_to = "users",
+      "identity",
+      belongs_to = "identities",
     },
     {
       "project",
@@ -67,8 +83,8 @@ result.permissions = Model:extend ("permissions", {
 result.stars = Model:extend ("stars", {
   timestamp   = true,
   primary_key = {
-      "user_id",
-      "project_id",
+    "user_id",
+    "project_id",
   },
   relations   = {
     {
@@ -85,9 +101,9 @@ result.stars = Model:extend ("stars", {
 result.tags = Model:extend ("tags", {
   timestamp   = true,
   primary_key = {
-      "id",
-      "user_id",
-      "project_id",
+    "id",
+    "user_id",
+    "project_id",
   },
   relations   = {
     {
@@ -118,8 +134,8 @@ result.resources = Model:extend ("resources", {
 result.history = Model:extend ("history", {
   timestamp   = true,
   primary_key = {
-      "id",
-      "resource_id",
+    "id",
+    "resource_id",
   },
   relations   = {
     {
