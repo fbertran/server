@@ -42,11 +42,19 @@ do
 end
 
 do
-  local url = "ws://api.cosyverif.dev:8080/projects/" .. project.id .. "/resources/" .. resource.id
+  local url = "ws://api.cosyverif.dev:8080/projects/" .. project.id .. "/resources/" .. resource.id .. "/editor"
   print (url)
+  local _, status = request {
+    url     = url,
+    method  = "GET",
+    headers = {
+      Authorization = "Bearer " .. token,
+    },
+  }
+  print (status)
   Copas.addthread (function ()
     local ws = Websocket.client.copas {}
-    print (ws:connect (url))
+    print (ws:connect (url, "cosy"))
     ws:close ()
   end)
   Copas.loop ()

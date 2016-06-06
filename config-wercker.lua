@@ -53,7 +53,7 @@ local common = {
     database = assert (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE"),
   },
   editor = {
-    timeout = 60, -- seconds
+    timeout = 10, -- seconds
   },
 }
 

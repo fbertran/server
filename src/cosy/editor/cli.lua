@@ -1,9 +1,8 @@
-local Copas     = require "copas.ev"
-Copas:make_default ()
+local Copas     = require "copas"
 local Arguments = require "argparse"
 local Colors    = require "ansicolors"
 local Et        = require "etlua"
-local Redis     = require "redis"
+local Json      = require "cjson"
 local Jwt       = require "jwt"
 local Websocket = require "websocket"
 local Time      = require "socket".gettime
@@ -36,36 +35,6 @@ if not decoded then
 end
 local data = decoded.contents
 
-local redis
-do
-  local ok, res = pcall (Redis.connect, Config.redis.host, Config.redis.port)
-  if not ok then
-    print (Colors (Et.render ("Runner failed to connect to redis instance %{green}<%= host %>%{reset}:%{green}<%= port %>%{reset}: %{red}<%= error %>%{reset}", {
-      host     = Config.redis.host,
-      port     = Config.redis.port,
-      database = Config.redis.database,
-      error    = res,
-    })))
-    os.exit (1)
-  end
-  redis = res
-  ok, res = pcall (res.select, res, Config.redis.database)
-  if not ok then
-    print (Colors (Et.render ("Runner failed to switch to redis database %{green}<%= database %>%{reset}: %{red}<%= error %>%{reset}", {
-      host     = Config.redis.host,
-      port     = Config.redis.port,
-      database = Config.redis.database,
-      error    = res,
-    })))
-    os.exit (1)
-  end
-end
-print (Colors (Et.render ("Runner listening on redis instance %{green}<%= host %>%{reset}:%{green}<%= port %>%{reset} database %{green}<%= database %>%{reset}.", {
-  host     = Config.redis.host,
-  port     = Config.redis.port,
-  database = Config.redis.database,
-})))
-
 function _G.string.split (s, delimiter)
   local result = {}
   for part in s:gmatch ("[^" .. delimiter .. "]+") do
@@ -76,115 +45,116 @@ end
 
 local function request (url, options)
   local result = {}
+  local headers = options.headers or {}
+  if options.json then
+    options.json = Json.encode (options.json)
+    headers ["Content-length"] = #options.json
+    headers ["Content-type"  ] = "application/json"
+  end
   local _, status = Http.request {
     url      = url,
+    source   = options.json and Ltn12.source.string (options.json),
     sink     = Ltn12.sink.table (result),
     method   = options.method,
-    headers  = options.headers,
+    headers  = headers,
   }
   if status ~= 200 then
     return nil, status
   end
-  return Util.from_json (table.concat (result)), status
+  return Util.from_json (table.concat (result)), tonumber (status)
 end
 
 local last_access = Time ()
-local socket
-
-Copas.addthread (function ()
-  while true do
-    Copas.sleep (Config.editor.sleep_timeout)
-    if last_access + Config.editor.sleep_timeout <= Time () then
-      -- FIXME: save model
-      local _ = false
-    end
-    if last_access + Config.editor.sleep_timeout <= Time () then
-      redis:del (data.key)
-      Copas.removeserver (socket)
-      return
-    end
-  end
-end)
-
-local _, status = request (Et.render (data.url), {
-  method = "GET",
-  headers = { Authorization = "Bearer " .. arguments.token},
-})
-if status ~= 200 then
-  redis:del     (data.key)
-  redis:publish (data.key, Util.to_json {
-    status = "finished",
-  })
-  return
-end
+local server
 
 local addserver = Copas.addserver
-Copas.addserver = function (s, f)
-  socket = s
-  local host, port = s:getsockname ()
-  addserver (s, f)
+Copas.addserver = function (socket, f)
+  local host, port = socket:getsockname ()
+  addserver (socket, f)
   local url = "ws://" .. host .. ":" .. tostring (port) .. "/"
-  redis:set (data.key, Util.to_json {
-    status = "started",
-    url    = url,
+  Copas.addthread (function ()
+    while true do
+      Copas.sleep (Config.editor.timeout)
+      if last_access + Config.editor.timeout <= Time () then
+        server:close ()
+        request (data.api .. "/editor", {
+          method = "DELETE",
+          headers = { Authorization = "Bearer " .. arguments.token }
+        })
+      end
+    end
+  end)
+  local _, status = request (data.api .. "/editor", {
+    method  = "PATCH",
+    headers = { Authorization = "Bearer " .. arguments.token},
+    json    = {
+      editor_url = url,
+    }
   })
-  redis:publish (data.key, Util.to_json {
-    status = "started",
-    url    = url,
-  })
-  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= resource %>%{reset} at %{green}<%= url %>%{reset}.", {
-    resource = decoded.sub,
-    time     = os.date "%c",
-    url      = url,
+  assert (status == 204)
+  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= api %>%{reset} at %{green}<%= url %>%{reset}.", {
+    api  = data.api,
+    time = os.date "%c",
+    url  = url,
   })))
 end
 
-Websocket.server.copas.listen
+local function handler (ws)
+  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} New connection for %{green}<%= resource %>%{reset}.", {
+    resource = decoded.sub,
+    time     = os.date "%c",
+  })))
+  last_access = Time ()
+  local message   = ws:receive ()
+  local greetings = message and Util.from_json (message)
+  if not greetings then
+    return
+  end
+  local token = greetings.token
+  token = Jwt.decode (token, {
+    keys = {
+      public = Config.auth0.client_secret
+    }
+  })
+  if not token
+  or token.resource ~= data.resource
+  or not token.user
+  or not token.permissions
+  or not token.permissions.read then
+    return
+  end
+
+  --
+  -- while true do
+  --   local message = ws:receive ()
+  --   if message then
+  --      ws:send (message)
+  --   else
+  --      ws:close ()
+  --      return
+  --   end
+  -- end
+end
+
+server = Websocket.server.copas.listen
 {
   port      = arguments.port,
+  default   = handler,
   protocols = {
-    cosy = function (ws)
-      print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} New connection for %{green}<%= resource %>%{reset}{reset}.", {
-        resource = decoded.sub,
-        time     = os.date "%c",
-      })))
-      last_access = Time ()
-      local message   = ws:receive ()
-      local greetings = message and Util.from_json (message)
-      if not greetings then
-        return
-      end
-      local token = greetings.token
-      token = Jwt.decode (token, {
-        keys = {
-          public = Config.auth0.client_secret
-        }
-      })
-      if not token
-      or token.resource ~= data.resource
-      or not token.user
-      or not token.permissions
-      or not token.permissions.read then
-        return
-      end
-
-      --
-      -- while true do
-      --   local message = ws:receive ()
-      --   if message then
-      --      ws:send (message)
-      --   else
-      --      ws:close ()
-      --      return
-      --   end
-      -- end
-    end
+    cosy = handler,
   }
 }
+Copas.addserver = addserver
 
-Copas.loop ()
+local _, status = request (data.api, {
+  method  = "HEAD",
+  headers = { Authorization = "Bearer " .. arguments.token},
+})
+if status == 204 then
+  Copas.loop ()
+end
 
-print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= resource %>.", {
-  resource = decoded.sub,
-  time     = os.date "%c",
+print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= api %>.", {
+  api  = data.api,
+  time = os.date "%c",
 })))

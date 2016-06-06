@@ -74,16 +74,6 @@ local status = true
 Lfs.mkdir (arguments.output)
 
 
--- Start runner
--- ============
-do
-  status = os.execute (Et.render ([[
-    "<%- prefix %>/bin/cosy-taskqueue" &
-  ]], {
-    prefix = prefix,
-  })) == 0 and status
-end
-
 -- luacheck
 -- ========
 
@@ -115,16 +105,6 @@ do
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   print ()
-end
-
--- Stop runner
--- ===========
-do
-  status = os.execute (Et.render ([[
-    "<%- prefix %>/bin/cosy-taskqueue" --quit
-  ]], {
-    prefix = prefix,
-  })) == 0 and status
 end
 
 -- luacov

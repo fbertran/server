@@ -77,6 +77,8 @@ return {
       { "project_id" , Schema.types.serial },
       { "name"       , Schema.types.text { null = true } },
       { "description", Schema.types.text { null = true } },
+      { "editor_job" , Schema.types.text { null = true } },
+      { "editor_url" , Schema.types.text { null = true } },
       { "data"       , Schema.types.text   },
       { "created_at" , Schema.types.time   },
       { "updated_at" , Schema.types.time   },

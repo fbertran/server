@@ -22,6 +22,8 @@ end
 
 return function (app)
 
+  require "cosy.server.projects.editor" (app)
+
   app:match ("/projects/:project/resources/:resource", respond_to {
     HEAD = Decorators.exists {} ..
            Decorators.can_read ..
