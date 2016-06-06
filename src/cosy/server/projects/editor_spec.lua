@@ -1,9 +1,10 @@
+local Config    = require "lapis.config".get ()
 local Et        = require "etlua"
 local Test      = require "cosy.server.test"
 local Copas     = require "copas"
 local Websocket = require "websocket"
 
-describe ("#current route /projects/:project/resources/:resource/editor", function ()
+describe ("route /projects/:project/resources/:resource/editor", function ()
 
   Test.environment.use ()
 
@@ -15,9 +16,6 @@ describe ("#current route /projects/:project/resources/:resource/editor", functi
     request = Test.environment.request ()
     app     = Test.environment.app ()
     server  = Test.environment.server ()
-    -- for k, v in pairs (server) do
-    --   print (k)
-    -- end
   end)
 
   before_each (function ()
@@ -163,6 +161,7 @@ describe ("#current route /projects/:project/resources/:resource/editor", functi
                   local ws = Websocket.client.copas {}
                   connected = ws:connect (wsroute, "cosy")
                   ws:close ()
+                  Copas.sleep (Config.editor.timeout * 2)
                 end)
                 Copas.loop ()
                 assert.is_truthy (connected)
@@ -281,6 +280,7 @@ describe ("#current route /projects/:project/resources/:resource/editor", functi
                   local ws = Websocket.client.copas {}
                   connected = ws:connect (wsroute, "cosy")
                   ws:close ()
+                  Copas.sleep (Config.editor.timeout * 2)
                 end)
                 Copas.loop ()
                 assert.is_truthy (connected)
@@ -398,6 +398,7 @@ describe ("#current route /projects/:project/resources/:resource/editor", functi
                   local ws = Websocket.client.copas {}
                   connected = ws:connect (wsroute, "cosy")
                   ws:close ()
+                  Copas.sleep (Config.editor.timeout * 2)
                 end)
                 Copas.loop ()
                 assert.is_truthy (connected)
@@ -427,6 +428,7 @@ describe ("#current route /projects/:project/resources/:resource/editor", functi
             end
 
           end)
+
         end
 
         describe ("with default none permission", function ()
@@ -480,6 +482,96 @@ describe ("#current route /projects/:project/resources/:resource/editor", functi
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 401)
+          end)
+        end
+
+      end)
+
+      describe ("with project authentication", function ()
+
+        for _, method in ipairs { "HEAD", "OPTIONS" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 204)
+          end)
+        end
+
+        for _, method in ipairs { "GET" } do
+          it ("answers to " .. method, function ()
+            if not Test.environment.nginx then
+              return
+            end
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 200)
+            local connected
+            Copas.addthread (function ()
+              local ws = Websocket.client.copas {}
+              connected = ws:connect (wsroute, "cosy")
+              ws:close ()
+              Copas.sleep (Config.editor.timeout * 2)
+            end)
+            Copas.loop ()
+            assert.is_truthy (connected)
+          end)
+        end
+
+        for _, method in ipairs { "POST", "PUT" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 405)
+          end)
+        end
+
+        for _, method in ipairs { "PATCH" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              post    = Util.to_json { editor_url = "not a url" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 400)
+          end)
+        end
+
+        for _, method in ipairs { "PATCH" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              post    = Util.to_json { editor_url = "ws://localhost/" },
+              headers = {
+                ["Authorization"] = "Bearer " .. token,
+                ["Content-type" ] = "application/json",
+              },
+            })
+            assert.are.same (status, 204)
+          end)
+        end
+
+        for _, method in ipairs { "DELETE" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 204)
           end)
         end
 

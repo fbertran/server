@@ -2,6 +2,7 @@ local In_test   = require "lapis.spec".use_test_env
 local In_server = require "lapis.spec".use_test_server
 local Jwt       = require "jwt"
 local Time      = require "socket".gettime
+local Util      = require "cosy.util"
 
 local Test = {}
 
@@ -49,27 +50,14 @@ Test.identities = {
   naouna = "twitter|2572672862",
 }
 
-function Test.make_token (user_id)
-  local Config = require "lapis.config".get ()
-  local claims = {
-    iss = "https://cosyverif.eu.auth0.com",
-    sub = user_id,
-    aud = Config.auth0.client_id,
-    exp = Time () + 10 * 3600,
-    iat = Time (),
-  }
-  return Jwt.encode (claims, {
-    alg = "HS256",
-    keys = { private = Config.auth0.client_secret }
-  })
-end
+Test.make_token = Util.make_token
 
 function Test.make_false_token (user_id)
   local Config = require "lapis.config".get ()
   local claims = {
-    iss = "https://cosyverif.eu.auth0.com",
-    sub = user_id,
+    iss = Config.auth0.domain,
     aud = Config.auth0.client_id,
+    sub = user_id,
     exp = Time () + 10 * 3600,
     iat = Time (),
   }

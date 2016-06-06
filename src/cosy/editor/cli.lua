@@ -9,7 +9,14 @@ local Time      = require "socket".gettime
 local Util      = require "lapis.util"
 local Config    = require "lapis.config".get ()
 local Ltn12     = require "ltn12"
+local CHttp     = require "copas.http"
 local Http      = require "socket.http"
+
+local file = io.tmpfile ()
+local function print (s)
+  file:write (s .. "\n")
+  file:flush ()
+end
 
 local parser = Arguments () {
   name        = "cosy-editor",
@@ -43,7 +50,7 @@ function _G.string.split (s, delimiter)
   return result
 end
 
-local function request (url, options)
+local function request (http, url, options)
   local result = {}
   local headers = options.headers or {}
   if options.json then
@@ -51,7 +58,7 @@ local function request (url, options)
     headers ["Content-length"] = #options.json
     headers ["Content-type"  ] = "application/json"
   end
-  local _, status = Http.request {
+  local _, status = http.request {
     url      = url,
     source   = options.json and Ltn12.source.string (options.json),
     sink     = Ltn12.sink.table (result),
@@ -74,29 +81,33 @@ Copas.addserver = function (socket, f)
   local url = "ws://" .. host .. ":" .. tostring (port) .. "/"
   Copas.addthread (function ()
     while true do
-      Copas.sleep (Config.editor.timeout)
+      Copas.sleep (1)
       if last_access + Config.editor.timeout <= Time () then
         server:close ()
-        request (data.api .. "/editor", {
+        local _, status = request (CHttp, data.api .. "/editor", {
           method = "DELETE",
           headers = { Authorization = "Bearer " .. arguments.token }
         })
+        assert (status == 204)
+        return
       end
     end
   end)
-  local _, status = request (data.api .. "/editor", {
-    method  = "PATCH",
-    headers = { Authorization = "Bearer " .. arguments.token},
-    json    = {
-      editor_url = url,
-    }
-  })
-  assert (status == 204)
-  print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= api %>%{reset} at %{green}<%= url %>%{reset}.", {
-    api  = data.api,
-    time = os.date "%c",
-    url  = url,
-  })))
+  Copas.addthread (function ()
+    local _, status = request (CHttp, data.api .. "/editor", {
+      method  = "PATCH",
+      headers = { Authorization = "Bearer " .. arguments.token},
+      json    = {
+        editor_url = url,
+      }
+    })
+    assert (status == 204)
+    print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Start editor for %{green}<%= api %>%{reset} at %{green}<%= url %>%{reset}.", {
+      api  = data.api,
+      time = os.date "%c",
+      url  = url,
+    })))
+  end)
 end
 
 local function handler (ws)
@@ -104,26 +115,27 @@ local function handler (ws)
     resource = decoded.sub,
     time     = os.date "%c",
   })))
-  last_access = Time ()
-  local message   = ws:receive ()
-  local greetings = message and Util.from_json (message)
-  if not greetings then
-    return
-  end
-  local token = greetings.token
-  token = Jwt.decode (token, {
-    keys = {
-      public = Config.auth0.client_secret
-    }
-  })
-  if not token
-  or token.resource ~= data.resource
-  or not token.user
-  or not token.permissions
-  or not token.permissions.read then
-    return
-  end
+  ws:receive ()
 
+  -- last_access = Time ()
+  -- local message   = ws:receive ()
+  -- local greetings = message and Util.from_json (message)
+  -- if not greetings then
+  --   return
+  -- end
+  -- local token = greetings.token
+  -- token = Jwt.decode (token, {
+  --   keys = {
+  --     public = Config.auth0.client_secret
+  --   }
+  -- })
+  -- if not token
+  -- or token.resource ~= data.resource
+  -- or not token.user
+  -- or not token.permissions
+  -- or not token.permissions.read then
+  --   return
+  -- end
   --
   -- while true do
   --   local message = ws:receive ()
@@ -136,25 +148,26 @@ local function handler (ws)
   -- end
 end
 
-server = Websocket.server.copas.listen
-{
-  port      = arguments.port,
-  default   = handler,
-  protocols = {
-    cosy = handler,
-  }
-}
-Copas.addserver = addserver
-
-local _, status = request (data.api, {
+local _, status = request (Http, data.api, {
   method  = "HEAD",
   headers = { Authorization = "Bearer " .. arguments.token},
 })
 if status == 204 then
-  Copas.loop ()
+  server = Websocket.server.copas.listen
+  {
+    port      = arguments.port,
+    default   = handler,
+    protocols = {
+      cosy = handler,
+    }
+  }
+  Copas.addserver = addserver
 end
+
+Copas.loop ()
 
 print (Colors (Et.render ("%{blue}[<%= time %>]%{reset} Stop editor for %{green}<%= api %>.", {
   api  = data.api,
   time = os.date "%c",
 })))
+file:close ()

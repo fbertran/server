@@ -203,6 +203,16 @@ cosy_temp=$(realpath "${cosy_temp}")
     >> "${cosy_log}" 2>&1 \
    && echo -e "${green}success${nc}" \
    || echo -e "${red}failure${nc}"
+ echo -n "Installing resty-redis-connector rock... "
+ ${sudo} "${cosy_prefix}/bin/luarocks" install rockspec/lua-resty-redis-connector-master-1.rockspec \
+   >> "${cosy_log}" 2>&1 \
+   && echo -e "${green}success${nc}" \
+   || echo -e "${red}failure${nc}"
+ echo -n "Installing resty-qless rock... "
+ ${sudo} "${cosy_prefix}/bin/luarocks" install rockspec/lua-resty-qless-master-1.rockspec \
+   >> "${cosy_log}" 2>&1 \
+   && echo -e "${green}success${nc}" \
+   || echo -e "${red}failure${nc}"
   echo -n "Installing runtime rocks... "
   ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-server-master-1.rockspec \
     >> "${cosy_log}" 2>&1 \
@@ -210,11 +220,6 @@ cosy_temp=$(realpath "${cosy_temp}")
     || echo -e "${red}failure${nc}"
   echo -n "Installing lua-cjson-ol rock... "
   ${sudo} "${cosy_prefix}/bin/luarocks" install lua-cjson-ol \
-    >> "${cosy_log}" 2>&1 \
-    && echo -e "${green}success${nc}" \
-    || echo -e "${red}failure${nc}"
-  echo -n "Installing lapis-redis rock... "
-  ${sudo} "${cosy_prefix}/bin/luarocks" install --server=https://luarocks.org/dev lapis-redis \
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"

@@ -3,28 +3,12 @@ local Database    = require "lapis.db"
 local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Et          = require "etlua"
-local Jwt         = require "jwt"
-local Time        = require "socket".gettime
 local Url         = require "socket.url"
+local Util        = require "cosy.util"
 local _, Qless    = pcall (require, "resty.qless")
 local _, Wsclient = pcall (require, "resty.websocket.client")
 
 return function (app)
-
-  local function make_token (sub, contents)
-    local claims = {
-      iss = "https://cosyverif.eu.auth0.com",
-      sub = sub,
-      aud = Config.auth0.client_id,
-      exp = Time () + 365 * 24 * 3600,
-      iat = Time (),
-      contents = contents,
-    }
-    return Jwt.encode (claims, {
-      alg = "HS256",
-      keys = { private = Config.auth0.client_secret },
-    })
-  end
 
   app:match ("/projects/:project/resources/:resource/editor", respond_to {
     HEAD = Decorators.exists {} ..
@@ -79,7 +63,7 @@ return function (app)
           else
             local queue = qless.queues ["editors"]
             local jid   = queue:put ("cosy.editor.task", {
-              token = make_token (Et.render ("/projects/<%- project %>", {
+              token = Util.make_token (Et.render ("/projects/<%- project %>", {
                 project  = self.project.id,
               }), {
                 project  = self.project.id,
@@ -109,7 +93,7 @@ return function (app)
       or self.authentified.id ~= self.project.id then
         return { status = 403 }
       end
-      if not Url.parse (self.json.editor_url) then
+      if not Url.parse (self.json.editor_url).host then
         return { status = 400 }
       end
       self.resource:update ({

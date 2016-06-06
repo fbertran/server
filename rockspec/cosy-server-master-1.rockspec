@@ -23,10 +23,8 @@ dependencies = {
   "layeredata",
   "lua-websockets",
   "lustache",
-  "redis-lua",
-  "luarestyredis",
-  "lua-resty-http",
   "lua-resty-redis-connector",
+  "lua-resty-qless",
 }
 
 build = {
@@ -36,6 +34,7 @@ build = {
     ["cosy.i18n"                       ] = "src/cosy/i18n/init.lua",
     ["cosy.editor.cli"                 ] = "src/cosy/editor/cli.lua",
     ["cosy.editor.task"                ] = "src/cosy/editor/task.lua",
+    ["cosy.util"                       ] = "src/cosy/util.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
     ["cosy.server.worker"              ] = "src/cosy/server/worker.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",

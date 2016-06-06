@@ -1,24 +1,6 @@
-local respond_to  = require "lapis.application".respond_to
-local Config      = require "lapis.config".get ()
-local Decorators  = require "cosy.server.decorators"
-local Jwt         = require "jwt"
-local Time        = require "socket".gettime
-local Et          = require "etlua"
-
-local function make_token (sub, contents)
-  local claims = {
-    iss = "https://cosyverif.eu.auth0.com",
-    sub = sub,
-    aud = Config.auth0.client_id,
-    exp = Time () + 10 * 3600,
-    iat = Time (),
-    contents = contents,
-  }
-  return Jwt.encode (claims, {
-    alg = "HS256",
-    keys = { private = Config.auth0.client_secret },
-  })
-end
+local respond_to = require "lapis.application".respond_to
+local Decorators = require "cosy.server.decorators"
+local Util       = require "cosy.util"
 
 return function (app)
 
@@ -38,17 +20,11 @@ return function (app)
     GET = Decorators.exists {} ..
           Decorators.can_read ..
           function (self)
-      local edit_url  = Et.render ("ws://edit.<%- host %>:<%- port %>/resources/<%- resource %>", {
-        host     = os.getenv "NGINX_HOST", -- or Config.hostname,
-        port     = os.getenv "NGINX_PORT", -- or Config.port,
-        resource = self.resource.id,
-      })
       return {
         status = 200,
         json   = {
           resource = self.resource,
-          editor   = self.authentified and edit_url,
-          token    = self.authentified and make_token (self.authentified.id, {
+          token    = self.authentified and Util.make_token (self.authentified.id, {
             user        = self.authentified.id,
             resource    = self.resource.id,
             permissions = {

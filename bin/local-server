@@ -1,0 +1,11 @@
+#! /bin/bash
+
+set -e
+
+dropdb cosyverif-dev
+createdb cosyverif-dev
+./install/bin/luarocks make rockspec/cosy-server-master-1.rockspec
+./install/bin/lapis migrate development
+redis-server &
+echo "Launching server..."
+./install/bin/cosy-server || true

@@ -53,7 +53,8 @@ return function (app)
       else
         assert (false)
       end
-    else -- automatically create account
+    elseif self.token.sub:match "^([%w-_]+)|(.*)$" then
+      -- automatically create user account
       local info
       if Config._name == "test" and not self.req.headers ["Force"] then
         info = {
@@ -80,6 +81,8 @@ return function (app)
         nickname = info.nickname,
         picture  = info.picture,
       }
+    else
+      return { status = 401 }
     end
   end
 
