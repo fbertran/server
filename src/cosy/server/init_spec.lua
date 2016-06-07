@@ -210,7 +210,7 @@ describe ("route /", function ()
     for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
       it ("answers to " .. method, function ()
         if Test.environment.nginx then
-          return
+          return -- FIXME: should not filter dependeding on environment
         end
         local status, result = request (app, "/error", {
           method  = method,
