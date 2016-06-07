@@ -62,8 +62,8 @@ return function (app)
                 project  = self.project.id,
                 resource = self.resource.id,
                 api      = Et.render ("http://<%- host %>:<%- port %>/projects/<%- project %>/resources/<%- resource %>", {
-                  host = os.getenv "NGINX_HOST",
-                  port = os.getenv "NGINX_PORT",
+                  host     = os.getenv "NGINX_HOST",
+                  port     = os.getenv "NGINX_PORT",
                   project  = self.project.id,
                   resource = self.resource.id,
                 }),
