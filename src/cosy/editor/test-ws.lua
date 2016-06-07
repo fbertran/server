@@ -12,7 +12,7 @@ local project, resource
 do
   local response = {}
   local _, status = request {
-    url     = "http://api.cosyverif.dev:8080/projects",
+    url     = "http://localhost:8080/projects",
     method  = "POST",
     sink    = Ltn12.sink.table (response),
     headers = {
@@ -28,7 +28,7 @@ end
 do
   local response = {}
   local _, status = request {
-    url     = "http://api.cosyverif.dev:8080/projects/" .. project.id .. "/resources",
+    url     = "http://localhost:8080/projects/" .. project.id .. "/resources",
     method  = "POST",
     sink    = Ltn12.sink.table (response),
     headers = {
@@ -42,7 +42,7 @@ do
 end
 
 do
-  local url = "ws://api.cosyverif.dev:8080/projects/" .. project.id .. "/resources/" .. resource.id .. "/editor"
+  local url = "ws://localhost:8080/projects/" .. project.id .. "/resources/" .. resource.id .. "/editor"
   print (url)
   local _, status = request {
     url     = url,
