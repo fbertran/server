@@ -108,11 +108,8 @@ describe ("route /projects/:project/tags/:tag", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/anonymous", {
               method  = "PUT",
-              post    = Util.to_json { permission = "read" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "read" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)
@@ -143,11 +140,8 @@ describe ("route /projects/:project/tags/:tag", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/anonymous", {
               method  = "PUT",
-              post    = Util.to_json { permission = "none" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "none" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)
@@ -182,11 +176,8 @@ describe ("route /projects/:project/tags/:tag", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/" .. naouna, {
               method  = "PUT",
-              post    = Util.to_json { permission = "read" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "read" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 201)
           end)
@@ -263,11 +254,8 @@ describe ("route /projects/:project/tags/:tag", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/" .. naouna, {
               method  = "PUT",
-              post    = Util.to_json { permission = "none" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "none" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 201)
           end)
@@ -315,11 +303,8 @@ describe ("route /projects/:project/tags/:tag", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/user", {
               method  = "PUT",
-              post    = Util.to_json { permission = "read" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "read" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)
@@ -396,11 +381,8 @@ describe ("route /projects/:project/tags/:tag", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/user", {
               method  = "PUT",
-              post    = Util.to_json { permission = "none" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "none" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)

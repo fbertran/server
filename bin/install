@@ -299,15 +299,6 @@ echo -n "Installing openresty... "
   && echo -e "${green}success${nc}" \
   || echo -e "${red}failure${nc}"
 
-
-# Patch lapis:
-echo -n "Patching lapis request... "
-{
-  patch -i patch-request.txt "${cosy_prefix}/share/lua/5.1/lapis/spec/request.lua"
-} >> "${cosy_log}" 2>&1 \
-  && echo -e "${green}success${nc}" \
-  || echo -e "${red}failure${nc}"
-
 (
   cd "${currentwd}" || exit 1
   git rev-parse --verify HEAD > "${cosy_temp}/environment.version"

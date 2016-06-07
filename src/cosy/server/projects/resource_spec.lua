@@ -118,11 +118,8 @@ describe ("route /projects/:project/resources/:resource", function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/anonymous", {
                 method  = "PUT",
-                post    = Util.to_json { permission = permission },
-                headers = {
-                  ["Authorization"] = "Bearer " .. token,
-                  ["Content-type" ] = "application/json",
-                },
+                json    = { permission = permission },
+                headers = { ['Authorization'] = "Bearer " .. token },
               })
               assert.are.same (status, 202)
             end)
@@ -172,11 +169,8 @@ describe ("route /projects/:project/resources/:resource", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/anonymous", {
               method  = "PUT",
-              post    = Util.to_json { permission = "none" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "none" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)
@@ -221,11 +215,8 @@ describe ("route /projects/:project/resources/:resource", function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "PUT",
-                post    = Util.to_json { permission = permission },
-                headers = {
-                  ["Authorization"] = "Bearer " .. token,
-                  ["Content-type" ] = "application/json",
-                },
+                json    = { permission = permission },
+                headers = { ['Authorization'] = "Bearer " .. token },
               })
               assert.are.same (status, 201)
             end)
@@ -283,11 +274,8 @@ describe ("route /projects/:project/resources/:resource", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/" .. naouna, {
               method  = "PUT",
-              post    = Util.to_json { permission = "read" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "read" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 201)
           end)
@@ -344,11 +332,8 @@ describe ("route /projects/:project/resources/:resource", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/" .. naouna, {
               method  = "PUT",
-              post    = Util.to_json { permission = "none" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "none" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 201)
           end)
@@ -388,11 +373,8 @@ describe ("route /projects/:project/resources/:resource", function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
-                post    = Util.to_json { permission = permission },
-                headers = {
-                  ["Authorization"] = "Bearer " .. token,
-                  ["Content-type" ] = "application/json",
-                },
+                json    = { permission = permission },
+                headers = { ['Authorization'] = "Bearer " .. token },
               })
               assert.are.same (status, 202)
             end)
@@ -450,11 +432,8 @@ describe ("route /projects/:project/resources/:resource", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/user", {
               method  = "PUT",
-              post    = Util.to_json { permission = "read" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "read" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)
@@ -511,11 +490,8 @@ describe ("route /projects/:project/resources/:resource", function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/user", {
               method  = "PUT",
-              post    = Util.to_json { permission = "none" },
-              headers = {
-                ["Authorization"] = "Bearer " .. token,
-                ["Content-type" ] = "application/json",
-              },
+              json    = { permission = "none" },
+              headers = { ['Authorization'] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
           end)
@@ -556,6 +532,21 @@ describe ("route /projects/:project/resources/:resource", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 401)
+          end)
+        end
+
+      end)
+
+      describe ("with invalid identifier", function ()
+
+        for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (Test.identities.rahan)
+            local status = request (app, project .. "/resources/invalid-identifier", {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 400)
           end)
         end
 

@@ -35,7 +35,8 @@ return function (app)
       return
     end
     _G.ngx.req.read_body ()
-    self.json = Util.from_json (_G.ngx.req.get_body_data ())
+    local body = _G.ngx.req.get_body_data ()
+    self.json = body and Util.from_json (body) or nil
   end
 
   local function authenticate (self)
