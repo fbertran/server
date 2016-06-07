@@ -47,19 +47,12 @@ return function (app)
             }, { timestamp = false })
           end
         elseif self.resource.editor_job then
-          print ("========== no editor url")
-          _G.ngx.sleep (1)
-          -- TODO
-          -- local events = qless.events {
-          --   host = Config.redis.host,
-          --   port = Config.redis.port,
-          --   db   = Config.redis.database,
-          -- }
+          _G.ngx.sleep (1) -- FIXME
         else
           Database.query [[BEGIN]]
           self.resource:refresh ("editor_url", "editor_job")
           if self.resource.editor_job then
-            Database.query [[ROLLBACK;]]
+            Database.query [[ROLLBACK]]
           else
             local queue = qless.queues ["editors"]
             local jid   = queue:put ("cosy.editor.task", {
@@ -68,7 +61,7 @@ return function (app)
               }), {
                 project  = self.project.id,
                 resource = self.resource.id,
-                api      = Et.render ("http://api.<%- host %>:<%- port %>/projects/<%- project %>/resources/<%- resource %>", {
+                api      = Et.render ("http://<%- host %>:<%- port %>/projects/<%- project %>/resources/<%- resource %>", {
                   host = os.getenv "NGINX_HOST",
                   port = os.getenv "NGINX_PORT",
                   project  = self.project.id,

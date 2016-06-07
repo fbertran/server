@@ -14,20 +14,20 @@ do
 end
 
 Config ("test", {
-  hostname    = "cosyverif.dev",
+  hostname    = "localhost",
   port        = 8080,
   num_workers = 4,
   code_cache  = "on",
 })
 
 Config ("development", {
-  hostname = "cosyverif.dev",
+  hostname = "localhost",
   port     = 8080,
   measure_performance = true,
 })
 
 Config ("production", {
-  hostname    = "cosyverif.org",
+  hostname    = "localhost",
   port        = 80,
   code_cache  = "on",
 })
