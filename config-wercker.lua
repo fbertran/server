@@ -13,26 +13,11 @@ do
   prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
 end
 
-Config ("test", {
-  hostname    = "localhost",
-  port        = 8080,
-  num_workers = 4,
-  code_cache  = "on",
-})
-
-Config ("development", {
-  hostname = "localhost",
-  port     = 8080,
-  measure_performance = true,
-})
-
-Config ("production", {
-  hostname    = "localhost",
-  port        = 80,
-  code_cache  = "on",
-})
-
 local common = {
+  hostname    = "127.0.0.1",
+  port        = 8080,
+  num_workers = 1,
+  code_cache  = "on",
   auth0 = {
     domain        = assert (os.getenv "AUTH0_DOMAIN"),
     client_id     = assert (os.getenv "AUTH0_CLIENT"),
@@ -57,9 +42,6 @@ local common = {
   },
 }
 
-common.www_prefix     = prefix .. "/share/cosy/www"
-common.redis_host     = common.redis.host
-common.redis_port     = common.redis.port
-common.redis_database = common.redis.database
+common.www_prefix = prefix .. "/share/cosy/www"
 
 Config ({ "test", "development", "production" }, common)
