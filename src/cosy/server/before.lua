@@ -51,13 +51,13 @@ return function (app)
         self.authentified = assert (self.identity:get_user ())
       elseif self.identity.type == "project" then
         self.authentified = assert (self.identity:get_project ())
-      else
-        assert (false)
       end
-    elseif self.token.sub:match "^([%w-_]+)|(.*)$" then
+    else
       -- automatically create user account
       local info
-      if Config._name == "test" and not self.req.headers ["Force"] then
+      if  Config._name == "test"
+      and self.token.sub:match "^([%w-_]+)|(.*)$"
+      and not self.req.headers ["Force"] then
         info = {
           email    = nil,
           name     = "Alban Linard",
@@ -68,7 +68,7 @@ return function (app)
         local status
         info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
         if status ~= 200 then
-          return { status = 415 }
+          return { status = 401 }
         end
       end
       self.identity = Model.identities:create {
@@ -82,8 +82,6 @@ return function (app)
         nickname = info.nickname,
         picture  = info.picture,
       }
-    else
-      return { status = 401 }
     end
   end
 

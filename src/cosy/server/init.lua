@@ -1,6 +1,7 @@
 local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
+local Quote      = require "cosy.server.quote"
 local app        = Lapis.Application ()
 
 require "cosy.server.before"   (app)
@@ -10,17 +11,22 @@ require "cosy.server.projects" (app)
 
 app.layout = false
 
-if Config._name ~= "production" then
-  app.handle_error = function (_, err, trace)
-    return {
-      status = 500,
-      headers = {
-        ["Cosy-trace"] = tostring (trace),
-        ["Cosy-error"] = tostring (err),
-      }
-     }
-  end
+app.handle_error = function (_, err, _)
+  return {
+    status = 500,
+    json = {
+      error = err,
+    }
+  }
 end
+
+-- if Config._name == "test" then
+--   app:match ("/auth0", respond_to {
+--     GET = function ()
+--       return { status = 200 }
+--     end,
+--   })
+-- end
 
 app.handle_404 = function ()
   return { status = 404 }
@@ -63,12 +69,28 @@ app:match ("/", respond_to {
   end,
 })
 
-if Config._name == "test" then
-  app:match ("/auth0", respond_to {
-    GET = function ()
-      return { status = 200 }
-    end,
-  })
-end
+app:match ("/error", respond_to {
+  HEAD = function ()
+    error { quote = Quote () }
+  end,
+  OPTIONS = function ()
+    error { quote = Quote () }
+  end,
+  GET = function ()
+    error { quote = Quote () }
+  end,
+  DELETE = function ()
+    error { quote = Quote () }
+  end,
+  PATCH = function ()
+    error { quote = Quote () }
+  end,
+  POST = function ()
+    error { quote = Quote () }
+  end,
+  PUT = function ()
+    error { quote = Quote () }
+  end,
+})
 
 return app

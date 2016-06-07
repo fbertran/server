@@ -27,6 +27,7 @@ if os.getenv "RUN_COVERAGE" then
           options.headers ["Content-type"  ] = "application/json"
           options.headers ["Content-length"] = #options.body
         end
+        options.allow_error = true
         return mock_request (app, url, options)
       end
     end,

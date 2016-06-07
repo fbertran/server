@@ -1,4 +1,5 @@
 local Test = require "cosy.server.test"
+local Util = require "lapis.util"
 
 describe ("route /anything-not-existing", function ()
   Test.environment.use ()
@@ -157,6 +158,31 @@ describe ("route /", function ()
 
     for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
       it ("answers to " .. method, function ()
+        local token  = Test.make_token "anything"
+        local status = request (app, "/", {
+          method  = method,
+          headers = { Authorization = "Bearer " .. token},
+        })
+        assert.are.same (status, 401)
+      end)
+    end
+
+    for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+      it ("answers to " .. method, function ()
+        local token  = Test.make_token "github|1"
+        local status = request (app, "/", {
+          method  = method,
+          headers = {
+            Authorization = "Bearer " .. token,
+            Force         = "true",
+          },
+        })
+        assert.are.same (status, 401)
+      end)
+    end
+
+    for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+      it ("answers to " .. method, function ()
         local token  = Test.make_false_token (Test.identities.rahan)
         local status = request (app, "/", {
           method  = method,
@@ -174,6 +200,24 @@ describe ("route /", function ()
           headers = { Authorization = "Invalid " .. token},
         })
         assert.are.same (status, 401)
+      end)
+    end
+
+  end)
+
+  describe ("error handling", function ()
+
+    for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
+      it ("answers to " .. method, function ()
+        if Test.environment.nginx then
+          return
+        end
+        local status, result = request (app, "/error", {
+          method  = method,
+        })
+        assert.are.same (status, 500)
+        result = Util.from_json (result)
+        assert.is_truthy (result.error)
       end)
     end
 
