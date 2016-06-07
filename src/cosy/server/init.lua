@@ -20,14 +20,6 @@ app.handle_error = function (_, err, _)
   }
 end
 
--- if Config._name == "test" then
---   app:match ("/auth0", respond_to {
---     GET = function ()
---       return { status = 200 }
---     end,
---   })
--- end
-
 app.handle_404 = function ()
   return { status = 404 }
 end
