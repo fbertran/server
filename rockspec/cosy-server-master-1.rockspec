@@ -1,7 +1,7 @@
 package = "cosy-server"
 version = "master-1"
 source  = {
-  url = "git://github.com/saucisson/cosy-server"
+  url = "git://github.com/cayonerie/server"
 }
 
 description = {
@@ -16,15 +16,14 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
-  "copas",
   "i18n",
   "jwt",
   "lapis",
-  "layeredata",
-  "lua-websockets",
-  "lustache",
-  "lua-resty-redis-connector",
+--  "lua-resty-auto-ssl",
+  "lua-resty-http",
   "lua-resty-qless",
+  "lua-resty-redis-connector",
+  "lua-resty-uuid",
 }
 
 build = {
@@ -32,9 +31,8 @@ build = {
   modules = {
     ["cosy.check.cli"                  ] = "src/cosy/check/cli.lua",
     ["cosy.i18n"                       ] = "src/cosy/i18n/init.lua",
-    ["cosy.editor.cli"                 ] = "src/cosy/editor/cli.lua",
-    ["cosy.editor.task"                ] = "src/cosy/editor/task.lua",
     ["cosy.util"                       ] = "src/cosy/util.lua",
+    ["cosy.editor.task"                ] = "src/cosy/editor/task.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
     ["cosy.server.worker"              ] = "src/cosy/server/worker.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
@@ -63,9 +61,8 @@ build = {
   },
   install = {
     bin = {
-      ["cosy-check"    ] = "src/cosy/check/bin.lua",
-      ["cosy-server"   ] = "src/cosy/server/bin.lua",
-      ["cosy-editor"   ] = "src/cosy/editor/bin.lua",
+      ["cosy-check" ] = "src/cosy/check/bin.lua",
+      ["cosy-server"] = "src/cosy/server/bin.lua",
     },
   },
 }

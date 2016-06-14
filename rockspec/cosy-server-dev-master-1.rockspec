@@ -1,7 +1,7 @@
 package = "cosy-server-dev"
 version = "master-1"
 source  = {
-  url = "git://github.com/saucisson/cosy-server"
+  url = "git://github.com/cayonerie/server"
 }
 
 description = {
@@ -20,13 +20,10 @@ dependencies = {
   "ansicolors",
   "busted",
   "etlua",
-  "jwt",
   "luacheck",
   "luacov",
   "luacov-coveralls",
   "luafilesystem",
-  "luarestyredis",
-  "luasec",
 }
 
 build = {
