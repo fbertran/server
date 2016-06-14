@@ -3,12 +3,10 @@ local Test = require "cosy.server.test"
 describe ("cosyverif api", function ()
   Test.environment.use ()
 
-  local Util
   local request
   local app
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -23,7 +21,7 @@ describe ("cosyverif api", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    local user = assert (Util.from_json (result).authentified)
+    local user = result.authentified
     -- Update user info:
     status = request (app, "/users/" .. user.id, {
       method  = "PATCH",
@@ -36,8 +34,7 @@ describe ("cosyverif api", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (Util.from_json (result).id)
-    local project = Util.from_json (result).id
+    local project = result.id
     -- Star project:
     status = request (app, "/projects/" .. project .. "/stars", {
       method  = "PUT",

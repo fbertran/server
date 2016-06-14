@@ -1,5 +1,4 @@
-local Copas     = require "copas.ev"
-Copas:make_default ()
+local Copas     = require "copas"
 local Websocket = require "websocket"
 local Test      = require "cosy.server.test"
 local Json      = require "cjson"

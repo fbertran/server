@@ -3,12 +3,9 @@ local Test = require "cosy.server.test"
 describe ("route /tags", function ()
   Test.environment.use ()
 
-  local Util
-  local request
-  local app
+  local request, app
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -24,7 +21,6 @@ describe ("route /tags", function ()
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 201)
-      result = Util.from_json (result)
       assert.is.not_nil (result.id)
       projects [key] = result.id
       status = request (app, "/projects/" .. result.id .. "/tags/" .. key, {
@@ -57,7 +53,6 @@ describe ("route /tags", function ()
           method = method,
         })
         assert.are.same (status, 200)
-        result = Util.from_json (result)
         local count = 0
         for _ in pairs (Test.identities) do
           count = count + 1
@@ -98,7 +93,6 @@ describe ("route /tags", function ()
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 200)
-        result = Util.from_json (result)
         local count = 0
         for _ in pairs (Test.identities) do
           count = count + 1

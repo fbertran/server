@@ -4,10 +4,9 @@ describe ("route /projects/:project/tags", function ()
 
   Test.environment.use ()
 
-  local Util, app, project, route, request
+  local app, project, route, request
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -20,7 +19,6 @@ describe ("route /projects/:project/tags", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
-    result = Util.from_json (result)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
     route   = "/projects/" .. result.id .. "/tags"

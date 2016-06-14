@@ -4,10 +4,9 @@ describe ("route /projects/:project/permissions/anonymous", function ()
 
   Test.environment.use ()
 
-  local Util, app, project, route, request, naouna
+  local app, project, route, request, naouna
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -20,7 +19,6 @@ describe ("route /projects/:project/permissions/anonymous", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     assert.is.not_nil (result.authentified.id)
     naouna = result.authentified.id
   end)
@@ -34,7 +32,6 @@ describe ("route /projects/:project/permissions/anonymous", function ()
       },
     })
     assert.are.same (status, 201)
-    result = Util.from_json (result)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
     route   = "/projects/" .. result.id .. "/permissions/anonymous"
@@ -410,10 +407,9 @@ describe ("route /projects/:project/permissions/user", function ()
 
   Test.environment.use ()
 
-  local Util, app, project, route, request, naouna
+  local app, project, route, request, naouna
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -426,7 +422,6 @@ describe ("route /projects/:project/permissions/user", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     assert.is.not_nil (result.authentified.id)
     naouna = result.authentified.id
   end)
@@ -440,7 +435,6 @@ describe ("route /projects/:project/permissions/user", function ()
       },
     })
     assert.are.same (status, 201)
-    result = Util.from_json (result)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
     route   = "/projects/" .. result.id .. "/permissions/user"
@@ -815,10 +809,9 @@ describe ("route /projects/:project/permissions/:permission", function ()
 
   Test.environment.use ()
 
-  local Util, app, project, route, request, crao, rahan, naouna
+  local app, project, route, request, crao, rahan, naouna
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -831,7 +824,6 @@ describe ("route /projects/:project/permissions/:permission", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     assert.is.not_nil (result.authentified.id)
     crao = result.authentified.id
   end)
@@ -843,7 +835,6 @@ describe ("route /projects/:project/permissions/:permission", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     assert.is.not_nil (result.authentified.id)
     rahan = result.authentified.id
   end)
@@ -855,7 +846,6 @@ describe ("route /projects/:project/permissions/:permission", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     assert.is.not_nil (result.authentified.id)
     naouna = result.authentified.id
   end)
@@ -869,7 +859,6 @@ describe ("route /projects/:project/permissions/:permission", function ()
       },
     })
     assert.are.same (status, 201)
-    result = Util.from_json (result)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
     route   = "/projects/" .. result.id .. "/permissions/" .. crao

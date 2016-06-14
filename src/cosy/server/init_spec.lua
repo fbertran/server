@@ -1,5 +1,4 @@
 local Test = require "cosy.server.test"
-local Util = require "lapis.util"
 
 describe ("route /anything-not-existing", function ()
   Test.environment.use ()
@@ -216,7 +215,6 @@ describe ("route /", function ()
           method  = method,
         })
         assert.are.same (status, 500)
-        result = Util.from_json (result)
         assert.is_truthy (result.error)
       end)
     end

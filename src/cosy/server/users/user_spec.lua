@@ -4,10 +4,9 @@ describe ("route /users/:user", function ()
 
   Test.environment.use ()
 
-  local Util, app, route, request
+  local app, route, request
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -22,7 +21,6 @@ describe ("route /users/:user", function ()
       },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     route = "/users/" .. result.authentified.id
   end)
 
@@ -116,7 +114,6 @@ describe ("route /users/:user", function ()
               method = method,
             })
             assert.are.same (status, 200)
-            result = Util.from_json (result)
             assert.are.same (result.nickname, "saucisson")
           end)
         end
@@ -162,7 +159,6 @@ describe ("route /users/:user", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 200)
-            result = Util.from_json (result)
             assert.are.same (result.nickname, "saucisson")
           end)
         end
@@ -223,7 +219,6 @@ describe ("route /users/:user", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 200)
-            result = Util.from_json (result)
             assert.are.same (result.nickname, "saucisson")
           end)
         end

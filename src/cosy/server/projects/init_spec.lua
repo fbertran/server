@@ -5,10 +5,9 @@ describe ("route /projects", function ()
 
   Test.environment.use ()
 
-  local Util, app, request
+  local app, request
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app     ()
@@ -99,7 +98,6 @@ describe ("route /projects", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 201)
-            result = Util.from_json (result)
             assert.is.not_nil (result.id)
           end)
         end
@@ -146,7 +144,7 @@ describe ("route /projects", function ()
           headers = { Authorization = "Bearer " .. token},
         })
         assert.are.same (status, 201)
-        local project = Util.from_json (result)
+        local project = result
         token = Test.make_token (Et.render ("/projects/<%- id %>", {
           id = project.id,
         }))

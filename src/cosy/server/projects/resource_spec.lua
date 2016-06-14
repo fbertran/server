@@ -4,10 +4,9 @@ describe ("route /projects/:project/resources/:resource", function ()
 
   Test.environment.use ()
 
-  local Util, app, project, route, request, naouna
+  local app, project, route, request, naouna
 
   before_each (function ()
-    Util    = require "lapis.util"
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
@@ -20,7 +19,6 @@ describe ("route /projects/:project/resources/:resource", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    result = Util.from_json (result)
     assert.is.not_nil (result.authentified.id)
     naouna = result.authentified.id
   end)
@@ -34,7 +32,6 @@ describe ("route /projects/:project/resources/:resource", function ()
       },
     })
     assert.are.same (status, 201)
-    result = Util.from_json (result)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
     status, result = request (app, project .. "/resources", {
@@ -44,7 +41,6 @@ describe ("route /projects/:project/resources/:resource", function ()
       },
     })
     assert.are.same (status, 201)
-    result = Util.from_json (result)
     assert.is.not_nil (result.id)
     route   = project.. "/resources/" .. result.id
   end)
