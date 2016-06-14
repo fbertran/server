@@ -8,7 +8,7 @@ local Task = {}
 
 function Task.perform (job)
   local url = Et.render ("http<%- s %>://<%- host %>:<%- port %>", {
-    s    = Config.docker.port == 2376 and "s" or "",
+    s    = Config.docker.ssl and "s" or "",
     host = Config.docker.host,
     port = Config.docker.port,
   })
@@ -65,7 +65,6 @@ function Task.perform (job)
   if not ok then
     error (err)
   end
-  job:complete ()
   return true
 end
 
