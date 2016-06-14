@@ -73,15 +73,16 @@ return {
   end,
   function ()
     Schema.create_table ("resources", {
-      { "id"         , Schema.types.serial { primary_key = true } },
-      { "project_id" , Schema.types.serial },
-      { "name"       , Schema.types.text { null = true } },
-      { "description", Schema.types.text { null = true } },
-      { "editor_job" , Schema.types.text { null = true } },
-      { "editor_url" , Schema.types.text { null = true } },
-      { "data"       , Schema.types.text   },
-      { "created_at" , Schema.types.time   },
-      { "updated_at" , Schema.types.time   },
+      { "id"           , Schema.types.serial { primary_key = true } },
+      { "project_id"   , Schema.types.serial },
+      { "name"         , Schema.types.text { null = true } },
+      { "description"  , Schema.types.text { null = true } },
+      { "editor_job"   , Schema.types.text { null = true } },
+      { "editor_url"   , Schema.types.text { null = true } },
+      { "execution_job", Schema.types.text { null = true } },
+      { "data"         , Schema.types.text   },
+      { "created_at"   , Schema.types.time   },
+      { "updated_at"   , Schema.types.time   },
       [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("history", {
@@ -92,19 +93,6 @@ return {
       { "created_at" , Schema.types.time   },
       { "updated_at" , Schema.types.time   },
       [[ PRIMARY KEY ("id", "resource_id") ]],
-      [[ FOREIGN KEY ("user_id"    ) REFERENCES "users"     ("id") ON DELETE CASCADE ]],
-      [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
-    })
-    Schema.create_table ("executions", {
-      { "id"         , Schema.types.serial  { primary_key = true  } },
-      { "user_id"    , Schema.types.serial  },
-      { "resource_id", Schema.types.serial  },
-      { "name"       , Schema.types.text    { null        = true  } },
-      { "description", Schema.types.text    { null        = true  } },
-      { "running"    , Schema.types.boolean { default     = false } },
-      { "canceled"   , Schema.types.boolean { default     = false } },
-      { "created_at" , Schema.types.time    },
-      { "updated_at" , Schema.types.time    },
       [[ FOREIGN KEY ("user_id"    ) REFERENCES "users"     ("id") ON DELETE CASCADE ]],
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
     })
