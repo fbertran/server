@@ -193,7 +193,7 @@ cosy_temp=$(realpath "${cosy_temp}")
     PYTHONPATH=$(dirname "${path}"):"${PYTHONPATH}"
     hererocks="${cosy_prefix}/usr/local/bin/hererocks"
   fi >> "${cosy_log}" 2>&1
-  ${sudo} "${hererocks}" "${cosy_prefix}" -r^ --luajit=2.1 \
+  ${sudo} "${hererocks}" "${cosy_prefix}" -r^ --luajit=2.1 --compat=5.2 \
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"
