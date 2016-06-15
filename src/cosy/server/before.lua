@@ -60,9 +60,9 @@ return function (app)
       and not self.req.headers ["Force"] then
         info = {
           email    = nil,
-          name     = "Alban Linard",
-          nickname = "saucisson",
-          picture  = "https://avatars.githubusercontent.com/u/1818862?v=3",
+          name     = "Test user",
+          nickname = "test-user",
+          picture  = "http://espace-numerique.fr/1337/wp-content/uploads/2014/10/gros-geek.png",
         }
       else
         local status

@@ -1,6 +1,5 @@
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
-local Util       = require "cosy.util"
 
 return function (app)
 
@@ -22,17 +21,7 @@ return function (app)
           function (self)
       return {
         status = 200,
-        json   = {
-          resource = self.resource,
-          token    = self.authentified and Util.make_token (self.authentified.id, {
-            user        = self.authentified.id,
-            resource    = self.resource.id,
-            permissions = {
-              read  = true,
-              write = self.authentified.id == self.project.user_id,
-            },
-          }),
-        }
+        json   = self.resource,
       }
     end,
     PUT = Decorators.exists {} ..

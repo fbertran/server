@@ -5,7 +5,7 @@ return function (app)
 
   require "cosy.server.projects.tag" (app)
 
-  app:match ("/projects/:project/tags", respond_to {
+  app:match ("/projects/:project/tags(/)", respond_to {
     HEAD = Decorators.exists {} ..
            Decorators.can_read ..
            function ()

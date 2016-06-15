@@ -37,7 +37,7 @@ app:match ("/", respond_to {
       json   = {
         authentified = self.authentified,
         server = {
-          hostname = "api." .. Config.hostname,
+          hostname = Config.hostname,
           port     = Config.port,
         },
         auth = {

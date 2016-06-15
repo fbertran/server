@@ -114,7 +114,7 @@ describe ("route /users/:user", function ()
               method = method,
             })
             assert.are.same (status, 200)
-            assert.are.same (result.nickname, "saucisson")
+            assert.are.same (result.nickname, "test-user")
           end)
         end
 
@@ -219,7 +219,7 @@ describe ("route /users/:user", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 200)
-            assert.are.same (result.nickname, "saucisson")
+            assert.are.same (result.nickname, "test-user")
           end)
         end
 

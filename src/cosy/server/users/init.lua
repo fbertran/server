@@ -5,7 +5,7 @@ return function (app)
 
   require "cosy.server.users.user" (app)
 
-  app:match ("/users", respond_to {
+  app:match ("/users(/)", respond_to {
     HEAD = function ()
       return {
         status = 204,
@@ -17,7 +17,9 @@ return function (app)
     GET = function ()
       return {
         status = 200,
-        json   = Model.users:select () or {},
+        json   = Model.users:select {
+          fields = "id",
+        } or {},
       }
     end,
     POST = function ()

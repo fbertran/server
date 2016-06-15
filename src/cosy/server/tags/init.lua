@@ -5,7 +5,7 @@ return function (app)
 
   require "cosy.server.tags.tag" (app)
 
-  app:match ("/tags", respond_to {
+  app:match ("/tags(/)", respond_to {
     HEAD = function ()
       return {
         status = 204,

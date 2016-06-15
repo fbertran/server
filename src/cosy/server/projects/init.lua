@@ -11,7 +11,7 @@ return function (app)
   require "cosy.server.projects.stars"       (app)
   require "cosy.server.projects.tags"        (app)
 
-  app:match ("/projects", respond_to {
+  app:match ("/projects(/)", respond_to {
     HEAD = function ()
       return {
         status = 204,
@@ -21,11 +21,9 @@ return function (app)
       return { status = 204 }
     end,
     GET = function ()
-      local projects = Model.projects:select () or {}
-      for _, project in ipairs (projects) do
-        project.stars = # project:get_stars ()
-        project.tags  = project:get_tags  ()
-      end
+      local projects = Model.projects:select {
+        fields = "id",
+      } or {}
       return {
         status = 200,
         json   = projects,

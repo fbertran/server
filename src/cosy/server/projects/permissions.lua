@@ -5,7 +5,7 @@ return function (app)
 
   require "cosy.server.projects.permission" (app)
 
-  app:match ("/projects/:project/permissions", respond_to {
+  app:match ("/projects/:project/permissions(/)", respond_to {
     HEAD = Decorators.exists {} ..
            Decorators.can_admin ..
            function ()

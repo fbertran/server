@@ -6,7 +6,7 @@ return function (app)
 
   require "cosy.server.projects.resource" (app)
 
-  app:match ("/projects/:project/resources", respond_to {
+  app:match ("/projects/:project/resources(/)", respond_to {
     HEAD = Decorators.exists {} ..
            Decorators.can_read ..
            function ()
