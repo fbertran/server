@@ -19,6 +19,7 @@ dependencies = {
   "i18n",
   "jwt",
   "lapis",
+  "luasec",
 --  "lua-resty-auto-ssl",
   "lua-resty-http",
   "lua-resty-qless",
@@ -30,7 +31,6 @@ build = {
   type    = "builtin",
   modules = {
     ["cosy.check.cli"                  ] = "src/cosy/check/cli.lua",
-    ["cosy.i18n"                       ] = "src/cosy/i18n/init.lua",
     ["cosy.util"                       ] = "src/cosy/util.lua",
     ["cosy.editor.task"                ] = "src/cosy/editor/task.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",

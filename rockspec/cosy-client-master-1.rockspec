@@ -20,14 +20,21 @@ dependencies = {
   "ansicolors",
   "jwt",
   "layeredata",
-  "lua-websockets",
+  "lua-cjson-ol",
+  "luafilesystem",
   "luasocket",
+  "lustache",
+  "serpent",
+  "yaml",
 }
 
 build = {
   type    = "builtin",
   modules = {
-    ["cosy.client"] = "src/cosy/client/init.lua",
+    ["cosy.client"     ] = "src/cosy/client/init.lua",
+    ["cosy.client.cli" ] = "src/cosy/client/cli.lua",
+    ["cosy.client.i18n"] = "src/cosy/client/i18n.lua",
+    ["cosy.i18n"       ] = "src/cosy/i18n/init.lua",
   },
   install = {
     bin = {

@@ -142,7 +142,7 @@ cosy_temp=$(realpath "${cosy_temp}")
                                    perl build-essential wget python python-pip \
                                    libc6-dev libssl-dev libev-dev \
                                    libreadline-dev libncurses5-dev libpcre3-dev \
-                                   npm libc-bin redis-server postgresql shellcheck
+                                   npm libc-bin redis-server postgresql shellcheck bats
         ;;
       "Darwin")
         HOMEBREW_PREFIX=$(brew config | grep "HOMEBREW_PREFIX" | tr -d ' \t' | cut -d ":" -f 2)
@@ -151,7 +151,7 @@ cosy_temp=$(realpath "${cosy_temp}")
         export LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LD_LIBRARY_PATH}"
         export DYLD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
         brew update
-        brew install libev openssl pcre python wget npm libcaca postgresql redis shellcheck
+        brew install libev openssl pcre python wget npm libcaca postgresql redis shellcheck bats
         brew link --force openssl
         ;;
       *)
@@ -215,6 +215,16 @@ cosy_temp=$(realpath "${cosy_temp}")
    || echo -e "${red}failure${nc}"
   echo -n "Installing runtime rocks... "
   ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-server-master-1.rockspec \
+    >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
+    echo -n "Installing runtime rocks... "
+  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-editor-master-1.rockspec \
+    >> "${cosy_log}" 2>&1 \
+    && echo -e "${green}success${nc}" \
+    || echo -e "${red}failure${nc}"
+    echo -n "Installing runtime rocks... "
+  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-client-master-1.rockspec \
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"

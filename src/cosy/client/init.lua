@@ -1,10 +1,16 @@
 local Coromake = require "coroutine.make"
 
-local Client      = {}
-local User        = {}
-local Project     = {}
+local function assert (condition, err)
+  if not condition then
+    error (err)
+  end
+end
+
 local Resource    = {}
 local Permissions = {}
+local User        = {}
+local Project     = {}
+local Client      = {}
 
 Client.__index = Client
 
@@ -27,14 +33,26 @@ function Client.new (options)
       Force         = result.force and tostring (result.force),
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   for key, value in pairs (info) do
     result [key] = value
   end
   if info.authentified then
-    result.user = User.__new (result, info.authentified.id)
+    result.authentified = User.__new (result, info.authentified.id)
   end
   return result
+end
+
+function Client.info (client)
+  assert (getmetatable (client) == Client)
+  local status, data = client.request (client.url .. "/", {
+    method  = "GET",
+    headers = {
+      Authorization = client.token and "Bearer " .. client.token,
+    },
+  })
+  assert (status == 200, { status = status })
+  return data
 end
 
 function Client.tags (client)
@@ -45,7 +63,7 @@ function Client.tags (client)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, tag in ipairs (data) do
@@ -66,7 +84,7 @@ function Client.tagged (client, tag)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, t in ipairs (data) do
@@ -88,13 +106,20 @@ function Client.users (client)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, user in ipairs (data) do
       coroutine.yield (User.__new (client, user.id))
     end
   end)
+end
+
+function Client.user (client, id)
+  assert (getmetatable (client) == Client)
+  local user = User.__new (client, id)
+  User.load (user)
+  return user
 end
 
 function User.__new (client, id)
@@ -123,7 +148,7 @@ function User.load (user)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   user.data = data
   return user
 end
@@ -137,7 +162,7 @@ function User.delete (user)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   user.data = false
 end
 
@@ -163,7 +188,7 @@ function User.__newindex (user, key, value)
       [key] = value,
     }
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   user.data = false
 end
 
@@ -189,7 +214,7 @@ function Client.projects (client)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, project in ipairs (data) do
@@ -198,7 +223,14 @@ function Client.projects (client)
   end)
 end
 
-function Client.project (client, t)
+function Client.project (client, id)
+  assert (getmetatable (client) == Client)
+  local project = Project.__new (client, id)
+  Project.load (project)
+  return project
+end
+
+function Client.create_project (client, t)
   assert (getmetatable (client) == Client)
   t = t or {}
   local status, data = client.request (client.url .. "/projects/", {
@@ -208,7 +240,7 @@ function Client.project (client, t)
     },
     json    = t,
   })
-  assert (status == 201, status)
+  assert (status == 201, { status = status })
   return Project.__new (client, data.id)
 end
 
@@ -244,7 +276,7 @@ function Project.load (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   project.data = data
   return project
 end
@@ -258,7 +290,7 @@ function Project.delete (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   project.data = false
 end
 
@@ -284,7 +316,7 @@ function Project.__newindex (project, key, value)
       [key] = value,
     }
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   project.data = false
 end
 
@@ -311,7 +343,7 @@ function Project.tags (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, tag in ipairs (data) do
@@ -334,7 +366,7 @@ function Project.tag (project, tag)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 201 or status == 202, status)
+  assert (status == 201 or status == 202, { status = status })
   return project
 end
 
@@ -347,7 +379,7 @@ function Project.untag (project, tag)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   return project
 end
 
@@ -360,7 +392,7 @@ function Project.stars (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, star in ipairs (data) do
@@ -378,7 +410,7 @@ function Project.star (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 201 or status == 202, status)
+  assert (status == 201 or status == 202, { status = status })
   return project
 end
 
@@ -391,7 +423,7 @@ function Project.unstar (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   return project
 end
 
@@ -407,7 +439,7 @@ function Permissions.load (permissions)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   permissions.data = {
     anonymous = data.anonymous,
     user      = data.user,
@@ -429,7 +461,6 @@ function Permissions.load (permissions)
     }) == 200 then
       who = Project.__new (client, granted.identity_id)
     end
-    assert (who)
     permissions.data [who] = granted.permission
   end
 end
@@ -463,7 +494,7 @@ function Permissions.__newindex (permissions, key, value)
         permission = value,
       }
     })
-    assert (status == 201 or status == 202, status)
+    assert (status == 201 or status == 202, { status = status })
   end
   permissions.data = false
 end
@@ -481,7 +512,7 @@ function Permissions.__pairs (permissions)
   end)
 end
 
-function Project.resource (project, t)
+function Project.create_resource (project, t)
   assert (getmetatable (project) == Project)
   local client = project.client
   local status, data = client.request (client.url .. "/projects/" .. project.id .. "/resources/", {
@@ -491,7 +522,7 @@ function Project.resource (project, t)
     },
     json    = t,
   })
-  assert (status == 201, status)
+  assert (status == 201, { status = status })
   return Resource.__new (client, project, data.id)
 end
 
@@ -504,7 +535,7 @@ function Project.resources (project)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
     for _, resource in ipairs (data) do
@@ -543,7 +574,7 @@ function Resource.load (resource)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 200, status)
+  assert (status == 200, { status = status })
   resource.data = data
   return resource
 end
@@ -558,7 +589,7 @@ function Resource.delete (resource)
       Authorization = client.token and "Bearer " .. client.token,
     },
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   resource.data = false
 end
 
@@ -585,7 +616,7 @@ function Resource.__newindex (resource, key, value)
       [key] = value,
     }
   })
-  assert (status == 204, status)
+  assert (status == 204, { status = status })
   resource.data = false
 end
 

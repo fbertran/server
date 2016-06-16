@@ -34,7 +34,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project {
+    local project = client:create_project {
       name        = "naouna",
       description = "Naouna project",
     }
@@ -84,6 +84,16 @@ describe ("#current client", function ()
         token   = token,
       }
     end)
+  end)
+
+  it ("can access server information", function ()
+    local Client = require "cosy.client"
+    local client = Client.new {
+      url     = "",
+      request = request,
+    }
+    local info = client:info ()
+    assert.is_not_nil (info.server)
   end)
 
   -- ======================================================================
@@ -140,12 +150,11 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    for user in client:users () do
-      assert.is_not_nil (user.nickname)
-      assert.is_not_nil (user.reputation)
-      for _, v in pairs (user) do
-        local _ = v
-      end
+    local user = client:user (client.authentified.id)
+    assert.is_not_nil (user.nickname)
+    assert.is_not_nil (user.reputation)
+    for _, v in pairs (user) do
+      local _ = v
     end
   end)
 
@@ -175,7 +184,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    client.user:delete ()
+    client.authentified:delete ()
   end)
 
   -- ======================================================================
@@ -188,7 +197,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    client:project {}
+    client:create_project {}
   end)
 
   it ("can list projects", function ()
@@ -212,16 +221,15 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    client:project {
+    local project = client:create_project {
       name        = "name",
       description = "description",
     }
-    for project in client:projects () do
-      assert.is_not_nil (project.name)
-      assert.is_not_nil (project.description)
-      for _, v in pairs (project) do
-        assert (v)
-      end
+    project = client:project (project.id)
+    assert.is_not_nil (project.name)
+    assert.is_not_nil (project.description)
+    for _, v in pairs (project) do
+      assert (v)
     end
   end)
 
@@ -233,7 +241,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project.name = "my project"
   end)
 
@@ -245,7 +253,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:delete ()
   end)
 
@@ -259,7 +267,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:tag "my-project"
     for tag in project:tags () do
       assert.is_not_nil (tag.id)
@@ -276,7 +284,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:tag "my-tag"
   end)
 
@@ -288,7 +296,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:tag   "my-tag"
     project:untag "my-tag"
   end)
@@ -303,7 +311,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:star ()
     for star in project:stars () do
       assert.is_not_nil (star.user_id)
@@ -319,7 +327,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:star ()
   end)
 
@@ -331,7 +339,7 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     project:star   ()
     project:unstar ()
   end)
@@ -346,11 +354,11 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project ()
+    local project = client:create_project ()
     assert.is_not_nil (project.permissions.anonymous)
     assert.is_not_nil (project.permissions.user)
     assert.is_not_nil (project.permissions [project])
-    assert.is_not_nil (project.permissions [client.user])
+    assert.is_not_nil (project.permissions [client.authentified])
     for who, permission in pairs (project.permissions) do
       local _, _ = who, permission
     end
@@ -366,11 +374,11 @@ describe ("#current client", function ()
     }
     local naouna
     for user in client:users () do
-      if user.id ~= client.user.id then
+      if user.id ~= client.authentified.id then
         naouna = user
       end
     end
-    local project = client:project ()
+    local project = client:create_project ()
     project.permissions.anonymous = "read"
     project.permissions.user      = "write"
     project.permissions [naouna]  = "admin"
@@ -386,11 +394,11 @@ describe ("#current client", function ()
     }
     local naouna
     for user in client:users () do
-      if user.id ~= client.user.id then
+      if user.id ~= client.authentified.id then
         naouna = user
       end
     end
-    local project = client:project ()
+    local project = client:create_project ()
     project.permissions [naouna]  = "admin"
     project.permissions [naouna]  = nil
   end)
@@ -405,8 +413,8 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project {}
-    project:resource {}
+    local project = client:create_project {}
+    project:create_resource {}
   end)
 
   it ("can list resources", function ()
@@ -417,8 +425,8 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project {}
-    project:resource {
+    local project = client:create_project {}
+    project:create_resource {
       name        = "name",
       description = "description",
     }
@@ -437,8 +445,8 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project = client:project {}
-    project:resource {
+    local project = client:create_project {}
+    project:create_resource {
       name        = "name",
       description = "description",
     }
@@ -459,8 +467,8 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project  = client:project {}
-    local resource = project:resource {}
+    local project  = client:create_project {}
+    local resource = project:create_resource {}
     resource.name = "name"
   end)
 
@@ -472,8 +480,8 @@ describe ("#current client", function ()
       request = request,
       token   = token,
     }
-    local project  = client:project {}
-    local resource = project:resource {}
+    local project  = client:create_project {}
+    local resource = project:create_resource {}
     resource:delete ()
   end)
 
