@@ -85,7 +85,7 @@ return {
       { "updated_at"   , Schema.types.time   },
       [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
     })
-    Schema.create_table ("history", {
+    Schema.create_table ("histories", {
       { "id"         , Schema.types.serial },
       { "user_id"    , Schema.types.serial },
       { "resource_id", Schema.types.serial },
@@ -94,6 +94,13 @@ return {
       { "updated_at" , Schema.types.time   },
       [[ PRIMARY KEY ("id", "resource_id") ]],
       [[ FOREIGN KEY ("user_id"    ) REFERENCES "users"     ("id") ON DELETE CASCADE ]],
+      [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
+    })
+    Schema.create_table ("aliases", {
+      { "id"         , Schema.types.text   { primary_key = true } },
+      { "resource_id", Schema.types.serial },
+      { "created_at" , Schema.types.time   },
+      { "updated_at" , Schema.types.time   },
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
     })
   end,

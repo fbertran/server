@@ -131,7 +131,7 @@ result.resources = Model:extend ("resources", {
   },
 })
 
-result.history = Model:extend ("history", {
+result.histories = Model:extend ("histories", {
   timestamp   = true,
   primary_key = {
     "id",
@@ -144,7 +144,17 @@ result.history = Model:extend ("history", {
     },
     {
       "resource",
-      has_many = "resources",
+      belongs_to = "resources",
+    },
+  },
+})
+
+result.aliases = Model:extend ("aliases", {
+  timestamp   = true,
+  relations   = {
+    {
+      "resource",
+      has_one = "resources",
     },
   },
 })

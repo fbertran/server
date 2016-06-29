@@ -8,6 +8,7 @@ require "cosy.server.before"   (app)
 require "cosy.server.tags"     (app)
 require "cosy.server.users"    (app)
 require "cosy.server.projects" (app)
+require "cosy.server.alias"    (app)
 
 app.layout = false
 

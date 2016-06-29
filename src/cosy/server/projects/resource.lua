@@ -3,7 +3,8 @@ local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
-  require "cosy.server.projects.editor" (app)
+  require "cosy.server.projects.editor"  (app)
+  require "cosy.server.projects.aliases" (app)
 
   app:match ("/projects/:project/resources/:resource", respond_to {
     HEAD = Decorators.exists {} ..

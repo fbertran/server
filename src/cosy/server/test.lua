@@ -28,9 +28,9 @@ if os.getenv "RUN_COVERAGE" then
           options.headers ["Content-length"] = #options.body
         end
         options.allow_error = true
-        local status, body = mock_request (app, url, options)
+        local status, body, headers = mock_request (app, url, options)
         body = type (body) == "string" and body ~= "" and Util.from_json (body)
-        return status, body
+        return status, body, headers
       end
     end,
     server = function ()
@@ -57,9 +57,9 @@ else
           options.headers ["Content-type"  ] = "application/json"
           options.headers ["Content-length"] = #options.post
         end
-        local status, body = Server.request (url, options)
+        local status, body, headers = Server.request (url, options)
         body = type (body) == "string" and body ~= "" and Util.from_json (body)
-        return status, body
+        return status, body, headers
       end
     end,
     server = function ()
@@ -94,7 +94,8 @@ end
 
 function Test.clean_db ()
   local Db = require "lapis.db"
-  Db.delete "history"
+  Db.delete "aliases"
+  Db.delete "histories"
   Db.delete "identities"
   Db.delete "permissions"
   Db.delete "projects"

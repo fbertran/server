@@ -122,6 +122,12 @@ return function (app)
         project_id = self.project and self.project.id or nil,
       } or false
     end
+    if self.params.alias then
+      local id = Util.unescape (self.params.alias)
+      self.alias = Model.aliases:find {
+        id = id,
+      } or false
+    end
   end
 
   app:before_filter (function (self)
