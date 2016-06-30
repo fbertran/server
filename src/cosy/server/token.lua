@@ -2,14 +2,12 @@ local Config = require "lapis.config".get ()
 local Jwt    = require "jwt"
 local Time   = require "socket".gettime
 
-local Util = {}
-
-function Util.make_token (sub, contents)
+return function (subject, contents, duration)
   local claims = {
     iss = Config.auth0.domain,
     aud = Config.auth0.client_id,
-    sub = sub,
-    exp = Time () + 365 * 24 * 3600,
+    sub = subject,
+    exp = duration and duration ~= math.huge and Time () + duration,
     iat = Time (),
     contents = contents,
   }
@@ -18,5 +16,3 @@ function Util.make_token (sub, contents)
     keys = { private = Config.auth0.client_secret },
   })
 end
-
-return Util

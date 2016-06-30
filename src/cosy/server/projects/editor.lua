@@ -4,26 +4,26 @@ local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Et          = require "etlua"
 local Url         = require "socket.url"
-local Util        = require "cosy.util"
+local Token       = require "cosy.server.token"
 local _, Qless    = pcall (require, "resty.qless")
 local _, Wsclient = pcall (require, "resty.websocket.client")
 
 return function (app)
 
   app:match ("/projects/:project/resources/:resource/editor", respond_to {
-    HEAD = Decorators.exists {} ..
-           Decorators.can_read ..
-           function ()
+    HEAD    = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.exists {} ..
-              Decorators.can_read ..
-              function ()
+    OPTIONS = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    GET = Decorators.exists {} ..
-          Decorators.can_read ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. Decorators.can_read
+           .. function (self)
       local qless  = Qless.new {
         host = Config.redis.host,
         port = Config.redis.port,
@@ -56,9 +56,10 @@ return function (app)
           else
             local queue = qless.queues ["editors"]
             local jid   = queue:put ("cosy.editor.task", {
-              token = Util.make_token (Et.render ("/projects/<%- project %>", {
+              token = Token (Et.render ("/projects/<%- project %>", {
                 project  = self.project.id,
               }), {
+                timeout  = Config.editor.timeout,
                 project  = self.project.id,
                 resource = self.resource.id,
                 api      = Et.render ("http://<%- host %>:<%- port %>/projects/<%- project %>/resources/<%- resource %>", {
@@ -79,9 +80,9 @@ return function (app)
       end
       return { status = 409 }
     end,
-    PATCH = Decorators.exists {} ..
-            Decorators.is_authentified ..
-            function (self)
+    PATCH   = Decorators.exists {}
+           .. Decorators.is_authentified
+           .. function (self)
       if self.identity.type   ~= "project"
       or self.authentified.id ~= self.project.id then
         return { status = 403 }
@@ -94,9 +95,9 @@ return function (app)
       }, { timestamp = false })
       return { status = 204 }
     end,
-    DELETE = Decorators.exists {} ..
-             Decorators.is_authentified ..
-             function (self)
+    DELETE  = Decorators.exists {}
+           .. Decorators.is_authentified
+           .. function (self)
       if self.identity.type   ~= "project"
       or self.authentified.id ~= self.project.id then
         return { status = 403 }
@@ -107,12 +108,12 @@ return function (app)
       }, { timestamp = false })
       return { status = 204 }
     end,
-    POST = Decorators.exists {} ..
-           function ()
+    POST    = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PUT = Decorators.exists {} ..
-          function ()
+    PUT     = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

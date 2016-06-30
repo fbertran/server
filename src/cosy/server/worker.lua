@@ -8,7 +8,7 @@ local worker = Worker.new {
 }
 
 worker.middleware = function (job)
-  print ("Worker for job", job.klass)
+  print ("Start worker for job", job.klass)
   coroutine.yield ()
   print ("End worker for job", job.klass)
 end

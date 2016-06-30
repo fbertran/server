@@ -3,13 +3,11 @@ local result = {}
 
 result.identities = Model:extend ("identities", {
   relations = {
-    {
-      "user",
+    { "user",
       has_one = "users",
       key     = "id",
     },
-    {
-      "project",
+    { "project",
       has_one = "projects",
       key     = "id",
     },
@@ -19,17 +17,14 @@ result.identities = Model:extend ("identities", {
 result.users = Model:extend ("users", {
   timestamp   = true,
   relations   = {
-    {
-      "identity",
+    { "identity",
       belongs_to = "identities",
       key        = "id",
     },
-    {
-      "executions",
+    { "executions",
       has_many = "executions",
     },
-    {
-      "identities",
+    { "identities",
       has_many = "identities",
     },
   },
@@ -38,25 +33,20 @@ result.users = Model:extend ("users", {
 result.projects = Model:extend ("projects", {
   timestamp   = true,
   relations   = {
-    {
-      "identity",
+    { "identity",
       belongs_to = "identities",
       key        = "id",
     },
-    {
-      "permissions",
+    { "permissions",
       has_many = "permissions",
     },
-    {
-      "resources",
+    { "resources",
       has_many = "resources",
     },
-    {
-      "tags",
+    { "tags",
       has_many = "tags",
     },
-    {
-      "stars",
+    { "stars",
       has_many = "stars",
     },
   },
@@ -69,12 +59,10 @@ result.permissions = Model:extend ("permissions", {
     "project_id",
   },
   relations   = {
-    {
-      "identity",
+    { "identity",
       belongs_to = "identities",
     },
-    {
-      "project",
+    { "project",
       belongs_to = "projects",
     },
   },
@@ -87,12 +75,10 @@ result.stars = Model:extend ("stars", {
     "project_id",
   },
   relations   = {
-    {
-      "user",
+    { "user",
       belongs_to = "users",
     },
-    {
-      "project",
+    { "project",
       belongs_to = "projects",
     },
   }
@@ -106,12 +92,10 @@ result.tags = Model:extend ("tags", {
     "project_id",
   },
   relations   = {
-    {
-      "user",
+    { "user",
       belongs_to = "users",
     },
-    {
-      "project",
+    { "project",
       belongs_to = "projects",
     },
   },
@@ -120,12 +104,10 @@ result.tags = Model:extend ("tags", {
 result.resources = Model:extend ("resources", {
   timestamp   = true,
   relations   = {
-    {
-      "project",
+    { "project",
       belongs_to = "projects",
     },
-    {
-      "history",
+    { "history",
       has_many = "history",
     },
   },
@@ -138,12 +120,10 @@ result.histories = Model:extend ("histories", {
     "resource_id",
   },
   relations   = {
-    {
-      "user",
+    { "user",
       belongs_to = "users",
     },
-    {
-      "resource",
+    { "resource",
       belongs_to = "resources",
     },
   },
@@ -152,8 +132,7 @@ result.histories = Model:extend ("histories", {
 result.aliases = Model:extend ("aliases", {
   timestamp   = true,
   relations   = {
-    {
-      "resource",
+    { "resource",
       has_one = "resources",
     },
   },
@@ -162,12 +141,10 @@ result.aliases = Model:extend ("aliases", {
 result.executions = Model:extend ("executions", {
   timestamp   = true,
   relations   = {
-    {
-      "user",
+    { "user",
       belongs_to = "users",
     },
-    {
-      "resource",
+    { "resource",
       belongs_to = "resources",
     },
   },

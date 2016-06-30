@@ -14,19 +14,19 @@ return function (app)
 
   for _, special in ipairs { "anonymous", "user" } do
     app:match ("/projects/:project/permissions/" .. special, respond_to {
-      HEAD = Decorators.exists {} ..
-             Decorators.can_admin ..
-             function ()
+      HEAD    = Decorators.exists {}
+             .. Decorators.can_admin
+             .. function ()
         return { status = 204 }
       end,
-      OPTIONS = Decorators.exists {} ..
-                Decorators.can_admin ..
-                function ()
+      OPTIONS = Decorators.exists {}
+             .. Decorators.can_admin
+             .. function ()
         return { status = 204 }
       end,
-      GET = Decorators.exists {} ..
-            Decorators.can_admin ..
-            function (self)
+      GET     = Decorators.exists {}
+             .. Decorators.can_admin
+             .. function (self)
         return {
           status = 200,
           json   = {
@@ -35,9 +35,9 @@ return function (app)
           },
         }
       end,
-      PUT = Decorators.exists {} ..
-            Decorators.can_admin ..
-            function (self)
+      PUT     = Decorators.exists {}
+             .. Decorators.can_admin
+             .. function (self)
         if not is_permission (self.json.permission) then
           return { status = 400 }
         end
@@ -46,35 +46,35 @@ return function (app)
         }
         return { status = 202 }
       end,
-      DELETE = Decorators.exists {} ..
-               function ()
+      DELETE  = Decorators.exists {}
+             .. function ()
         return { status = 405 }
       end,
-      PATCH = Decorators.exists {} ..
-              function ()
+      PATCH   = Decorators.exists {}
+             .. function ()
         return { status = 405 }
       end,
-      POST = Decorators.exists {} ..
-             function ()
+      POST    = Decorators.exists {}
+             .. function ()
         return { status = 405 }
       end,
     })
   end
 
   app:match ("/projects/:project/permissions/:user", respond_to {
-    HEAD = Decorators.exists {} ..
-           Decorators.can_admin ..
-           function ()
+    HEAD    = Decorators.exists {}
+           .. Decorators.can_admin
+           .. function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.exists {} ..
-              Decorators.can_admin ..
-              function ()
+    OPTIONS = Decorators.exists {}
+           .. Decorators.can_admin
+           .. function ()
       return { status = 204 }
     end,
-    GET = Decorators.exists {} ..
-          Decorators.can_admin ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. Decorators.can_admin
+           .. function (self)
       return {
         status = 200,
         json   = Model.permissions:find {
@@ -83,9 +83,9 @@ return function (app)
         },
       }
     end,
-    PUT = Decorators.exists { "user" } ..
-          Decorators.can_admin ..
-          function (self)
+    PUT     = Decorators.exists { "user" }
+           .. Decorators.can_admin
+           .. function (self)
       if not is_permission (self.json.permission) then
         return { status = 400 }
       end
@@ -107,9 +107,9 @@ return function (app)
         return { status = 201 }
       end
     end,
-    DELETE = Decorators.exists {} ..
-             Decorators.can_admin ..
-             function (self)
+    DELETE  = Decorators.exists {}
+           .. Decorators.can_admin
+           .. function (self)
       local permission = Model.permissions:find {
         identity_id = self.user.id,
         project_id  = self.project.id,
@@ -124,12 +124,12 @@ return function (app)
       permission:delete ()
       return { status = 204 }
     end,
-    PATCH = Decorators.exists {} ..
-            function ()
+    PATCH   = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    POST = Decorators.exists {} ..
-           function ()
+    POST    = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

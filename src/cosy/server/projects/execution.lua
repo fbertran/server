@@ -4,9 +4,11 @@ local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Et          = require "etlua"
 local Url         = require "socket.url"
-local Util        = require "cosy.util"
+local Token       = require "cosy.server.token"
 local _, Qless    = pcall (require, "resty.qless")
 local _, Wsclient = pcall (require, "resty.websocket.client")
+
+-- TODO
 
 return function (app)
 
@@ -56,7 +58,7 @@ return function (app)
           else
             local queue = qless.queues ["editors"]
             local jid   = queue:put ("cosy.editor.task", {
-              token = Util.make_token (Et.render ("/projects/<%- project %>", {
+              token = Token (Et.render ("/projects/<%- project %>", {
                 project  = self.project.id,
               }), {
                 project  = self.project.id,

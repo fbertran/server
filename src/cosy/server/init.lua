@@ -26,13 +26,13 @@ app.handle_404 = function ()
 end
 
 app:match ("/", respond_to {
-  HEAD = function ()
+  HEAD    = function ()
     return { status = 204 }
   end,
   OPTIONS = function ()
     return { status = 204 }
   end,
-  GET = function (self)
+  GET     = function (self)
     return {
       status = 200,
       json   = {
@@ -48,40 +48,40 @@ app:match ("/", respond_to {
       }
     }
   end,
-  DELETE = function ()
+  DELETE  = function ()
     return { status = 405 }
   end,
-  PATCH = function ()
+  PATCH   = function ()
     return { status = 405 }
   end,
-  POST = function ()
+  POST    = function ()
     return { status = 405 }
   end,
-  PUT = function ()
+  PUT     = function ()
     return { status = 405 }
   end,
 })
 
 app:match ("/error", respond_to {
-  HEAD = function ()
+  HEAD    = function ()
     error { quote = Quote () }
   end,
   OPTIONS = function ()
     error { quote = Quote () }
   end,
-  GET = function ()
+  GET     = function ()
     error { quote = Quote () }
   end,
-  DELETE = function ()
+  DELETE  = function ()
     error { quote = Quote () }
   end,
-  PATCH = function ()
+  PATCH   = function ()
     error { quote = Quote () }
   end,
-  POST = function ()
+  POST    = function ()
     error { quote = Quote () }
   end,
-  PUT = function ()
+  PUT     = function ()
     error { quote = Quote () }
   end,
 })

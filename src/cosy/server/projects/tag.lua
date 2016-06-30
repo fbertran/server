@@ -5,28 +5,28 @@ local Decorators  = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/projects/:project/tags/:tag", respond_to {
-    HEAD = Decorators.exists {} ..
-           Decorators.can_read ..
-           function ()
+    HEAD    = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.exists {} ..
-              Decorators.can_read ..
-              function ()
+    OPTIONS = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    GET = Decorators.exists {} ..
-          Decorators.can_read ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. Decorators.can_read
+           .. function (self)
       return {
         status = 200,
         json   = self.tag,
       }
     end,
-    PUT = Decorators.exists { tag = true } ..
-          Decorators.can_read ..
-          Decorators.is_authentified ..
-          function (self)
+    PUT     = Decorators.exists { tag = true }
+           .. Decorators.can_read
+           .. Decorators.is_authentified
+           .. function (self)
       local tag = Model.tags:find {
         id         = self.params.tag,
         user_id    = self.authentified.id,
@@ -42,10 +42,10 @@ return function (app)
       }
       return { status = 201 }
     end,
-    DELETE = Decorators.exists {} ..
-             Decorators.can_read ..
-             Decorators.is_authentified ..
-             function (self)
+    DELETE  = Decorators.exists {}
+           .. Decorators.can_read
+           .. Decorators.is_authentified
+           .. function (self)
       local tag = Model.tags:find {
         id         = self.params.tag,
         user_id    = self.authentified.id,
@@ -54,12 +54,12 @@ return function (app)
       tag:delete ()
       return { status = 204 }
     end,
-    PATCH = Decorators.exists {} ..
-            function ()
+    PATCH   = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    POST = Decorators.exists {} ..
-           function ()
+    POST    = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

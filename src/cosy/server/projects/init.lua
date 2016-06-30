@@ -12,15 +12,13 @@ return function (app)
   require "cosy.server.projects.tags"        (app)
 
   app:match ("/projects(/)", respond_to {
-    HEAD = function ()
-      return {
-        status = 204,
-      }
+    HEAD    = function ()
+      return { status = 204 }
     end,
     OPTIONS = function ()
       return { status = 204 }
     end,
-    GET = function ()
+    GET     = function ()
       local projects = Model.projects:select {
         fields = "id",
       } or {}
@@ -29,8 +27,8 @@ return function (app)
         json   = projects,
       }
     end,
-    POST = Decorators.is_authentified ..
-           function (self)
+    POST    = Decorators.is_authentified
+           .. function (self)
       if self.identity.type ~= "user" then
         return { status = 403 }
       end
@@ -65,13 +63,13 @@ return function (app)
         json   = project,
       }
     end,
-    DELETE = function ()
+    DELETE  = function ()
       return { status = 405 }
     end,
-    PATCH = function ()
+    PATCH   = function ()
       return { status = 405 }
     end,
-    PUT = function ()
+    PUT     = function ()
       return { status = 405 }
     end,
   })

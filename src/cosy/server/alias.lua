@@ -18,32 +18,32 @@ return function (app)
   end
 
   app:match ("/aliases/:alias", respond_to {
-    HEAD = Decorators.exists {} ..
-           function (self)
+    HEAD    = Decorators.exists {}
+           .. function (self)
       return redirect (self)
     end,
-    OPTIONS = Decorators.exists {} ..
-              function (self)
+    OPTIONS = Decorators.exists {}
+           .. function (self)
       return redirect (self)
     end,
-    GET = Decorators.exists {} ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. function (self)
       return redirect (self)
     end,
-    POST = Decorators.exists {} ..
-           function ()
+    POST    = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    DELETE = Decorators.exists {} ..
-             function ()
+    DELETE  = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.exists {} ..
-            function ()
+    PATCH   = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PUT = Decorators.exists {} ..
-          function ()
+    PUT     = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

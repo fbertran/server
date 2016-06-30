@@ -7,27 +7,27 @@ return function (app)
   require "cosy.server.projects.resource" (app)
 
   app:match ("/projects/:project/resources(/)", respond_to {
-    HEAD = Decorators.exists {} ..
-           Decorators.can_read ..
-           function ()
+    HEAD    = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.exists {} ..
-              Decorators.can_read ..
-              function ()
+    OPTIONS = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    GET = Decorators.exists {} ..
-          Decorators.can_read ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. Decorators.can_read
+           .. function (self)
       return {
         status = 200,
         json   = self.project:get_resources () or {},
       }
     end,
-    POST = Decorators.exists {} ..
-           Decorators.can_write ..
-           function (self)
+    POST    = Decorators.exists {}
+           .. Decorators.can_write
+           .. function (self)
       local resource = Model.resources:create {
         project_id  = self.project.id,
         name        = self.json.name,
@@ -39,16 +39,16 @@ return function (app)
         json   = resource,
       }
     end,
-    DELETE = Decorators.exists {} ..
-             function ()
+    DELETE  = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.exists {} ..
-            function ()
+    PATCH   = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PUT = Decorators.exists {} ..
-          function ()
+    PUT     = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

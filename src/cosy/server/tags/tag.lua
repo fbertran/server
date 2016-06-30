@@ -5,40 +5,40 @@ local Decorators = require "cosy.server.decorators"
 return function (app)
 
   app:match ("/tags/:tag", respond_to {
-    HEAD = Decorators.exists {} ..
-           function ()
+    HEAD    = Decorators.exists {}
+           .. function ()
       return {
         status = 204,
       }
     end,
-    OPTIONS = Decorators.exists {} ..
-              function ()
+    OPTIONS = Decorators.exists {}
+           .. function ()
       return {
         status = 204,
       }
     end,
-    GET = Decorators.exists {} ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. function (self)
       local tags = Db.select ("* from tags where id = ?", self.tag.id) or {}
       return {
         status = 200,
         json   = tags,
       }
     end,
-    DELETE = Decorators.exists {} ..
-             function ()
+    DELETE  = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PATCH = Decorators.exists {} ..
-            function ()
+    PATCH   = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    POST = Decorators.exists {} ..
-           function ()
+    POST    = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
-    PUT = Decorators.exists {} ..
-          function ()
+    PUT     = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

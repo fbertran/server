@@ -6,12 +6,12 @@ return function (app)
   require "cosy.server.tags.tag" (app)
 
   app:match ("/tags(/)", respond_to {
-    HEAD = function ()
+    HEAD    = function ()
       return {
         status = 204,
       }
     end,
-    GET = function ()
+    GET     = function ()
       local tags = Db.select "id, count (1) as count from tags group by id" or {}
       return {
         status = 200,
@@ -21,16 +21,16 @@ return function (app)
     OPTIONS = function ()
       return { status = 204 }
     end,
-    DELETE = function ()
+    DELETE  = function ()
       return { status = 405 }
     end,
-    PATCH = function ()
+    PATCH   = function ()
       return { status = 405 }
     end,
-    POST = function ()
+    POST    = function ()
       return { status = 405 }
     end,
-    PUT = function ()
+    PUT     = function ()
       return { status = 405 }
     end,
   })

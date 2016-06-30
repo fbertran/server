@@ -6,7 +6,7 @@ return function (app)
   require "cosy.server.users.user" (app)
 
   app:match ("/users(/)", respond_to {
-    HEAD = function ()
+    HEAD    = function ()
       return {
         status = 204,
       }
@@ -14,7 +14,7 @@ return function (app)
     OPTIONS = function ()
       return { status = 204 }
     end,
-    GET = function ()
+    GET     = function ()
       return {
         status = 200,
         json   = Model.users:select {
@@ -22,16 +22,16 @@ return function (app)
         } or {},
       }
     end,
-    POST = function ()
+    POST    = function ()
       return { status = 405 }
     end,
-    DELETE = function ()
+    DELETE  = function ()
       return { status = 405 }
     end,
-    PATCH = function ()
+    PATCH   = function ()
       return { status = 405 }
     end,
-    PUT = function ()
+    PUT     = function ()
       return { status = 405 }
     end,
   })

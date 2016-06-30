@@ -2,7 +2,7 @@
 
 cosy-cli --help
 cosy-cli --server=http://localhost:8080 \
-         --authentication=$(lua -e 'print (require "cosy.util".make_token ("github|1818862", {}))') \
+         --authentication=$(lua -e 'print (require "cosy.server.token" ("github|1818862", {}))') \
          --yaml
 cosy-cli info
 cosy-cli user:list

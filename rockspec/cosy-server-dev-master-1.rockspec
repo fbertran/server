@@ -19,6 +19,7 @@ dependencies = {
   "argparse",
   "ansicolors",
   "busted",
+  "cluacov",
   "etlua",
   "luacheck",
   "luacov",

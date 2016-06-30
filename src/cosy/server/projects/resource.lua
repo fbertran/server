@@ -7,27 +7,27 @@ return function (app)
   require "cosy.server.projects.aliases" (app)
 
   app:match ("/projects/:project/resources/:resource", respond_to {
-    HEAD = Decorators.exists {} ..
-           Decorators.can_read ..
-           function ()
+    HEAD    = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    OPTIONS = Decorators.exists {} ..
-              Decorators.can_read ..
-              function ()
+    OPTIONS = Decorators.exists {}
+           .. Decorators.can_read
+           .. function ()
       return { status = 204 }
     end,
-    GET = Decorators.exists {} ..
-          Decorators.can_read ..
-          function (self)
+    GET     = Decorators.exists {}
+           .. Decorators.can_read
+           .. function (self)
       return {
         status = 200,
         json   = self.resource,
       }
     end,
-    PUT = Decorators.exists {} ..
-          Decorators.can_write ..
-          function (self)
+    PUT     = Decorators.exists {}
+           .. Decorators.can_write
+           .. function (self)
       self.resource:update {
         name        = self.params.name,
         description = self.params.description,
@@ -36,9 +36,9 @@ return function (app)
       }
       return { status = 204 }
     end,
-    PATCH = Decorators.exists {} ..
-            Decorators.can_write ..
-            function (self)
+    PATCH   = Decorators.exists {}
+           .. Decorators.can_write
+           .. function (self)
       self.resource:update {
         name        = self.params.name,
         description = self.params.description,
@@ -47,14 +47,14 @@ return function (app)
       }
       return { status = 204 }
     end,
-    DELETE = Decorators.exists {} ..
-             Decorators.can_write ..
-             function (self)
+    DELETE  = Decorators.exists {}
+           .. Decorators.can_write
+           .. function (self)
       self.resource:delete ()
       return { status = 204 }
     end,
-    POST = Decorators.exists {} ..
-           function ()
+    POST    = Decorators.exists {}
+           .. function ()
       return { status = 405 }
     end,
   })

@@ -1,6 +1,6 @@
 local Jwt          = require "jwt"
 local Time         = require "socket".gettime
-local CosyUtil     = require "cosy.util"
+local Token        = require "cosy.server.token"
 local Util         = require "lapis.util"
 local Spec         = require "lapis.spec"
 local Server       = require "lapis.spec.server"
@@ -75,7 +75,7 @@ Test.identities = {
   naouna = "twitter|2572672862",
 }
 
-Test.make_token = CosyUtil.make_token
+Test.make_token = Token
 
 function Test.make_false_token (user_id)
   local Config = require "lapis.config".get ()
