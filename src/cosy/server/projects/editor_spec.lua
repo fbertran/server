@@ -161,7 +161,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               end)
             end
 
-            for _, method in ipairs { "POST", "PUT" } do
+            for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local status = request (app, route, {
                   method = method,
@@ -170,7 +170,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE", "PATCH" } do
+            for _, method in ipairs { "DELETE" } do
               it ("answers to " .. method, function ()
                 local status = request (app, route, {
                   method = method,
@@ -203,7 +203,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end)
           end
 
-          for _, method in ipairs { "POST", "PUT" } do
+          for _, method in ipairs { "PATCH", "POST", "PUT" } do
             it ("answers to " .. method, function ()
               local status = request (app, route, {
                 method = method,
@@ -212,7 +212,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end)
           end
 
-          for _, method in ipairs { "DELETE", "PATCH" } do
+          for _, method in ipairs { "DELETE" } do
             it ("answers to " .. method, function ()
               local status = request (app, route, {
                 method = method,
@@ -227,7 +227,8 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
       describe ("with permission and authentication", function ()
 
-        for _, permission in ipairs { "admin", "write", "read" } do
+        -- for _, permission in ipairs { "admin", "write", "read" } do
+        for _, permission in ipairs { "admin" } do
           describe ("with " .. permission .. " authentication", function ()
 
             before_each (function ()
@@ -252,20 +253,24 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end
 
             for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
+              it ("#current answers to " .. method, function ()
                 if not Test.environment.nginx then
                   return
                 end
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
+                local token = Test.make_token (Test.identities.naouna)
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                print (headers)
+                for k, v in pairs (headers) do
+                  print (k, v)
+                end
                 local connected
                 Copas.addthread (function ()
                   local ws = Websocket.client.copas {}
-                  connected = ws:connect (wsroute, "cosy")
+                  connected = print (ws:connect (headers.location, "echo"))
                   ws:close ()
                   Copas.sleep (Config.editor.timeout * 2)
                 end)
@@ -274,7 +279,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               end)
             end
 
-            for _, method in ipairs { "POST", "PUT" } do
+            for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -285,7 +290,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE", "PATCH" } do
+            for _, method in ipairs { "DELETE" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -311,7 +316,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             assert.are.same (status, 201)
           end)
 
-          for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH" } do
+          for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
             it ("answers to " .. method, function ()
               local token  = Test.make_token (Test.identities.naouna)
               local status = request (app, route, {
@@ -322,7 +327,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end)
           end
 
-          for _, method in ipairs { "POST", "PUT" } do
+          for _, method in ipairs { "PATCH", "POST", "PUT" } do
             it ("answers to " .. method, function ()
               local token  = Test.make_token (Test.identities.naouna)
               local status = request (app, route, {
@@ -386,7 +391,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               end)
             end
 
-            for _, method in ipairs { "POST", "PUT" } do
+            for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -397,7 +402,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE", "PATCH" } do
+            for _, method in ipairs { "DELETE" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -424,7 +429,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             assert.are.same (status, 202)
           end)
 
-          for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH" } do
+          for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
             it ("answers to " .. method, function ()
               local token  = Test.make_token (Test.identities.naouna)
               local status = request (app, route, {
@@ -435,7 +440,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end)
           end
 
-          for _, method in ipairs { "POST", "PUT" } do
+          for _, method in ipairs { "PATCH", "POST", "PUT" } do
             it ("answers to " .. method, function ()
               local token  = Test.make_token (Test.identities.naouna)
               local status = request (app, route, {
@@ -501,7 +506,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
           end)
         end
 
-        for _, method in ipairs { "POST", "PUT" } do
+        for _, method in ipairs { "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (project)
             local status = request (app, route, {
@@ -509,30 +514,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 405)
-          end)
-        end
-
-        for _, method in ipairs { "PATCH" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
-            local status = request (app, route, {
-              method  = method,
-              json    = { editor_url = "not a url" },
-              headers = { ["Authorization"] = "Bearer " .. token },
-            })
-            assert.are.same (status, 400)
-          end)
-        end
-
-        for _, method in ipairs { "PATCH" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
-            local status = request (app, route, {
-              method  = method,
-              json    = { editor_url = "ws://localhost/" },
-              headers = { ["Authorization"] = "Bearer " .. token },
-            })
-            assert.are.same (status, 204)
           end)
         end
 

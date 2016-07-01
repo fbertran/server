@@ -37,6 +37,10 @@ local common = {
     password = assert (os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD"),
     database = assert (os.getenv "POSTGRES_ENV_POSTGRES_DATABASE"),
   },
+  docker = {
+    username = assert (os.getenv "DOCKER_USERNAME"),
+    api_key  = assert (os.getenv "DOCKER_API"),
+  },
   editor = {
     timeout = 5, -- seconds
   },

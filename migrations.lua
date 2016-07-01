@@ -77,7 +77,7 @@ return {
       { "project_id"   , Schema.types.serial },
       { "name"         , Schema.types.text { null = true } },
       { "description"  , Schema.types.text { null = true } },
-      { "editor_job"   , Schema.types.text { null = true } },
+      { "docker_url"   , Schema.types.text { null = true } },
       { "editor_url"   , Schema.types.text { null = true } },
       { "execution_job", Schema.types.text { null = true } },
       { "data"         , Schema.types.text   },

@@ -20,11 +20,7 @@ dependencies = {
   "jwt",
   "lapis",
   "luasec",
---  "lua-resty-auto-ssl",
   "lua-resty-http",
-  "lua-resty-qless",
-  "lua-resty-redis-connector",
-  "lua-resty-uuid",
 }
 
 build = {
