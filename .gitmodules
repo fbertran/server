@@ -7,6 +7,3 @@
 [submodule "dependencies/sh-realpath"]
 	path = dependencies/sh-realpath
 	url = https://github.com/mkropat/sh-realpath
-[submodule "dependencies/libev"]
-	path = dependencies/libev
-	url = https://github.com/enki/libev.git
