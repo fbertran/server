@@ -16,9 +16,9 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
-  "i18n",
   "jwt",
   "lapis",
+  "layeredata",
   "luasec",
   "lua-resty-http",
 }
@@ -26,10 +26,8 @@ dependencies = {
 build = {
   type    = "builtin",
   modules = {
-    ["cosy.check.cli"                  ] = "src/cosy/check/cli.lua",
-    ["cosy.editor.task"                ] = "src/cosy/editor/task.lua",
+    ["cosy.server.check.cli"           ] = "src/cosy/server/check/cli.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
-    ["cosy.server.worker"              ] = "src/cosy/server/worker.lua",
     ["cosy.server.alias"               ] = "src/cosy/server/alias.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
     ["cosy.server.quote"               ] = "src/cosy/server/quote.lua",
@@ -52,16 +50,12 @@ build = {
     ["cosy.server.tags.tag"            ] = "src/cosy/server/tags/tag.lua",
     ["cosy.server.decorators"          ] = "src/cosy/server/decorators.lua",
     ["cosy.server.model"               ] = "src/cosy/server/model.lua",
-    ["cosy.server.worker"              ] = "src/cosy/server/worker.lua",
     ["cosy.server.token"               ] = "src/cosy/server/token.lua",
-    ["cosy.webclient"                  ] = "src/cosy/webclient/init.lua",
-    ["cosy.webclient.headbar"          ] = "src/cosy/webclient/headbar/init.lua",
-    ["cosy.webclient.headbar.i18n"     ] = "src/cosy/webclient/headbar/i18n.lua",
   },
   install = {
     bin = {
-      ["cosy-check" ] = "src/cosy/check/bin.lua",
-      ["cosy-server"] = "src/cosy/server/bin.lua",
+      ["cosy-check-server" ] = "src/cosy/server/check/bin.lua",
+      ["cosy-server"       ] = "src/cosy/server/bin.lua",
     },
   },
 }

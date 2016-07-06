@@ -190,28 +190,8 @@ cosy_temp=$(realpath "${cosy_temp}")
     >> "${cosy_log}" 2>&1 \
    && echo -e "${green}success${nc}" \
    || echo -e "${red}failure${nc}"
- echo -n "Installing resty-redis-connector rock... "
- ${sudo} "${cosy_prefix}/bin/luarocks" install rockspec/lua-resty-redis-connector-master-1.rockspec \
-   >> "${cosy_log}" 2>&1 \
-   && echo -e "${green}success${nc}" \
-   || echo -e "${red}failure${nc}"
- echo -n "Installing resty-qless rock... "
- ${sudo} "${cosy_prefix}/bin/luarocks" install rockspec/lua-resty-qless-master-1.rockspec \
-   >> "${cosy_log}" 2>&1 \
-   && echo -e "${green}success${nc}" \
-   || echo -e "${red}failure${nc}"
   echo -n "Installing runtime rocks... "
   ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-server-master-1.rockspec \
-    >> "${cosy_log}" 2>&1 \
-    && echo -e "${green}success${nc}" \
-    || echo -e "${red}failure${nc}"
-    echo -n "Installing runtime rocks... "
-  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-editor-master-1.rockspec \
-    >> "${cosy_log}" 2>&1 \
-    && echo -e "${green}success${nc}" \
-    || echo -e "${red}failure${nc}"
-    echo -n "Installing runtime rocks... "
-  ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-client-master-1.rockspec \
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"
@@ -223,49 +203,49 @@ cosy_temp=$(realpath "${cosy_temp}")
 }
 
 # Install web dependencies:
-(
-  cd "${currentwd}" || exit 1
-  web_dependencies=(
-    auth0-lock
-    bootbox
-    bootstrap3
-    d3
-    es6-promise
-    fetch-ie8
-    font-awesome
-    jquery
-    jquery-locationpicker
-    sjcl
-  )
-  echo "Installing web dependencies... "
-  for dependency in ${web_dependencies[*]}; do
-    echo -n "  Installing ${dependency}... "
-    npm install "${dependency}" >> "${cosy_log}" 2>&1 \
-      && echo -e "${green}success${nc}" \
-      || echo -e "${red}failure${nc}"
-  done
-  mv node_modules/fetch-ie8 node_modules/fetch
-  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www"
-  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/js"
-  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/css"
-  ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/fonts"
-  for module in node_modules/*; do
-    name=$(basename "${module}")
-    ${sudo} cp "${module}/dist/"*.js    "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
-    ${sudo} cp "${module}/dist/"*.map   "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
-    ${sudo} cp "${module}/dist/js/"*    "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
-    ${sudo} cp "${module}/dist/css/"*   "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
-    ${sudo} cp "${module}/dist/fonts/"* "${cosy_prefix}/share/cosy/www/fonts/" 2> /dev/null || true
-    ${sudo} cp "${module}/js/"*         "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
-    ${sudo} cp "${module}/css/"*        "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
-    ${sudo} cp "${module}/fonts/"*      "${cosy_prefix}/share/cosy/www/fonts/" 2> /dev/null || true
-    ${sudo} cp "${module}/${name}"*.js  "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
-    ${sudo} cp "${module}/${name}"*.map "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
-    ${sudo} cp "${module}/${name}"*.css "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
-  done
-  ${sudo} rm -rf node_modules
-  ${sudo} cp "dependencies/lua.vm.js/dist/lua.vm.js" "${cosy_prefix}/share/cosy/www/js/"
-)
+# (
+#   cd "${currentwd}" || exit 1
+#   web_dependencies=(
+#     auth0-lock
+#     bootbox
+#     bootstrap3
+#     d3
+#     es6-promise
+#     fetch-ie8
+#     font-awesome
+#     jquery
+#     jquery-locationpicker
+#     sjcl
+#   )
+#   echo "Installing web dependencies... "
+#   for dependency in ${web_dependencies[*]}; do
+#     echo -n "  Installing ${dependency}... "
+#     npm install "${dependency}" >> "${cosy_log}" 2>&1 \
+#       && echo -e "${green}success${nc}" \
+#       || echo -e "${red}failure${nc}"
+#   done
+#   mv node_modules/fetch-ie8 node_modules/fetch
+#   ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www"
+#   ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/js"
+#   ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/css"
+#   ${sudo} mkdir -p "${cosy_prefix}/share/cosy/www/fonts"
+#   for module in node_modules/*; do
+#     name=$(basename "${module}")
+#     ${sudo} cp "${module}/dist/"*.js    "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+#     ${sudo} cp "${module}/dist/"*.map   "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+#     ${sudo} cp "${module}/dist/js/"*    "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+#     ${sudo} cp "${module}/dist/css/"*   "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
+#     ${sudo} cp "${module}/dist/fonts/"* "${cosy_prefix}/share/cosy/www/fonts/" 2> /dev/null || true
+#     ${sudo} cp "${module}/js/"*         "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+#     ${sudo} cp "${module}/css/"*        "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
+#     ${sudo} cp "${module}/fonts/"*      "${cosy_prefix}/share/cosy/www/fonts/" 2> /dev/null || true
+#     ${sudo} cp "${module}/${name}"*.js  "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+#     ${sudo} cp "${module}/${name}"*.map "${cosy_prefix}/share/cosy/www/js/"    2> /dev/null || true
+#     ${sudo} cp "${module}/${name}"*.css "${cosy_prefix}/share/cosy/www/css/"   2> /dev/null || true
+#   done
+#   ${sudo} rm -rf node_modules
+#   ${sudo} cp "dependencies/lua.vm.js/dist/lua.vm.js" "${cosy_prefix}/share/cosy/www/js/"
+# )
 
 if [ ! -z "${minimal+x}" ]; then
   echo -e "Skipping openresty and web dependencies as minimal install is set."
