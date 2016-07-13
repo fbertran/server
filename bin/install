@@ -93,7 +93,7 @@ fi
 
 { # Detect if apt-get or brew is available:
   if command -v apt-get; then
-    if sudo apt-get update; then
+    ${sudo} apt-get update; then
       apt_available=true
     fi
   fi >> "${cosy_log}" 2>&1
