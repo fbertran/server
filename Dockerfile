@@ -7,7 +7,7 @@ RUN apt-get update && \
     apt-get --yes install git && \
     chown -R root.users /src/cosy/server && \
     cd /src/cosy/server && ./bin/install --prefix=/app && cd / && \
-    chown -R root.users /app &&
+    chown -R root.users /app && \
     apt-get --yes autoremove && \
     apt-get clean && \
     rm -rf /src/cosy/server /var/lib/apt/lists/* /tmp/* /var/tmp/*
