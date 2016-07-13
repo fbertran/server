@@ -1,11 +1,16 @@
 FROM debian:testing
 MAINTAINER Alban Linard <alban@linard.fr>
 
-RUN apt-get update
-RUN apt-get --yes install sudo git
+ADD . /src/cosy/server
 
-ADD . /home/cosy/environment
-RUN chown -R root.users /home/cosy
+RUN apt-get update && \
+    apt-get --yes install git && \
+    chown -R root.users /src/cosy/server && \
+    cd /src/cosy/server && ./bin/install --prefix=/app && cd / && \
+    chown -R root.users /app &&
+    apt-get --yes autoremove && \
+    apt-get clean && \
+    rm -rf /src/cosy/server /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN cd /home/cosy/environment && ./bin/install --in-ci --prefix=/app && rm -rf /home/cosy/environment
-RUN chown -R root.users /app
+ENTRYPOINT ["/app/bin/cosy-server"]
+CMD ["--help"]
