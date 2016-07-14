@@ -93,8 +93,12 @@ fi
 
 { # Detect if apt-get or brew is available:
   if command -v apt-get; then
-    ${sudo} apt-get update; then
+    if apt-get update; then
       apt_available=true
+      apt_get="apt-get"
+    elif sudo apt-get update; then
+      apt_available=true
+      apt_get="sudo apt-get"
     fi
   fi >> "${cosy_log}" 2>&1
   if command -v brew; then
@@ -137,12 +141,12 @@ cosy_temp=$(realpath "${cosy_temp}")
   else
     case "$(uname -s)" in
       "Linux")
-        sudo apt-get update  --yes
-        sudo apt-get install --yes make clang gcc diffutils patch curl zip unzip \
-                                   perl build-essential wget python python-pip \
-                                   libc6-dev libssl-dev \
-                                   libreadline-dev libncurses5-dev libpcre3-dev \
-                                   npm libc-bin redis-server postgresql shellcheck bats
+        ${apt_get} update  --yes
+        ${apt_get} install --yes make clang gcc diffutils patch curl zip unzip \
+                                 perl build-essential wget python python-pip \
+                                 libc6-dev libssl-dev \
+                                 libreadline-dev libncurses5-dev libpcre3-dev \
+                                 npm libc-bin redis-server postgresql shellcheck bats
         ;;
       "Darwin")
         HOMEBREW_PREFIX=$(brew config | grep "HOMEBREW_PREFIX" | tr -d ' \t' | cut -d ":" -f 2)
