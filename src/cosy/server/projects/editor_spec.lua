@@ -253,7 +253,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end
 
             for _, method in ipairs { "GET" } do
-              it ("#current answers to " .. method, function ()
+              it ("answers to " .. method, function ()
                 if not Test.environment.nginx then
                   return
                 end

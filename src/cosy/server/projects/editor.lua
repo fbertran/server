@@ -5,8 +5,12 @@ local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Token       = require "cosy.server.token"
 local Et          = require "etlua"
-local Http        = require "resty.http"
+local Http        = os.getenv "RUN_COVERAGE"
+                and require "ssl.https"
+                 or require "lapis.nginx.http"
 local _, Wsclient = pcall (require, "resty.websocket.client")
+
+-- FIXME: fix uses of Http (see cosy.server.users.auth0 for example)
 
 return function (app)
 
@@ -82,8 +86,8 @@ return function (app)
         project  = self.project.id,
         resource = self.resource.id,
         api      = Et.render ("http://<%- host %>:<%- port %>/projects/<%- project %>/resources/<%- resource %>", {
-          host     = os.getenv "NGINX_HOST",
-          port     = os.getenv "NGINX_PORT",
+          host     = Config.hostname,
+          port     = Config.port,
           project  = self.project.id,
           resource = self.resource.id,
         }),

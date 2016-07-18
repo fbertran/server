@@ -8,7 +8,7 @@ local Http   = Config._name == "test"
 return function (url)
   local result = {}
   local _, status = Http.request {
-    url      = Config.auth0.api_url .. url,
+    url      = Config.auth0.domain .. "/api/v2" .. url,
     sink     = Ltn12.sink.table (result),
     headers  = {
       Authorization = "Bearer " .. Config.auth0.api_token,
