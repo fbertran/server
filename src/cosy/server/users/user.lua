@@ -1,7 +1,8 @@
 local respond_to  = require "lapis.application".respond_to
+local Config      = require "lapis.config".get ()
 local Util        = require "lapis.util"
 local Decorators  = require "cosy.server.decorators"
-local auth0       = require "cosy.server.users.auth0"
+local Http        = require "cosy.server.http"
 
 return function (app)
 
@@ -19,7 +20,12 @@ return function (app)
     GET     = Decorators.exists {}
            .. function (self)
       if self.authentified and self.authentified.id == self.user.id then
-        local info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
+        local info, status = Http.request {
+          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token.sub),
+          headers  = {
+            Authorization = "Bearer " .. Config.auth0.api_token,
+          },
+        }
         if status == 200 then
           self.user:update {
             email    = info.email,

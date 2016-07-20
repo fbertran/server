@@ -124,7 +124,7 @@ describe ("route /", function ()
     end
 
     for _, method in ipairs { "GET" } do
-      it ("#current answers to " .. method, function ()
+      it ("answers to " .. method, function ()
         local token  = Test.make_token (Test.identities.rahan)
         local status = request (app, "/", {
           method  = method,

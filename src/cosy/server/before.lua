@@ -4,7 +4,7 @@ local Jwt    = require "jwt"
 local Config = require "lapis.config".get ()
 local Util   = require "lapis.util"
 local Model  = require "cosy.server.model"
-local auth0  = require "cosy.server.users.auth0"
+local Http   = require "cosy.server.http"
 
 return function (app)
 
@@ -66,7 +66,12 @@ return function (app)
         }
       else
         local status
-        info, status = auth0 ("/users/" .. Util.escape (self.token.sub))
+        info, status = Http.request {
+          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token.sub),
+          headers  = {
+            Authorization = "Bearer " .. Config.auth0.api_token,
+          },
+        }
         if status ~= 200 then
           return { status = 401 }
         end

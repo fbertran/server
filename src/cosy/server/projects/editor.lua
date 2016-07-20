@@ -1,16 +1,12 @@
 local Config      = require "lapis.config".get ()
 local Database    = require "lapis.db"
-local Util        = require "lapis.util"
 local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Token       = require "cosy.server.token"
+local Http        = require "cosy.server.http"
 local Et          = require "etlua"
-local Http        = os.getenv "RUN_COVERAGE"
-                and require "ssl.https"
-                 or require "lapis.nginx.http"
+local Mime        = require "mime"
 local _, Wsclient = pcall (require, "resty.websocket.client")
-
--- FIXME: fix uses of Http (see cosy.server.users.auth0 for example)
 
 return function (app)
 
@@ -31,7 +27,7 @@ return function (app)
       local url     = "https://cloud.docker.com"
       local api     = url .. "/api/app/v1"
       local headers = {
-        ["Authorization"] = "Basic " .. _G.ngx.encode_base64 (Config.docker.username .. ":" .. Config.docker.api_key),
+        ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
         ["Accept"       ] = "application/json",
         ["Content-type" ] = "application/json",
       }
@@ -47,38 +43,38 @@ return function (app)
         end
       end
       if self.resource.docker_url then
-        local client = Http.new ()
-        local result = client:request_uri (self.resource.docker_url, {
-          method     = "DELETE",
-          headers    = headers,
-          ssl_verify = Config._name ~= "test",
-        })
-        assert (result.status == 202)
+        local _, status = Http.request {
+          url     = self.resource.docker_url,
+          method  = "DELETE",
+          headers = headers,
+        }
+        assert (status == 202)
         self.resource:update ({
           editor_url = Database.NULL,
           docker_url = Database.NULL,
         }, { timestamp = false })
       end
-      local client = Http.new ()
       -- Create service:
-      local result = client:request_uri (api .. "/service/", {
+      local service, service_status = Http.request {
+        url     = api .. "/service/",
         method  = "POST",
         headers = headers,
-        body    = Util.to_json {
+        body    = {
           image           = "dataferret/websocket-echo",
           run_command     = "80",
+          autorestart     = "OFF",
           autodestroy     = "ALWAYS",
           autoredeploy    = false,
           container_ports = {
             { protocol   = "tcp",
               inner_port = 80,
-              outer_port = 80,
+              -- outer_port = 80,
               published  = true,
             },
           },
         },
-        ssl_verify = Config._name ~= "test",
-      })
+      }
+      assert (service_status == 201)
       local _ = Token (Et.render ("/projects/<%- project %>", {
         project  = self.project.id,
       }), {
@@ -92,43 +88,47 @@ return function (app)
           resource = self.resource.id,
         }),
       })
-      assert (result.status == 201)
       -- Start service:
-      local resource = url .. Util.from_json (result.body).resource_uri
-      result   = client:request_uri (resource .. "start/", {
+      local resource = url .. service.resource_uri
+      local _, started_status = Http.request {
+        url        = resource .. "start/",
         method     = "POST",
         headers    = headers,
-        ssl_verify = Config._name ~= "test",
-      })
-      assert (result.status == 202)
-      local container = url .. Util.from_json (result.body).containers [1]
+        timeout    = 5, -- seconds
+      }
+      assert (started_status == 202)
+      local container
       repeat -- wait until it started
-        _G.ngx.sleep (1)
-        result = client:request_uri (resource, {
-          method     = "GET",
-          headers    = headers,
-          ssl_verify = Config._name ~= "test",
-        })
-        assert (result.status == 200)
-        local body = Util.from_json (result.body)
-      until body.state:lower () == "running"
-      result = client:request_uri (container, {
-        method     = "GET",
-        headers    = headers,
-        ssl_verify = Config._name ~= "test",
-      })
-      assert (result.status == 200)
-      local endpoint = Util.from_json (result.body).container_ports [1].endpoint_uri
+        if _G.ngx and _G.ngx.sleep then
+          _G.ngx.sleep (1)
+        else
+          os.execute "sleep 1"
+        end
+        local result, status = Http.request {
+          url     = resource,
+          method  = "GET",
+          headers = headers,
+        }
+        assert (status == 200)
+        container = result.containers and url .. result.containers [1]
+      until result.state:lower () == "running"
+      local info, container_status = Http.request {
+        url     = container,
+        method  = "GET",
+        headers = headers,
+      }
+      assert (container_status == 200)
+      local endpoint = info.container_ports [1].endpoint_uri
       Database.query [[BEGIN]]
       self.resource:refresh ("editor_url", "docker_url")
       if self.resource.editor_url then
         Database.query [[ROLLBACK]]
-        result = client:request_uri (resource, {
-          method     = "DELETE",
-          headers    = headers,
-          ssl_verify = Config._name ~= "test",
-        })
-        assert (result.status == 202)
+        local _, deleted_status = Http.request {
+          url     = resource,
+          method  = "DELETE",
+          headers = headers,
+        }
+        assert (deleted_status == 202)
       else
         self.resource:update {
           docker_url = resource,
@@ -148,18 +148,17 @@ return function (app)
         return { status = 403 }
       end
       if self.resource.editor_url then
-        local client = Http.new ()
         local headers = {
-          ["Authorization"] = "Basic " .. _G.ngx.encode_base64 (Config.docker.username .. ":" .. Config.docker.api_key),
+          ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
           ["Accept"       ] = "application/json",
           ["Content-type" ] = "application/json",
         }
-        local result = client:request_uri (self.resource.docker_url, {
-          method     = "DELETE",
-          headers    = headers,
-          ssl_verify = Config._name ~= "test",
-        })
-        assert (result.status == 202)
+        local _, deleted_status = Http.request {
+          url     = self.resource.docker_url,
+          method  = "DELETE",
+          headers = headers,
+        }
+        assert (deleted_status == 202)
         self.resource:update ({
           editor_url = Database.NULL,
           docker_url = Database.NULL,

@@ -1,20 +1,19 @@
-local Config    = require "lapis.config".get ()
-local Et        = require "etlua"
+-- local Config    = require "lapis.config".get ()
+-- local Et        = require "etlua"
 local Test      = require "cosy.server.test"
-local Copas     = require "copas"
-local Websocket = require "websocket"
+-- local Copas     = require "copas"
+-- local Websocket = require "websocket"
 
 describe ("route /projects/:project/resources/:resource/editor", function ()
 
   Test.environment.use ()
 
-  local app, server, project, route, wsroute, request, naouna
+  local app, project, route, request, naouna
 
   before_each (function ()
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
-    server  = Test.environment.server ()
   end)
 
   before_each (function ()
@@ -48,12 +47,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
     route = project.. "/resources/" .. result.id .. "/editor"
-    if server then
-      wsroute = Et.render ("ws://<%- host %>:<%- port %>" .. route, {
-        host = "localhost",
-        port = server.app_port,
-      })
-    end
   end)
 
   describe ("accessed as", function ()
@@ -142,24 +135,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
             for _, method in ipairs { "GET" } do
               it ("answers to " .. method, function ()
-                if not Test.environment.nginx then
-                  return
-                end
                 local status = request (app, route, {
                   method = method,
                 })
-                assert.are.same (status, 200)
-                local connected
-                Copas.addthread (function ()
-                  local ws = Websocket.client.copas {}
-                  connected = ws:connect (wsroute, "cosy")
-                  ws:close ()
-                  Copas.sleep (Config.editor.timeout * 2)
-                end)
-                Copas.loop ()
-                assert.is_truthy (connected)
+                assert.are.same (status, 302)
               end)
             end
+
+            pending "check that websocket correctly works"
 
             for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
@@ -254,30 +237,16 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
             for _, method in ipairs { "GET" } do
               it ("answers to " .. method, function ()
-                if not Test.environment.nginx then
-                  return
-                end
                 local token = Test.make_token (Test.identities.naouna)
-                local status, _, headers = request (app, route, {
+                local status, _, _ = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
                 assert.are.same (status, 302)
-                print (headers)
-                for k, v in pairs (headers) do
-                  print (k, v)
-                end
-                local connected
-                Copas.addthread (function ()
-                  local ws = Websocket.client.copas {}
-                  connected = print (ws:connect (headers.location, "echo"))
-                  ws:close ()
-                  Copas.sleep (Config.editor.timeout * 2)
-                end)
-                Copas.loop ()
-                assert.is_truthy (connected)
               end)
             end
+
+            pending "check that websocket correctly works"
 
             for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
@@ -370,26 +339,16 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
             for _, method in ipairs { "GET" } do
               it ("answers to " .. method, function ()
-                if not Test.environment.nginx then
-                  return
-                end
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
-                assert.are.same (status, 200)
-                local connected
-                Copas.addthread (function ()
-                  local ws = Websocket.client.copas {}
-                  connected = ws:connect (wsroute, "cosy")
-                  ws:close ()
-                  Copas.sleep (Config.editor.timeout * 2)
-                end)
-                Copas.loop ()
-                assert.is_truthy (connected)
+                assert.are.same (status, 302)
               end)
             end
+
+            pending "check that websocket correctly works"
 
             for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
@@ -485,26 +444,16 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
-            if not Test.environment.nginx then
-              return
-            end
             local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
-            assert.are.same (status, 200)
-            local connected
-            Copas.addthread (function ()
-              local ws = Websocket.client.copas {}
-              connected = ws:connect (wsroute, "cosy")
-              ws:close ()
-              Copas.sleep (Config.editor.timeout * 2)
-            end)
-            Copas.loop ()
-            assert.is_truthy (connected)
+            assert.are.same (status, 302)
           end)
         end
+
+        pending "check that websocket correctly works"
 
         for _, method in ipairs { "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
