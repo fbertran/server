@@ -10,7 +10,7 @@ build:
     - script:
         name: "install environment"
         code: |
-          ./bin/install --prefix=/app
+          ./bin/install --prefix=/app --in-ci
     - script:
         name: "install module"
         code: |

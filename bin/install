@@ -38,6 +38,13 @@ parallel=$(nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null)
 
 export PATH="${PATH}:/sbin"
 
+function finish {
+  if [ ! -z "${in_ci+x}" ]; then
+    cat "${cosy_log}"
+  fi
+}
+trap finish EXIT
+
 # Test if sudo is required:
 {
   if [ -d "${cosy_prefix}" ]; then
