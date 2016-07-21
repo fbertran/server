@@ -1,6 +1,5 @@
 box: cosyverif/cosy-server:dev
 services:
-  - id: redis
   - id: postgres
     env:
       POSTGRES_USER: cosyverif
