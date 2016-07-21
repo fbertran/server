@@ -14,11 +14,6 @@ require "cosy.server.alias"    (app)
 app.layout = false
 
 app.handle_error = function (_, err, trace)
-  local file = io.open ("errors.txt", "a")
-  file:write (tostring (err) .. "\n")
-  file:write (tostring (trace) .. "\n")
-  file:close ()
-  pcall (print, type (err) ~= "table" and err or Util.to_json (err), tostring (trace))
   return {
     status = 500,
     error  = err,
