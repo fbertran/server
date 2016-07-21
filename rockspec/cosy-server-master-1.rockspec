@@ -20,6 +20,7 @@ dependencies = {
   "lapis",
   "layeredata",
   "luasec",
+  "luasocket",
   "lua-resty-http",
 }
 
