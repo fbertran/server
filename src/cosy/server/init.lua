@@ -1,4 +1,5 @@
 local Lapis      = require "lapis"
+local Util       = require "lapis.util"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Quote      = require "cosy.server.quote"
@@ -13,9 +14,14 @@ require "cosy.server.alias"    (app)
 app.layout = false
 
 app.handle_error = function (_, err, trace)
-  print (err, tostring (trace))
+  local file = io.open ("errors.txt", "a")
+  file:write (tostring (err) .. "\n")
+  file:write (tostring (trace) .. "\n")
+  file:close ()
+  pcall (print, type (err) ~= "table" and err or Util.to_json (err), tostring (trace))
   return {
     status = 500,
+    error  = err,
   }
 end
 
