@@ -12,12 +12,10 @@ require "cosy.server.alias"    (app)
 
 app.layout = false
 
-app.handle_error = function (_, err, _)
+app.handle_error = function (_, err, trace)
+  print (err, tostring (trace))
   return {
     status = 500,
-    json = {
-      error = err,
-    }
   }
 end
 
