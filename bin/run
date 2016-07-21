@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+function finish {
+  docker-compose down
+}
+trap finish EXIT
+
+green='\033[0;32m'
+nc='\033[0m'
+
+docker-compose up --build -d
+port=$(docker-compose port api 8080 | cut -d ":" -f2 )
+ip=$(docker-machine ip)
+echo -e "Server is running on ${green}${ip}${nc}:${green}${port}${nc}."
+docker-compose logs --follow
