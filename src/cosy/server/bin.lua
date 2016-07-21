@@ -1,20 +1,26 @@
 #! /usr/bin/env lua
 
-local Et = require "etlua"
+local Socket = require "socket"
+local Url    = require "socket.url"
+local Et     = require "etlua"
 
-local path = package.searchpath ("cosy.server", package.path)
-print (path)
-local parts = {}
-for part in path:gmatch "[^/]+" do
-  parts [#parts+1] = part
+do -- Wait for database connection
+  local parsed = Url.parse ("http://" .. os.getenv "POSTGRES_HOST")
+  local socket = Socket.tcp ()
+  local i = 0
+  while not socket:connect (parsed.host or "localhost", parsed.port or 5432) do
+    if i > 10 then
+      error "Database is not reachable."
+    end
+    os.execute [[ sleep 1 ]]
+    i = i+1
+  end
 end
-for _ = 1, 6 do
-  parts [#parts] = nil
-end
-local prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
 
-os.execute (Et.render ([[
-  LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/lapis" server
-]], {
-  prefix = prefix,
-}))
+assert (os.execute (Et.render ([[ <%- prefix %>/bin/lapis migrate ]], {
+  prefix = os.getenv "COSY_PREFIX",
+})))
+
+assert (os.execute (Et.render ([[ <%- prefix %>/bin/lapis server ]], {
+  prefix = os.getenv "COSY_PREFIX",
+})))
