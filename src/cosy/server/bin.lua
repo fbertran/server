@@ -3,9 +3,10 @@
 local Socket = require "socket"
 local Url    = require "socket.url"
 local Et     = require "etlua"
+local Config = require "lapis.config".get ()
 
 do -- Wait for database connection
-  local parsed = Url.parse ("http://" .. os.getenv "POSTGRES_HOST")
+  local parsed = Url.parse ("http://" .. Config.postgres.host)
   local socket = Socket.tcp ()
   local i = 0
   while not socket:connect (parsed.host or "localhost", parsed.port or 5432) do
