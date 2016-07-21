@@ -1,5 +1,4 @@
 local Lapis      = require "lapis"
-local Util       = require "lapis.util"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Quote      = require "cosy.server.quote"
@@ -13,7 +12,7 @@ require "cosy.server.alias"    (app)
 
 app.layout = false
 
-app.handle_error = function (_, err, trace)
+app.handle_error = function (_, err)
   return {
     status = 500,
     error  = err,
