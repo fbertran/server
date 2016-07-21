@@ -1,4 +1,4 @@
-box: cosyverif/cosy-server:dev
+box: erikcw/lapis
 services:
   - id: postgres
     env:
@@ -10,26 +10,33 @@ build:
     - script:
         name: "install environment"
         code: |
-          ./bin/install --prefix=/app
+          cp config.lua      /opt/openresty/nginx/conf/config.lua
+          cp migrations.lua  /opt/openresty/nginx/conf/migrations.lua
+          cp models.lua      /opt/openresty/nginx/conf/models.lua
+          cp mime.types      /opt/openresty/nginx/conf/mime.types
+          cp nginx.conf      /opt/openresty/nginx/conf/nginx.conf
+          apt-get update  --yes
+          apt-get install --yes git libssl-dev
+          luarocks install luasec OPENSSL_LIBDIR="/lib/x86_64-linux-gnu/"
     - script:
         name: "install module"
         code: |
-          /app/bin/luarocks make rockspec/cosy-server-dev-master-1.rockspec
-          /app/bin/luarocks make rockspec/cosy-server-master-1.rockspec
+          luarocks make rockspec/cosy-server-dev-master-1.rockspec
+          luarocks make rockspec/cosy-server-master-1.rockspec
     - script:
         name: "configure"
         code: |
-          /app/bin/lapis migrate test
+          lapis migrate test
     - script:
         name: "check and test"
         code: |
-          /app/bin/cosy-check
+          cosy-check
   after-steps:
     - script:
         name: "export to coveralls"
         code: |
           branch=$(git rev-parse --abbrev-ref HEAD)
-          /app/bin/luacov-coveralls \
+          luacov-coveralls \
             --repo-token "${COVERALLS_TOKEN}" \
             --exclude share --exclude busted --exclude _spec \
             --include cosy \
@@ -48,7 +55,7 @@ deploy:
           name=cosy-server
           sed -e "s/master-1/${tag}-${count}/" "${rockspec}" \
             > "${name}"-"${tag}"-"${count}".rockspec
-          /app/bin/luarocks upload \
+          luarocks upload \
             --api-key="${LUAROCKS_TOKEN}" \
             "${name}"-"${tag}"-"${count}".rockspec
           cd ..
