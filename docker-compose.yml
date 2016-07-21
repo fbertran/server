@@ -1,0 +1,25 @@
+version: "2"
+services:
+  database:
+    image: postgres
+  api:
+    build: .
+    ports:
+      - "8080"
+    links:
+      - database
+    logging:
+      driver: "json-file"
+    environment:
+      COSY_PREFIX: /usr/local
+      COSY_HOST: api:8080
+      POSTGRES_HOST: database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ""
+      POSTGRES_DATABASE: postgres
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_ID: ${AUTH0_ID}
+      AUTH0_SECRET: ${AUTH0_SECRET}
+      AUTH0_TOKEN: ${AUTH0_TOKEN}
+      DOCKER_USER: ${DOCKER_USER}
+      DOCKER_SECRET: ${DOCKER_SECRET}
