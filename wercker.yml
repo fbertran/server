@@ -1,4 +1,4 @@
-box: erikcw/lapis
+box: debian:testing
 services:
   - id: postgres
     env:
