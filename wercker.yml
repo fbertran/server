@@ -11,7 +11,7 @@ build:
         name: "install environment"
         code: |
           apt-get update  --yes
-          apt-get install --yes git
+          apt-get install --yes git curl
           ./bin/install --prefix=/app --in-ci
     - script:
         name: "install module"
@@ -25,12 +25,9 @@ build:
     - script:
         name: "check and test"
         code: |
-          /app/bin/cosy-check-server
+          /app/bin/cosy-server & sleep 1 & curl -v http://${COSY_HOST}/
+          exit 1
   after-steps:
-    - script:
-        name: "show errors"
-        code: |
-          cat errors.txt
     - script:
         name: "export to coveralls"
         code: |
