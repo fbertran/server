@@ -1,5 +1,4 @@
 local config = require "lapis.config"
-local Url    = require "socket.url"
 
 local hostname = assert (os.getenv "COSY_HOST")
 
