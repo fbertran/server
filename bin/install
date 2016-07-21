@@ -38,7 +38,8 @@ parallel=$(nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null)
 
 export PATH="${PATH}:/sbin"
 
-function finish {
+function finish
+{
   if [ ! -z "${in_ci+x}" ]; then
     cat "${cosy_log}"
   fi
