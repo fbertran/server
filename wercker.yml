@@ -25,7 +25,7 @@ build:
     - script:
         name: "check and test"
         code: |
-          /app/bin/cosy-check
+          /app/bin/cosy-check-server
   after-steps:
     - script:
         name: "export to coveralls"
