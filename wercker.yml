@@ -25,8 +25,7 @@ build:
     - script:
         name: "check and test"
         code: |
-          /app/bin/cosy-server & sleep 1 & curl -v http://${COSY_HOST}/
-          exit 1
+          /app/bin/cosy-server
   after-steps:
     - script:
         name: "export to coveralls"
