@@ -14,3 +14,4 @@ luacov.*
 
 # Environment variables:
 .environment
+ENVIRONMENT

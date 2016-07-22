@@ -25,7 +25,8 @@ build:
     - script:
         name: "check and test"
         code: |
-          /app/bin/cosy-server
+          export LAPIS_OPENRESTY=/app/nginx/sbin/nginx
+          /app/bin/cosy-check-server
   after-steps:
     - script:
         name: "export to coveralls"
