@@ -15,7 +15,9 @@ app.layout = false
 app.handle_error = function (_, err)
   return {
     status = 500,
-    error  = err,
+    json   = {
+      error = err,
+    },
   }
 end
 
