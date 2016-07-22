@@ -6,6 +6,7 @@ local Et     = require "etlua"
 local Config = require "lapis.config".get ()
 
 do -- Wait for database connection
+  print "Waiting for database connection..."
   local parsed = Url.parse ("http://" .. Config.postgres.host)
   local socket = Socket.tcp ()
   local i = 0
@@ -18,10 +19,12 @@ do -- Wait for database connection
   end
 end
 
+print "Applying database migrations..."
 assert (os.execute (Et.render ([[ <%- prefix %>/bin/lapis migrate ]], {
   prefix = os.getenv "COSY_PREFIX",
 })))
 
+print "Starting server..."
 assert (os.execute (Et.render ([[ <%- prefix %>/bin/lapis server ]], {
   prefix = os.getenv "COSY_PREFIX",
 })))
