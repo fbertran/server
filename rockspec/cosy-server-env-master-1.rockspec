@@ -1,4 +1,4 @@
-package = "cosy-server-dev"
+package = "cosy-server-env"
 version = "master-1"
 source  = {
   url = "git://github.com/cayonerie/server"
