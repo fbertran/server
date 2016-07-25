@@ -1,7 +1,7 @@
 package = "cosy-server"
 version = "master-1"
 source  = {
-  url = "git://github.com/cayonerie/server"
+  url = "git+https://github.com/cosyverif/server.git"
 }
 
 description = {
@@ -55,8 +55,8 @@ build = {
   },
   install = {
     bin = {
-      ["cosy-check-server" ] = "src/cosy/server/check/bin.lua",
-      ["cosy-server"       ] = "src/cosy/server/bin.lua",
+      ["cosy-check-server"] = "src/cosy/server/check/bin.lua",
+      ["cosy-server"      ] = "src/cosy/server/bin.lua",
     },
   },
 }

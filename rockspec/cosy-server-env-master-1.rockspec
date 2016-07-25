@@ -1,7 +1,7 @@
 package = "cosy-server-env"
 version = "master-1"
 source  = {
-  url = "git://github.com/cayonerie/server"
+  url = "git+https://github.com/cosyverif/server.git"
 }
 
 description = {
