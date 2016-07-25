@@ -55,39 +55,47 @@ return function (app)
         }, { timestamp = false })
       end
       -- Create service:
+      local data = {
+        port     = 80,
+        timeout  = Config.editor.timeout,
+        project  = self.project.id,
+        resource = self.resource.id,
+        api      = Et.render ("http://<%- host %>:<%- port %>", {
+          host = Config.hostname,
+          port = Config.port,
+        }),
+        token    = Token (Et.render ("/projects/<%- project %>", {
+          project  = self.project.id,
+        }), {}, math.huge),
+      }
+      local arguments = {}
+      for key, value in pairs (data) do
+        arguments [#arguments+1] = Et.render ("--<%- key %>=<%- value %>", {
+          key   = key,
+          value = value,
+        })
+      end
       local service, service_status = Http.request {
         url     = api .. "/service/",
         method  = "POST",
         headers = headers,
         body    = {
-          image           = "dataferret/websocket-echo",
-          run_command     = "80",
+          image           = Et.render ("cosyverif/editor:<%- branch %>", {
+            branch = Config.branch,
+          }),
+          run_command     = table.concat (arguments, " "),
           autorestart     = "OFF",
           autodestroy     = "ALWAYS",
           autoredeploy    = false,
           container_ports = {
             { protocol   = "tcp",
               inner_port = 80,
-              -- outer_port = 80,
               published  = true,
             },
           },
         },
       }
       assert (service_status == 201)
-      local _ = Token (Et.render ("/projects/<%- project %>", {
-        project  = self.project.id,
-      }), {
-        timeout  = Config.editor.timeout,
-        project  = self.project.id,
-        resource = self.resource.id,
-        api      = Et.render ("http://<%- host %>:<%- port %>/projects/<%- project %>/resources/<%- resource %>", {
-          host     = Config.hostname,
-          port     = Config.port,
-          project  = self.project.id,
-          resource = self.resource.id,
-        }),
-      })
       -- Start service:
       local resource = url .. service.resource_uri
       local _, started_status = Http.request {
