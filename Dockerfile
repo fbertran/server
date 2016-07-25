@@ -13,6 +13,10 @@ RUN luarocks install luasec OPENSSL_LIBDIR="/lib/x86_64-linux-gnu/"
 RUN cd /src/cosy/server/ && \
     luarocks make rockspec/cosy-server-master-1.rockspec && \
     cd /
+RUN cd /src/cosy/server/ && \
+    mkdir -p /usr/share/cosy/server/ && \
+    git rev-parse --abbrev-ref HEAD > /usr/share/cosy/server/VERSION && \
+    cd /
 RUN rm -rf /src/cosy/server
 ENTRYPOINT ["cosy-server"]
 CMD [""]
