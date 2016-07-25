@@ -11,7 +11,7 @@ build:
         name: "install environment"
         code: |
           apt-get update  --yes
-          apt-get install --yes git curl
+          apt-get install --yes git curl shellcheck
           ./bin/install --prefix=/app --in-ci
     - script:
         name: "install module"
