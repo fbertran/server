@@ -11,8 +11,10 @@ services:
     logging:
       driver: "json-file"
     environment:
+      RESOLVERS: "8.8.8.8 8.8.4.4"
       COSY_PREFIX: /usr/local
       COSY_HOST: api:8080
+      COSY_BRANCH: ${COSY_BRANCH}
       POSTGRES_HOST: database
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ""

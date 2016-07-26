@@ -1,32 +1,16 @@
 local Config = require "lapis.config"
-local Et     = require "etlua"
 
 local hostname = assert (os.getenv "COSY_HOST")
-local branch   = nil
-if not branch then
-  local file = io.open (Et.render ("<%- prefix %>/share/cosy/server/VERSION", {
-    prefix = os.getenv "COSY_PREFIX",
-  }), "r")
-  if file then
-    branch = file:read "*line"
-    file:close ()
-  end
-end
-if not branch then
-  local file = io.popen ("git rev-parse --abbrev-ref HEAD", "r")
-  if file then
-    branch = file:read "*line"
-    file:close ()
-  end
-end
+local branch   = assert (os.getenv "COSY_BRANCH" or os.getenv "WERCKER_GIT_BRANCH")
 if not branch or branch == "master" then
   branch = "latest"
 end
 
 local common = {
+  resolvers   = assert (os.getenv "RESOLVERS"),
   hostname    = assert (hostname:match "[^:]+"),
   port        = assert (tonumber (hostname:match ":(%d+)")),
-  num_workers = 4,
+  num_workers = os.getenv "CI" and 1 or 4,
   code_cache  = "on",
   branch      = assert (branch),
   postgres    = {
@@ -50,5 +34,9 @@ local common = {
     timeout = 1,
   },
 }
+
+if _G.ngx and os.getenv "DATABASE_PORT" then
+  common.postgres.host = os.getenv "DATABASE_PORT":match "tcp://([^:]*)"
+end
 
 Config ({ "test", "development", "production" }, common)
