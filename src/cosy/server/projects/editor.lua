@@ -56,7 +56,7 @@ return function (app)
       end
       -- Create service:
       local data = {
-        port     = 80,
+        port     = 8080,
         timeout  = Config.editor.timeout,
         project  = self.project.id,
         resource = self.resource.id,
@@ -89,7 +89,7 @@ return function (app)
           autoredeploy    = false,
           container_ports = {
             { protocol   = "tcp",
-              inner_port = 80,
+              inner_port = 8080,
               published  = true,
             },
           },

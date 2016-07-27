@@ -124,6 +124,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               assert.are.same (status, 202)
             end)
 
+            after_each (function ()
+              local token  = Test.make_token (project)
+              request (app, route, {
+                method  = "DELETE",
+                headers = { ["Authorization"] = "Bearer " .. token },
+              })
+            end)
+
             for _, method in ipairs { "HEAD", "OPTIONS" } do
               it ("answers to " .. method, function ()
                 local status = request (app, route, {
