@@ -18,7 +18,5 @@ RUN cd /src/cosy/server/ && \
     git rev-parse --abbrev-ref HEAD > /usr/share/cosy/server/VERSION && \
     cd /
 RUN rm -rf /src/cosy/server
-RUN echo "nameserver 8.8.8.8" >  /etc/resolv.conf && \
-    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 ENTRYPOINT ["cosy-server"]
 CMD [""]
