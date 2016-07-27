@@ -60,17 +60,17 @@ return function (app)
         timeout  = Config.editor.timeout,
         project  = self.project.id,
         resource = self.resource.id,
-        api      = Et.render ("http://<%- host %>:<%- port %>", {
-          host = Config.hostname,
-          port = Config.port,
-        }),
         token    = Token (Et.render ("/projects/<%- project %>", {
           project  = self.project.id,
         }), {}, math.huge),
       }
-      local arguments = {
-        "--ci",
-      }
+      if Config.hostname ~= "localhost" then
+        data.api = Et.render ("http://<%- host %>:<%- port %>", {
+          host = Config.hostname,
+          port = Config.port,
+        })
+      end
+      local arguments = {}
       for key, value in pairs (data) do
         arguments [#arguments+1] = Et.render ("--<%- key %>=<%- value %>", {
           key   = key,
