@@ -68,7 +68,9 @@ return function (app)
           project  = self.project.id,
         }), {}, math.huge),
       }
-      local arguments = {}
+      local arguments = {
+        "--ci",
+      }
       for key, value in pairs (data) do
         arguments [#arguments+1] = Et.render ("--<%- key %>=<%- value %>", {
           key   = key,

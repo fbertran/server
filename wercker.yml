@@ -1,25 +1,22 @@
-box: erikcw/lapis
+box: debian:testing
 entrypoint:
   - /bin/bash
   - -c
 cmd:
-# services:
-#   - id: postgres
-#     env:
-#       POSTGRES_USER: cosyverif
-#       POSTGRES_PASSWORD:
-#       POSTGRES_DATABASE: cosyverif
+services:
+  - id: postgres
+    env:
+      POSTGRES_USER: cosyverif
+      POSTGRES_PASSWORD:
+      POSTGRES_DATABASE: cosyverif
 build:
   steps:
     - script:
         name: "install environment"
         code: |
           apt-get update  --yes
-          apt-get install --yes git curl shellcheck libssl-dev
-          luarocks install luasec OPENSSL_LIBDIR="/lib/x86_64-linux-gnu/"
-          luarocks make rockspec/cosy-server-env-master-1.rockspec
-          luarocks make rockspec/cosy-server-master-1.rockspec
-          luarocks install lua-cjson-ol
+          apt-get install --yes git curl
+          ./bin/install --prefix=/usr/local
     - script:
         name: "configure"
         code: |
@@ -27,7 +24,6 @@ build:
     - script:
         name: "check and test"
         code: |
-          env
           cosy-check-server
   after-steps:
     - script:

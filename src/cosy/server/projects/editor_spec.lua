@@ -125,8 +125,8 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             end)
 
             after_each (function ()
-              local token  = Test.make_token (project)
-              request (app, route, {
+              local token = Test.make_token (project)
+              pcall (request, app, route, {
                 method  = "DELETE",
                 headers = { ["Authorization"] = "Bearer " .. token },
               })
@@ -185,6 +185,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             assert.are.same (status, 202)
           end)
 
+          after_each (function ()
+            local token = Test.make_token (project)
+            pcall (request, app, route, {
+              method  = "DELETE",
+              headers = { ["Authorization"] = "Bearer " .. token },
+            })
+          end)
+
           for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
             it ("answers to " .. method, function ()
               local status = request (app, route, {
@@ -218,8 +226,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
       describe ("with permission and authentication", function ()
 
-        -- for _, permission in ipairs { "admin", "write", "read" } do
-        for _, permission in ipairs { "admin" } do
+        for _, permission in ipairs { "admin", "write", "read" } do
           describe ("with " .. permission .. " authentication", function ()
 
             before_each (function ()
@@ -230,6 +237,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
                 headers = {["Authorization"] = "Bearer " .. token },
               })
               assert.are.same (status, 201)
+            end)
+
+            after_each (function ()
+              local token = Test.make_token (project)
+              pcall (request, app, route, {
+                method  = "DELETE",
+                headers = { ["Authorization"] = "Bearer " .. token },
+              })
             end)
 
             for _, method in ipairs { "HEAD", "OPTIONS" } do
@@ -293,6 +308,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             assert.are.same (status, 201)
           end)
 
+          after_each (function ()
+            local token = Test.make_token (project)
+            pcall (request, app, route, {
+              method  = "DELETE",
+              headers = { ["Authorization"] = "Bearer " .. token },
+            })
+          end)
+
           for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
             it ("answers to " .. method, function ()
               local token  = Test.make_token (Test.identities.naouna)
@@ -332,6 +355,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
                 headers = { ["Authorization"] = "Bearer " .. token },
               })
               assert.are.same (status, 202)
+            end)
+
+            after_each (function ()
+              local token = Test.make_token (project)
+              pcall (request, app, route, {
+                method  = "DELETE",
+                headers = { ["Authorization"] = "Bearer " .. token },
+              })
             end)
 
             for _, method in ipairs { "HEAD", "OPTIONS" } do
@@ -394,6 +425,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               headers = { ["Authorization"] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
+          end)
+
+          after_each (function ()
+            local token = Test.make_token (project)
+            pcall (request, app, route, {
+              method  = "DELETE",
+              headers = { ["Authorization"] = "Bearer " .. token },
+            })
           end)
 
           for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
