@@ -1,38 +1,40 @@
-box: debian:testing
-services:
-  - id: postgres
-    env:
-      POSTGRES_USER: cosyverif
-      POSTGRES_PASSWORD:
-      POSTGRES_DATABASE: cosyverif
+box: erikcw/lapis
+entrypoint:
+  - /bin/bash
+  - -c
+cmd:
+# services:
+#   - id: postgres
+#     env:
+#       POSTGRES_USER: cosyverif
+#       POSTGRES_PASSWORD:
+#       POSTGRES_DATABASE: cosyverif
 build:
   steps:
     - script:
         name: "install environment"
         code: |
           apt-get update  --yes
-          apt-get install --yes git curl shellcheck
-          ./bin/install --prefix=/app --in-ci
-    - script:
-        name: "install module"
-        code: |
-          /app/bin/luarocks make rockspec/cosy-server-env-master-1.rockspec
-          /app/bin/luarocks make rockspec/cosy-server-master-1.rockspec
+          apt-get install --yes git curl shellcheck libssl-dev
+          luarocks install luasec OPENSSL_LIBDIR="/lib/x86_64-linux-gnu/"
+          luarocks make rockspec/cosy-server-env-master-1.rockspec
+          luarocks make rockspec/cosy-server-master-1.rockspec
+          luarocks install lua-cjson-ol
     - script:
         name: "configure"
         code: |
-          /app/bin/lapis migrate test
+          lapis migrate test
     - script:
         name: "check and test"
         code: |
-          export LAPIS_OPENRESTY=/app/nginx/sbin/nginx
-          /app/bin/cosy-check-server
+          env
+          cosy-check-server
   after-steps:
     - script:
         name: "export to coveralls"
         code: |
           branch=$(git rev-parse --abbrev-ref HEAD)
-          /app/bin/luacov-coveralls \
+          luacov-coveralls \
             --repo-token "${COVERALLS_TOKEN}" \
             --exclude share --exclude busted --exclude _spec \
             --include cosy \
@@ -51,7 +53,7 @@ deploy:
           name=cosy-server
           sed -e "s/master-1/${tag}-${count}/" "${rockspec}" \
             > "${name}"-"${tag}"-"${count}".rockspec
-          /app/bin/luarocks upload \
+          luarocks upload \
             --api-key="${LUAROCKS_TOKEN}" \
             "${name}"-"${tag}"-"${count}".rockspec
           cd ..
