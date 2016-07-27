@@ -11,6 +11,7 @@ nginx.conf.compiled
 coverage/
 output/
 luacov.*
+.wercker
 
 # Environment variables:
 .environment
