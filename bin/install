@@ -196,6 +196,12 @@ cosy_temp=$(realpath "${cosy_temp}")
     >> "${cosy_log}" 2>&1 \
     && echo -e "${green}success${nc}" \
     || echo -e "${red}failure${nc}"
+  echo -n "Installing compat53... "
+  # shellcheck disable=SC2086
+  ${sudo} "${cosy_prefix}/bin/luarocks" install compat53 \
+    >> "${cosy_log}" 2>&1 \
+   && echo -e "${green}success${nc}" \
+   || echo -e "${red}failure${nc}"
   echo -n "Installing development rocks... "
   # shellcheck disable=SC2086
   ${sudo} "${cosy_prefix}/bin/luarocks" make rockspec/cosy-server-env-master-1.rockspec \
