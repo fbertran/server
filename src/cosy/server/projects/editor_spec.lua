@@ -43,6 +43,16 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
   Test.environment.use ()
 
   local app, project, route, request, naouna
+  
+  local function wsconnect (headers)
+    for _ = 1, 5 do
+      local client = Websocket.client.sync { timeout = 5 }
+      if client:connect (headers ["Location"], "cosy") then
+        return
+      end
+    end
+    assert (false)
+  end
 
   before_each (function ()
     Test.clean_db ()
@@ -181,8 +191,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
                   method = method,
                 })
                 assert.are.same (status, 302)
-                local client = Websocket.client.sync { timeout = 5 }
-                assert (client:connect (headers ["Location"], "cosy"))
+                wsconnect (headers)
               end)
             end
 
@@ -284,8 +293,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
                   headers = { Authorization = "Bearer " .. token},
                 })
                 assert.are.same (status, 302)
-                local client = Websocket.client.sync { timeout = 5 }
-                assert (client:connect (headers ["Location"], "cosy"))
+                wsconnect (headers)
               end)
             end
 
@@ -386,8 +394,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
                   headers = { Authorization = "Bearer " .. token},
                 })
                 assert.are.same (status, 302)
-                local client = Websocket.client.sync { timeout = 5 }
-                assert (client:connect (headers ["Location"], "cosy"))
+                wsconnect (headers)
               end)
             end
 
@@ -491,8 +498,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 302)
-            local client = Websocket.client.sync { timeout = 5 }
-            assert (client:connect (headers ["Location"], "cosy"))
+            wsconnect (headers)
           end)
         end
 
