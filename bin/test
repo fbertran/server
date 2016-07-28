@@ -4,7 +4,7 @@ set -e
 
 dropdb cosyverif-test
 createdb cosyverif-test
-./install/bin/luarocks make rockspec/cosy-server-env-master-1.rockspec
-./install/bin/luarocks make rockspec/cosy-server-master-1.rockspec
-./install/bin/lapis migrate test
-./install/bin/cosy-check-server "$@"
+"${COSY_PREFIX}/bin/luarocks" make rockspec/cosy-server-env-master-1.rockspec
+"${COSY_PREFIX}/bin/luarocks" make rockspec/cosy-server-master-1.rockspec
+"${COSY_PREFIX}/bin/lapis"    migrate
+"${COSY_PREFIX}/bin/cosy-check-server" "$@"
