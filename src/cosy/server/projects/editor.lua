@@ -4,9 +4,9 @@ local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Token       = require "cosy.server.token"
 local Http        = require "cosy.server.http"
+local Ws          = require "cosy.server.ws"
 local Et          = require "etlua"
 local Mime        = require "mime"
-local _, Wsclient = pcall (require, "resty.websocket.client")
 
 return function (app)
 
@@ -24,6 +24,13 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
+      if self.resource.editor_url then
+        if Ws.test (self.resource.editor_url, "cosy") then
+          return {
+            redirect_to = self.resource.editor_url,
+          }
+        end
+      end
       local url     = "https://cloud.docker.com"
       local api     = url .. "/api/app/v1"
       local headers = {
@@ -31,17 +38,6 @@ return function (app)
         ["Accept"       ] = "application/json",
         ["Content-type" ] = "application/json",
       }
-      if self.resource.editor_url then
-        local client = Wsclient:new ()
-        if client:connect (self.resource.editor_url, {
-          protocols = "echo",
-        }) then
-          client:close ()
-          return {
-            redirect_to = self.resource.editor_url:gsub ("^http", "ws"),
-          }
-        end
-      end
       if self.resource.docker_url then
         local _, status = Http.request {
           url     = self.resource.docker_url,
@@ -108,12 +104,7 @@ return function (app)
       }
       assert (started_status == 202)
       local container
-      repeat -- wait until it started
-        if _G.ngx and _G.ngx.sleep then
-          _G.ngx.sleep (1)
-        else
-          os.execute "sleep 1"
-        end
+      for _ = 1, 10 do
         local result, status = Http.request {
           url     = resource,
           method  = "GET",
@@ -121,14 +112,23 @@ return function (app)
         }
         assert (status == 200)
         container = result.containers and url .. result.containers [1]
-      until result.state:lower () == "running"
+        if result.state:lower () == "running" then
+          break
+        elseif _G.ngx and _G.ngx.sleep then
+          _G.ngx.sleep (1)
+        else
+          os.execute "sleep 1"
+        end
+      end
+      assert (container)
       local info, container_status = Http.request {
         url     = container,
         method  = "GET",
         headers = headers,
       }
       assert (container_status == 200)
-      local endpoint = info.container_ports [1].endpoint_uri
+      local endpoint = info.container_ports [1].endpoint_uri:gsub ("^http", "ws")
+      assert (Ws.test (endpoint, "cosy"))
       Database.query [[BEGIN]]
       self.resource:refresh ("editor_url", "docker_url")
       if self.resource.editor_url then
@@ -139,15 +139,15 @@ return function (app)
           headers = headers,
         }
         assert (deleted_status == 202)
-      else
-        self.resource:update {
-          docker_url = resource,
-          editor_url = endpoint,
-        }
-        assert (Database.query [[COMMIT]])
+        return { status = 409 }
       end
+      self.resource:update {
+        docker_url = resource,
+        editor_url = endpoint,
+      }
+      assert (Database.query [[COMMIT]])
       return {
-        redirect_to = self.resource.editor_url:gsub ("^http", "ws"),
+        redirect_to = self.resource.editor_url,
       }
     end,
     DELETE  = Decorators.exists {}

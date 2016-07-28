@@ -1,7 +1,5 @@
--- local Config    = require "lapis.config".get ()
--- local Et        = require "etlua"
+local Config    = require "lapis.config".get ()
 local Test      = require "cosy.server.test"
--- local Copas     = require "copas"
 local Websocket = require "websocket"
 
 -- FIXME: `lua-websockets` does not ship this file in luarocks,
@@ -43,7 +41,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
   Test.environment.use ()
 
   local app, project, route, request, naouna
-  
+
   local function wsconnect (headers)
     for _ = 1, 5 do
       local client = Websocket.client.sync { timeout = 5 }
@@ -478,6 +476,101 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
       end)
 
       describe ("with project authentication", function ()
+
+        for _, method in ipairs { "HEAD", "OPTIONS" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 204)
+          end)
+        end
+
+        for _, method in ipairs { "GET" } do
+          it ("answers to " .. method, function ()
+            local token = Test.make_token (project)
+            local status, _, headers = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 302)
+            wsconnect (headers)
+          end)
+        end
+
+        for _, method in ipairs { "GET" } do
+          it ("answers to double " .. method, function ()
+            local token = Test.make_token (project)
+            local status, _, headers = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 302)
+            wsconnect (headers)
+            status, _, headers = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 302)
+            wsconnect (headers)
+          end)
+        end
+
+        for _, method in ipairs { "GET" } do
+          it ("answers to double " .. method .. " after timeout", function ()
+            local token = Test.make_token (project)
+            local status, _, headers = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 302)
+            wsconnect (headers)
+            os.execute ("sleep " .. tostring (Config.editor.timeout * 1.5))
+            status, _, headers = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 302)
+            wsconnect (headers)
+          end)
+        end
+
+        for _, method in ipairs { "PATCH", "POST", "PUT" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 405)
+          end)
+        end
+
+        for _, method in ipairs { "DELETE" } do
+          it ("answers to " .. method, function ()
+            local token  = Test.make_token (project)
+            local status = request (app, route, {
+              method  = method,
+              headers = { Authorization = "Bearer " .. token},
+            })
+            assert.are.same (status, 204)
+          end)
+        end
+
+      end)
+
+      describe ("with project authentication and existing editor", function ()
+
+        before_each (function ()
+          local token  = Test.make_token (project)
+          local status = request (app, route, {
+            method  = "GET",
+            headers = { Authorization = "Bearer " .. token},
+          })
+          assert.are.same (status, 302)
+        end)
 
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
