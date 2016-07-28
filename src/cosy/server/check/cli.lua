@@ -1,37 +1,13 @@
+pcall (require, "compat53")
+
 local Arguments = require "argparse"
 local Colors    = require 'ansicolors'
 local Et        = require "etlua"
 local Lfs       = require "lfs"
 local Reporter  = require "luacov.reporter"
-local prefix
-local source
-local rocks = {}
 
-do
-  local path = package.searchpath ("cosy.server.check.cli", package.path)
-  if path:sub (1, 2) == "./" then
-    path = Lfs.currentdir () .. "/" .. path:sub (3)
-  end
-  local parts = {}
-  for part in path:gmatch "[^/]+" do
-    parts [#parts+1] = part
-  end
-  for _ = 1, 3 do
-    parts [#parts] = nil
-  end
-  source = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
-  for _ = 1, 4 do
-    parts [#parts] = nil
-  end
-  prefix = (path:find "^/" and "/" or "") .. table.concat (parts, "/")
-  local rockspath = prefix .. "/lib/luarocks/rocks/"
-  for subpath in Lfs.dir (rockspath) do
-    if subpath:match "^cosy"
-    and Lfs.attributes (rockspath .. subpath, "mode") == "directory" then
-      rocks [#rocks+1] = rockspath .. subpath
-    end
-  end
-end
+local source = "src"
+local prefix = os.getenv "COSY_PREFIX"
 
 local parser = Arguments () {
   name        = "cosy-check-server",
@@ -41,15 +17,10 @@ parser:option "--prefix" {
   description = "install prefix",
   default     = prefix,
 }
-parser:option "--output" {
-  description = "output directory",
-  default     = "output",
-}
 parser:option "--tags" {
   description = "busted tags",
   default     = nil,
 }
-
 
 local arguments = parser:parse ()
 
@@ -63,9 +34,6 @@ end
 
 local status = true
 
-Lfs.mkdir (arguments.output)
-
-
 -- luacheck
 -- ========
 
@@ -75,7 +43,7 @@ do
   ]], {
     prefix = prefix,
     source = source,
-  })) == 0 and status
+  })) and status
 end
 
 -- busted
@@ -95,7 +63,7 @@ do
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
-  })) == 0 and status
+  })) and status
   print ()
 end
 
@@ -212,10 +180,10 @@ do
     ]], {
       prefix = prefix,
     }))
-    if s == 0 then
+    if s then
       print (Colors ("Shellcheck detects %{bright green}no problems%{reset}."))
     end
-    status = s == 0 and status
+    status = s and status
   end
 end
 
