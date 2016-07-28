@@ -154,7 +154,7 @@ cosy_temp=$(realpath "${cosy_temp}")
                                  perl build-essential wget python python-pip \
                                  libc6-dev libssl-dev \
                                  libreadline-dev libncurses5-dev libpcre3-dev \
-                                 npm libc-bin redis-server postgresql shellcheck bats
+                                 npm libc-bin postgresql shellcheck bats
         ;;
       "Darwin")
         HOMEBREW_PREFIX=$(brew config | grep "HOMEBREW_PREFIX" | tr -d ' \t' | cut -d ":" -f 2)
@@ -163,7 +163,7 @@ cosy_temp=$(realpath "${cosy_temp}")
         export LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LD_LIBRARY_PATH}"
         export DYLD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${DYLD_LIBRARY_PATH}"
         brew update
-        brew install openssl pcre python wget npm libcaca postgresql redis shellcheck bats
+        brew install openssl pcre python wget npm libcaca postgresql shellcheck bats
         brew link --force openssl
         ;;
       *)
