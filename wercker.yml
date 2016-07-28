@@ -17,6 +17,7 @@ build:
           apt-get update  --yes
           apt-get install --yes git curl
           ./bin/install --prefix=/usr/local
+          luarocks install compat53
     - script:
         name: "configure"
         code: |
