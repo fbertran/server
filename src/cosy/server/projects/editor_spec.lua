@@ -2,7 +2,41 @@
 -- local Et        = require "etlua"
 local Test      = require "cosy.server.test"
 -- local Copas     = require "copas"
--- local Websocket = require "websocket"
+local Websocket = require "websocket"
+
+-- FIXME: `lua-websockets` does not ship this file in luarocks,
+-- so we add it instead in `package.preload`.
+package.preload ["websocket.client_sync"] = function ()
+  local socket = require "socket"
+  local sync   = require "websocket.sync"
+  local new = function (ws)
+    ws =  ws or {}
+    local result = {}
+    result.sock_connect = function (self, host, port)
+      self.sock = socket.tcp ()
+      if ws.timeout ~= nil then
+        self.sock:settimeout (ws.timeout)
+      end
+      local _, err = self.sock:connect (host,port)
+      if err then
+        self.sock:close ()
+        return nil, err
+      end
+    end
+    result.sock_send = function (self,...)
+      return self.sock:send (...)
+    end
+    result.sock_receive = function (self,...)
+      return self.sock:receive (...)
+    end
+    result.sock_close = function (self)
+      self.sock:close ()
+    end
+    result = sync.extend (result)
+    return result
+  end
+  return new
+end
 
 describe ("route /projects/:project/resources/:resource/editor", function ()
 
@@ -47,6 +81,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
     route = project.. "/resources/" .. result.id .. "/editor"
+  end)
+
+  after_each (function ()
+    local token = Test.make_token (project)
+    pcall (request, app, route, {
+      method  = "DELETE",
+      headers = { ["Authorization"] = "Bearer " .. token },
+    })
   end)
 
   describe ("accessed as", function ()
@@ -124,14 +166,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               assert.are.same (status, 202)
             end)
 
-            after_each (function ()
-              local token = Test.make_token (project)
-              pcall (request, app, route, {
-                method  = "DELETE",
-                headers = { ["Authorization"] = "Bearer " .. token },
-              })
-            end)
-
             for _, method in ipairs { "HEAD", "OPTIONS" } do
               it ("answers to " .. method, function ()
                 local status = request (app, route, {
@@ -143,14 +177,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
             for _, method in ipairs { "GET" } do
               it ("answers to " .. method, function ()
-                local status = request (app, route, {
+                local status, _, headers = request (app, route, {
                   method = method,
                 })
                 assert.are.same (status, 302)
+                local client = Websocket.client.sync { timeout = 5 }
+                assert (client:connect (headers ["Location"], "cosy"))
               end)
             end
-
-            pending "check that websocket correctly works"
 
             for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
@@ -183,14 +217,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               headers = { ["Authorization"] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
-          end)
-
-          after_each (function ()
-            local token = Test.make_token (project)
-            pcall (request, app, route, {
-              method  = "DELETE",
-              headers = { ["Authorization"] = "Bearer " .. token },
-            })
           end)
 
           for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
@@ -239,14 +265,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               assert.are.same (status, 201)
             end)
 
-            after_each (function ()
-              local token = Test.make_token (project)
-              pcall (request, app, route, {
-                method  = "DELETE",
-                headers = { ["Authorization"] = "Bearer " .. token },
-              })
-            end)
-
             for _, method in ipairs { "HEAD", "OPTIONS" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
@@ -261,15 +279,15 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
             for _, method in ipairs { "GET" } do
               it ("answers to " .. method, function ()
                 local token = Test.make_token (Test.identities.naouna)
-                local status, _, _ = request (app, route, {
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
                 assert.are.same (status, 302)
+                local client = Websocket.client.sync { timeout = 5 }
+                assert (client:connect (headers ["Location"], "cosy"))
               end)
             end
-
-            pending "check that websocket correctly works"
 
             for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
@@ -306,14 +324,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               headers = { ["Authorization"] = "Bearer " .. token },
             })
             assert.are.same (status, 201)
-          end)
-
-          after_each (function ()
-            local token = Test.make_token (project)
-            pcall (request, app, route, {
-              method  = "DELETE",
-              headers = { ["Authorization"] = "Bearer " .. token },
-            })
           end)
 
           for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
@@ -357,14 +367,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               assert.are.same (status, 202)
             end)
 
-            after_each (function ()
-              local token = Test.make_token (project)
-              pcall (request, app, route, {
-                method  = "DELETE",
-                headers = { ["Authorization"] = "Bearer " .. token },
-              })
-            end)
-
             for _, method in ipairs { "HEAD", "OPTIONS" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
@@ -378,16 +380,16 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
             for _, method in ipairs { "GET" } do
               it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
+                local token = Test.make_token (Test.identities.naouna)
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
                 assert.are.same (status, 302)
+                local client = Websocket.client.sync { timeout = 5 }
+                assert (client:connect (headers ["Location"], "cosy"))
               end)
             end
-
-            pending "check that websocket correctly works"
 
             for _, method in ipairs { "PATCH", "POST", "PUT" } do
               it ("answers to " .. method, function ()
@@ -425,14 +427,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
               headers = { ["Authorization"] = "Bearer " .. token },
             })
             assert.are.same (status, 202)
-          end)
-
-          after_each (function ()
-            local token = Test.make_token (project)
-            pcall (request, app, route, {
-              method  = "DELETE",
-              headers = { ["Authorization"] = "Bearer " .. token },
-            })
           end)
 
           for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
@@ -491,16 +485,16 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
-            local status = request (app, route, {
+            local token = Test.make_token (project)
+            local status, _, headers = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 302)
+            local client = Websocket.client.sync { timeout = 5 }
+            assert (client:connect (headers ["Location"], "cosy"))
           end)
         end
-
-        pending "check that websocket correctly works"
 
         for _, method in ipairs { "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
