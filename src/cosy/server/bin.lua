@@ -25,6 +25,12 @@ assert (os.execute (Et.render ([[ "<%- prefix %>/bin/lapis" migrate ]], {
 })))
 
 print "Starting server..."
-assert (os.execute (Et.render ([[ LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/lapis" server ]], {
-  prefix = os.getenv "COSY_PREFIX",
-})))
+if os.getenv "LAPIS_OPENRESTY" then
+  assert (os.execute (Et.render ([[ "<%- prefix %>/bin/lapis" server ]], {
+    prefix = os.getenv "COSY_PREFIX",
+  })))
+else
+  assert (os.execute (Et.render ([[ LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/lapis" server ]], {
+    prefix = os.getenv "COSY_PREFIX",
+  })))
+end
