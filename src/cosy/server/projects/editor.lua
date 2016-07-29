@@ -35,11 +35,9 @@ return function (app)
       local api     = url .. "/api/app/v1"
       local headers = {
         ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-        ["Accept"       ] = "application/json",
-        ["Content-type" ] = "application/json",
       }
       if self.resource.docker_url then
-        local _, status = Http.request {
+        local _, status = Http.json {
           url     = self.resource.docker_url,
           method  = "DELETE",
           headers = headers,
@@ -73,7 +71,7 @@ return function (app)
           value = value,
         })
       end
-      local service, service_status = Http.request {
+      local service, service_status = Http.json {
         url     = api .. "/service/",
         method  = "POST",
         headers = headers,
@@ -96,7 +94,7 @@ return function (app)
       assert (service_status == 201)
       -- Start service:
       local resource = url .. service.resource_uri
-      local _, started_status = Http.request {
+      local _, started_status = Http.json {
         url        = resource .. "start/",
         method     = "POST",
         headers    = headers,
@@ -105,7 +103,7 @@ return function (app)
       assert (started_status == 202)
       local container
       for _ = 1, 10 do
-        local result, status = Http.request {
+        local result, status = Http.json {
           url     = resource,
           method  = "GET",
           headers = headers,
@@ -121,7 +119,7 @@ return function (app)
         end
       end
       assert (container)
-      local info, container_status = Http.request {
+      local info, container_status = Http.json {
         url     = container,
         method  = "GET",
         headers = headers,
@@ -133,7 +131,7 @@ return function (app)
       self.resource:refresh ("editor_url", "docker_url")
       if self.resource.editor_url then
         Database.query [[ROLLBACK]]
-        local _, deleted_status = Http.request {
+        local _, deleted_status = Http.json {
           url     = resource,
           method  = "DELETE",
           headers = headers,
@@ -160,10 +158,8 @@ return function (app)
       if self.resource.editor_url then
         local headers = {
           ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-          ["Accept"       ] = "application/json",
-          ["Content-type" ] = "application/json",
         }
-        local _, deleted_status = Http.request {
+        local _, deleted_status = Http.json {
           url     = self.resource.docker_url,
           method  = "DELETE",
           headers = headers,

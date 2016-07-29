@@ -43,6 +43,9 @@ result.projects = Model:extend ("projects", {
     { "resources",
       has_many = "resources",
     },
+    { "executions",
+      has_many = "executions",
+    },
     { "tags",
       has_many = "tags",
     },
@@ -141,11 +144,8 @@ result.aliases = Model:extend ("aliases", {
 result.executions = Model:extend ("executions", {
   timestamp   = true,
   relations   = {
-    { "user",
-      belongs_to = "users",
-    },
-    { "resource",
-      belongs_to = "resources",
+    { "project",
+      belongs_to = "projects",
     },
   },
 })

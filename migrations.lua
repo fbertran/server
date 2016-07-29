@@ -79,7 +79,6 @@ return {
       { "description"  , Schema.types.text { null = true } },
       { "docker_url"   , Schema.types.text { null = true } },
       { "editor_url"   , Schema.types.text { null = true } },
-      { "execution_job", Schema.types.text { null = true } },
       { "data"         , Schema.types.text   },
       { "created_at"   , Schema.types.time   },
       { "updated_at"   , Schema.types.time   },
@@ -102,6 +101,20 @@ return {
       { "created_at" , Schema.types.time   },
       { "updated_at" , Schema.types.time   },
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
+    })
+  end,
+  function ()
+    Schema.create_table ("executions", {
+      { "id"           , Schema.types.serial { primary_key = true } },
+      { "project_id"   , Schema.types.serial },
+      { "resource"     , Schema.types.text   },
+      { "image"        , Schema.types.text   },
+      { "name"         , Schema.types.text { null = true } },
+      { "description"  , Schema.types.text { null = true } },
+      { "docker_url"   , Schema.types.text { null = true } },
+      { "created_at"   , Schema.types.time   },
+      { "updated_at"   , Schema.types.time   },
+      [[ FOREIGN KEY ("project_id" ) REFERENCES "projects"  ("id") ON DELETE CASCADE ]],
     })
   end,
 }

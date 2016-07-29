@@ -20,8 +20,8 @@ return function (app)
     GET     = Decorators.exists {}
            .. function (self)
       if self.authentified and self.authentified.id == self.user.id then
-        local info, status = Http.request {
-          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token.sub),
+        local info, status = Http.json {
+          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token_data.sub),
           headers  = {
             Authorization = "Bearer " .. Config.auth0.api_token,
           },

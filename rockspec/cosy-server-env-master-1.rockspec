@@ -22,6 +22,7 @@ dependencies = {
   "cluacov",
   "copas",
   "etlua",
+  "hashids",
   "lua-websockets",
   "luacheck",
   "luacov",

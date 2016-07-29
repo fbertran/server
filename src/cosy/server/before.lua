@@ -25,7 +25,8 @@ return function (app)
     if not jwt then
       return { status = 401 }
     end
-    self.token = jwt
+    self.token      = token
+    self.token_data = jwt
   end
 
   local function read_json (self)
@@ -44,7 +45,7 @@ return function (app)
       return
     end
     self.identity = Model.identities:find {
-      identifier = self.token.sub
+      identifier = self.token_data.sub
     }
     if self.identity then
       if self.identity.type == "user" then
@@ -56,7 +57,7 @@ return function (app)
       -- automatically create user account
       local info
       if  Config._name == "test"
-      and self.token.sub:match "^([%w-_]+)|(.*)$"
+      and self.token_data.sub:match "^([%w-_]+)|(.*)$"
       and not self.req.headers ["Force"] then
         info = {
           email    = nil,
@@ -66,8 +67,8 @@ return function (app)
         }
       else
         local status
-        info, status = Http.request {
-          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token.sub),
+        info, status = Http.json {
+          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token_data.sub),
           headers  = {
             Authorization = "Bearer " .. Config.auth0.api_token,
           },
@@ -77,7 +78,7 @@ return function (app)
         end
       end
       self.identity = Model.identities:create {
-        identifier = self.token.sub,
+        identifier = self.token_data.sub,
         type       = "user",
       }
       self.authentified = Model.users:create {
@@ -123,6 +124,16 @@ return function (app)
         return { status = 400 }
       end
       self.resource = Model.resources:find {
+        id         = id,
+        project_id = self.project and self.project.id or nil,
+      } or false
+    end
+    if self.params.execution then
+      local id = Util.unescape (self.params.execution)
+      if not tonumber (id) then
+        return { status = 400 }
+      end
+      self.execution = Model.executions:find {
         id         = id,
         project_id = self.project and self.project.id or nil,
       } or false
