@@ -98,24 +98,23 @@ return function (app)
           }
         }
       end
-      local is_started
-      for _ = 1, 10 do
-        local running, running_status = Http.json {
-          url     = execution_url,
-          method  = "GET",
-          headers = headers,
-        }
-        assert (running_status == 200)
-        if running.state:lower () ~= "starting" then
-          is_started = true
-          break
-        elseif _G.ngx and _G.ngx.sleep then
-          _G.ngx.sleep (1)
-        else
-          os.execute "sleep 1"
-        end
+      do
+        local running, running_status
+        repeat
+          if _G.ngx and _G.ngx.sleep then
+            _G.ngx.sleep (1)
+          else
+            os.execute "sleep 1"
+          end
+          running, running_status = Http.json {
+            url     = execution_url,
+            method  = "GET",
+            headers = headers,
+          }
+          assert (running_status == 200)
+        until running.state:lower () ~= "starting"
+        assert (running.state:lower () == "running")
       end
-      assert (is_started)
       local execution = Model.executions:create {
         project_id  = self.project.id,
         resource    = self.json.resource,

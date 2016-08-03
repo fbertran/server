@@ -102,23 +102,25 @@ return function (app)
       }
       assert (started_status == 202)
       local container
-      for _ = 1, 10 do
-        local result, status = Http.json {
-          url     = resource,
-          method  = "GET",
-          headers = headers,
-        }
-        assert (status == 200)
-        container = result.containers and url .. result.containers [1]
-        if result.state:lower () == "running" then
-          break
-        elseif _G.ngx and _G.ngx.sleep then
-          _G.ngx.sleep (1)
-        else
-          os.execute "sleep 1"
-        end
+      do
+        local result, status
+        repeat
+          if _G.ngx and _G.ngx.sleep then
+            _G.ngx.sleep (1)
+          else
+            os.execute "sleep 1"
+          end
+          result, status = Http.json {
+            url     = resource,
+            method  = "GET",
+            headers = headers,
+          }
+          assert (status == 200)
+          container = result.containers and url .. result.containers [1]
+        until result.state:lower () ~= "starting"
+        assert (container)
+        assert (result.state:lower () == "running")
       end
-      assert (container)
       local info, container_status = Http.json {
         url     = container,
         method  = "GET",

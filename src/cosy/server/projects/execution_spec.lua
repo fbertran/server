@@ -93,20 +93,24 @@ describe ("#current route /projects/:project/executions/", function ()
     }
     assert (started_status == 202)
     local services
-    repeat -- wait until it started
-      if _G.ngx and _G.ngx.sleep then
-        _G.ngx.sleep (1)
-      else
-        os.execute "sleep 1"
-      end
-      local result, status = Http.json {
-        url     = resource,
-        method  = "GET",
-        headers = headers,
-      }
-      assert (status == 200)
-      services = result.services
-    until result.state:lower () == "running"
+    do
+      local result, status
+      repeat -- wait until it started
+        if _G.ngx and _G.ngx.sleep then
+          _G.ngx.sleep (1)
+        else
+          os.execute "sleep 1"
+        end
+        result, status = Http.json {
+          url     = resource,
+          method  = "GET",
+          headers = headers,
+        }
+        assert (status == 200)
+        services = result.services
+      until result.state:lower () ~= "starting"
+      assert (result.state:lower () == "running")
+    end
     for _, path in ipairs (services) do
       local service, service_status = Http.json {
         url     = url .. path,
@@ -204,7 +208,7 @@ describe ("#current route /projects/:project/executions/", function ()
         Authorization = "Bearer " .. token,
       },
       json    = {
-        image    = "cogniteev/echo",
+        image    = "sylvainlasnier/echo",
         resource = resource_url,
       },
     })
@@ -314,7 +318,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE" } do
+            for _, method in ipairs { "DELETE", "PATCH" } do
               it ("answers to " .. method, function ()
                 local status = request (app, route, {
                   method = method,
@@ -323,7 +327,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "PATCH", "POST", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local status = request (app, route, {
                   method = method,
@@ -356,7 +360,7 @@ describe ("#current route /projects/:project/executions/", function ()
             end)
           end
 
-          for _, method in ipairs { "DELETE" } do
+          for _, method in ipairs { "DELETE", "PATCH" } do
             it ("answers to " .. method, function ()
               local status = request (app, route, {
                 method = method,
@@ -365,7 +369,7 @@ describe ("#current route /projects/:project/executions/", function ()
             end)
           end
 
-          for _, method in ipairs { "PATCH", "POST", "PUT" } do
+          for _, method in ipairs { "POST", "PUT" } do
             it ("answers to " .. method, function ()
               local status = request (app, route, {
                 method = method,
@@ -415,7 +419,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE" } do
+            for _, method in ipairs { "DELETE", "PATCH" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -426,7 +430,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "PATCH", "POST", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -475,7 +479,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE" } do
+            for _, method in ipairs { "DELETE", "PATCH" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -486,7 +490,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "PATCH", "POST", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -513,7 +517,7 @@ describe ("#current route /projects/:project/executions/", function ()
               assert.are.same (status, 201)
             end)
 
-            for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS" } do
+            for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -524,7 +528,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "PATCH", "POST", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -576,7 +580,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE" } do
+            for _, method in ipairs { "DELETE", "PATCH" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -587,7 +591,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "PATCH", "POST", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -637,7 +641,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE" } do
+            for _, method in ipairs { "DELETE", "PATCH" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -648,7 +652,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "PATCH", "POST", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -676,7 +680,7 @@ describe ("#current route /projects/:project/executions/", function ()
               assert.are.same (status, 202)
             end)
 
-            for _, method in ipairs { "HEAD", "GET", "OPTIONS", "POST" } do
+            for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -687,7 +691,7 @@ describe ("#current route /projects/:project/executions/", function ()
               end)
             end
 
-            for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
+            for _, method in ipairs { "POST", "PUT" } do
               it ("answers to " .. method, function ()
                 local token  = Test.make_token (Test.identities.naouna)
                 local status = request (app, route, {
@@ -743,7 +747,7 @@ describe ("#current route /projects/:project/executions/", function ()
           end)
         end
 
-        for _, method in ipairs { "DELETE" } do
+        for _, method in ipairs { "DELETE", "PATCH" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (project)
             local status = request (app, route, {
@@ -754,7 +758,7 @@ describe ("#current route /projects/:project/executions/", function ()
           end)
         end
 
-        for _, method in ipairs { "PATCH", "POST", "PUT" } do
+        for _, method in ipairs { "POST", "PUT" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (project)
             local status = request (app, route, {

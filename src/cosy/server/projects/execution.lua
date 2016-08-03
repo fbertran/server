@@ -38,7 +38,7 @@ return function (app)
           }, { timestamp = false })
         else
           assert (status == 200)
-          if  result.state:lower () == "exited" then
+          if result.state:lower () == "exited" then
             self.execution:update ({
               docker_url = Database.NULL,
             }, { timestamp = false })
@@ -50,6 +50,15 @@ return function (app)
         json   = self.execution,
       }
     end,
+    PATCH   = Decorators.exists {}
+           .. Decorators.can_write
+           .. function (self)
+      self.execution:update {
+        name        = self.params.name,
+        description = self.params.description,
+      }
+      return { status = 204 }
+    end,
     DELETE  = Decorators.exists {}
            .. Decorators.can_write
            .. function (self)
@@ -59,20 +68,19 @@ return function (app)
           ["Accept"       ] = "application/json",
           ["Content-type" ] = "application/json",
         }
-        local result, deleted_status = Http.json {
-          url     = self.execution.docker_url,
-          method  = "DELETE",
-          headers = headers,
+        repeat
+          local _, deleted_status = Http.json {
+            url     = self.execution.docker_url,
+            method  = "DELETE",
+            headers = headers,
+          }
+        until deleted_status == 202 or deleted_status == 404
+        self.execution:update {
+          docker_url = Database.NULL,
         }
-        local Json = require "cjson"
-        assert (deleted_status == 202, Json.encode (result))
       end
       self.execution:delete ()
       return { status = 204 }
-    end,
-    PATCH   = Decorators.exists {}
-           .. function ()
-      return { status = 405 }
     end,
     POST    = Decorators.exists {}
            .. function ()
