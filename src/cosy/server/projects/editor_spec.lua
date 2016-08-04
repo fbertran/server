@@ -93,7 +93,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
   after_each (function ()
     local token = Test.make_token (project)
-    pcall (request, app, route, {
+    request (app, route, {
       method  = "DELETE",
       headers = { ["Authorization"] = "Bearer " .. token },
     })

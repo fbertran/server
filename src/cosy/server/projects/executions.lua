@@ -100,19 +100,20 @@ return function (app)
       end
       do
         local running, running_status
-        repeat
-          if _G.ngx and _G.ngx.sleep then
-            _G.ngx.sleep (1)
-          else
-            os.execute "sleep 1"
-          end
+        while true do
           running, running_status = Http.json {
             url     = execution_url,
             method  = "GET",
             headers = headers,
           }
-          assert (running_status == 200)
-        until running.state:lower () ~= "starting"
+          if running_status == 200 and running.state:lower () ~= "starting" then
+            break
+          elseif _G.ngx and _G.ngx.sleep then
+            _G.ngx.sleep (1)
+          else
+            os.execute "sleep 1"
+          end
+        end
         assert (running.state:lower () == "running")
       end
       local execution = Model.executions:create {

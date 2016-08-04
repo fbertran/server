@@ -26,7 +26,7 @@ do
   file:close ()
 end
 
-describe ("#current route /projects/:project/executions/", function ()
+describe ("route /projects/:project/executions/", function ()
 
   Test.environment.use ()
 
@@ -95,20 +95,19 @@ describe ("#current route /projects/:project/executions/", function ()
     local services
     do
       local result, status
-      repeat -- wait until it started
-        if _G.ngx and _G.ngx.sleep then
-          _G.ngx.sleep (1)
-        else
-          os.execute "sleep 1"
-        end
+      while true do
         result, status = Http.json {
           url     = resource,
           method  = "GET",
           headers = headers,
         }
-        assert (status == 200)
-        services = result.services
-      until result.state:lower () ~= "starting"
+        if status == 200 and result.state:lower () ~= "starting" then
+          services = result.services
+          break
+        else
+          os.execute "sleep 1"
+        end
+      end
       assert (result.state:lower () == "running")
     end
     for _, path in ipairs (services) do
@@ -142,12 +141,18 @@ describe ("#current route /projects/:project/executions/", function ()
   end)
 
   teardown (function ()
-    local _, deleted_status = Http.json {
-      url     = docker_url,
-      method  = "DELETE",
-      headers = headers,
-    }
-    assert (deleted_status == 202, deleted_status)
+    while true do
+      local _, deleted_status = Http.json {
+        url     = docker_url,
+        method  = "DELETE",
+        headers = headers,
+      }
+      if deleted_status == 200 or deleted_status == 404 then
+        break
+      else
+        os.execute "sleep 1"
+      end
+    end
   end)
 
   local app, project, project_url, resource_url, route, request, naouna

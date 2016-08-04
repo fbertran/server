@@ -65,16 +65,21 @@ return function (app)
       if self.execution.docker_url then
         local headers = {
           ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-          ["Accept"       ] = "application/json",
-          ["Content-type" ] = "application/json",
         }
-        repeat
+        while true do
           local _, deleted_status = Http.json {
             url     = self.execution.docker_url,
             method  = "DELETE",
             headers = headers,
           }
-        until deleted_status == 202 or deleted_status == 404
+          if deleted_status == 202 or deleted_status == 404 then
+            break
+          elseif _G.ngx and _G.ngx.sleep then
+            _G.ngx.sleep (1)
+          else
+            os.execute "sleep 1"
+          end
+        end
         self.execution:update {
           docker_url = Database.NULL,
         }

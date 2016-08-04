@@ -10,6 +10,26 @@ local Mime        = require "mime"
 
 return function (app)
 
+  local function delete (docker_url)
+    local headers = {
+      ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
+    }
+    while true do
+      local _, deleted_status = Http.json {
+        url     = docker_url,
+        method  = "DELETE",
+        headers = headers,
+      }
+      if deleted_status == 202 or deleted_status == 404 then
+        break
+      elseif _G.ngx and _G.ngx.sleep then
+        _G.ngx.sleep (1)
+      else
+        os.execute "sleep 1"
+      end
+    end
+  end
+
   app:match ("/projects/:project/resources/:resource/editor", respond_to {
     HEAD    = Decorators.exists {}
            .. Decorators.can_read
@@ -37,12 +57,7 @@ return function (app)
         ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
       }
       if self.resource.docker_url then
-        local _, status = Http.json {
-          url     = self.resource.docker_url,
-          method  = "DELETE",
-          headers = headers,
-        }
-        assert (status == 202)
+        delete (self.resource.docker_url)
         self.resource:update ({
           editor_url = Database.NULL,
           docker_url = Database.NULL,
@@ -104,20 +119,21 @@ return function (app)
       local container
       do
         local result, status
-        repeat
-          if _G.ngx and _G.ngx.sleep then
-            _G.ngx.sleep (1)
-          else
-            os.execute "sleep 1"
-          end
+        while true do
           result, status = Http.json {
             url     = resource,
             method  = "GET",
             headers = headers,
           }
-          assert (status == 200)
-          container = result.containers and url .. result.containers [1]
-        until result.state:lower () ~= "starting"
+          if status == 200 and result.state:lower () ~= "starting" then
+            container = result.containers and url .. result.containers [1]
+            break
+          elseif _G.ngx and _G.ngx.sleep then
+            _G.ngx.sleep (1)
+          else
+            os.execute "sleep 1"
+          end
+        end
         assert (container)
         assert (result.state:lower () == "running")
       end
@@ -128,17 +144,26 @@ return function (app)
       }
       assert (container_status == 200)
       local endpoint = info.container_ports [1].endpoint_uri:gsub ("^http", "ws")
-      assert (Ws.test (endpoint, "cosy"))
+      local i = 0
+      while true do
+        i = i+1
+        local connected = Ws.test (endpoint, "cosy")
+        if connected then
+          break
+        elseif i >= 10 then
+          delete (resource)
+          return { status = 409 }
+        elseif _G.ngx and _G.ngx.sleep then
+          _G.ngx.sleep (1)
+        else
+          os.execute "sleep 1"
+        end
+      end
       Database.query [[BEGIN]]
       self.resource:refresh ("editor_url", "docker_url")
       if self.resource.editor_url then
         Database.query [[ROLLBACK]]
-        local _, deleted_status = Http.json {
-          url     = resource,
-          method  = "DELETE",
-          headers = headers,
-        }
-        assert (deleted_status == 202)
+        delete (resource)
         return { status = 409 }
       end
       self.resource:update {
@@ -158,15 +183,7 @@ return function (app)
         return { status = 403 }
       end
       if self.resource.editor_url then
-        local headers = {
-          ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-        }
-        local _, deleted_status = Http.json {
-          url     = self.resource.docker_url,
-          method  = "DELETE",
-          headers = headers,
-        }
-        assert (deleted_status == 202)
+        delete (self.resource.docker_url)
         self.resource:update ({
           editor_url = Database.NULL,
           docker_url = Database.NULL,
