@@ -4,6 +4,7 @@ local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
 local Http        = require "cosy.server.http"
 local Token       = require "cosy.server.token"
+local Docker      = require "cosy.server.docker"
 local Et          = require "etlua"
 local Mime        = require "mime"
 
@@ -75,28 +76,19 @@ return function (app)
         },
       }
       if service_status ~= 201 then
-        return {
-          status = status,
-          json   = {
-            reason = service,
-          }
-        }
+        return { status = 503 }
       end
       -- Start service:
       local execution_url = url .. service.resource_uri
-      local started, started_status = Http.json {
+      local _, started_status = Http.json {
         url        = execution_url .. "start/",
         method     = "POST",
         headers    = headers,
         timeout    = 5, -- seconds
       }
       if started_status ~= 202 then
-        return {
-          status = status,
-          json   = {
-            reason = started,
-          }
-        }
+        Docker.delete (execution_url)
+        return { status = 503 }
       end
       do
         local running, running_status
@@ -114,7 +106,10 @@ return function (app)
             os.execute "sleep 1"
           end
         end
-        assert (running.state:lower () == "running")
+        if running.state:lower () ~= "running" then
+          Docker.delete (execution_url)
+          return { status = 503 }
+        end
       end
       local execution = Model.executions:create {
         project_id  = self.project.id,

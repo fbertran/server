@@ -5,30 +5,11 @@ local Decorators  = require "cosy.server.decorators"
 local Token       = require "cosy.server.token"
 local Http        = require "cosy.server.http"
 local Ws          = require "cosy.server.ws"
+local Docker      = require "cosy.server.docker"
 local Et          = require "etlua"
 local Mime        = require "mime"
 
 return function (app)
-
-  local function delete (docker_url)
-    local headers = {
-      ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-    }
-    while true do
-      local _, deleted_status = Http.json {
-        url     = docker_url,
-        method  = "DELETE",
-        headers = headers,
-      }
-      if deleted_status == 202 or deleted_status == 404 then
-        break
-      elseif _G.ngx and _G.ngx.sleep then
-        _G.ngx.sleep (1)
-      else
-        os.execute "sleep 1"
-      end
-    end
-  end
 
   app:match ("/projects/:project/resources/:resource/editor", respond_to {
     HEAD    = Decorators.exists {}
@@ -46,9 +27,7 @@ return function (app)
            .. function (self)
       if self.resource.editor_url then
         if Ws.test (self.resource.editor_url, "cosy") then
-          return {
-            redirect_to = self.resource.editor_url,
-          }
+          return { redirect_to = self.resource.editor_url }
         end
       end
       local url     = "https://cloud.docker.com"
@@ -57,7 +36,7 @@ return function (app)
         ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
       }
       if self.resource.docker_url then
-        delete (self.resource.docker_url)
+        Docker.delete (self.resource.docker_url)
         self.resource:update ({
           editor_url = Database.NULL,
           docker_url = Database.NULL,
@@ -106,7 +85,9 @@ return function (app)
           },
         },
       }
-      assert (service_status == 201)
+      if service_status ~= 201 then
+        return { status = 503 }
+      end
       -- Start service:
       local resource = url .. service.resource_uri
       local _, started_status = Http.json {
@@ -115,7 +96,10 @@ return function (app)
         headers    = headers,
         timeout    = 5, -- seconds
       }
-      assert (started_status == 202)
+      if started_status ~= 202 then
+        Docker.delete (resource)
+        return { status = 503 }
+      end
       local container
       do
         local result, status
@@ -134,15 +118,20 @@ return function (app)
             os.execute "sleep 1"
           end
         end
-        assert (container)
-        assert (result.state:lower () == "running")
+        if not container or result.state:lower () ~= "running" then
+          Docker.delete (resource)
+          return { status = 503 }
+        end
       end
       local info, container_status = Http.json {
         url     = container,
         method  = "GET",
         headers = headers,
       }
-      assert (container_status == 200)
+      if container_status ~= 200 then
+        Docker.delete (resource)
+        return { status = 503 }
+      end
       local endpoint = info.container_ports [1].endpoint_uri:gsub ("^http", "ws")
       local i = 0
       while true do
@@ -151,29 +140,35 @@ return function (app)
         if connected then
           break
         elseif i >= 10 then
-          delete (resource)
-          return { status = 409 }
+          Docker.delete (resource)
+          return { status = 503 }
         elseif _G.ngx and _G.ngx.sleep then
           _G.ngx.sleep (1)
         else
           os.execute "sleep 1"
         end
       end
-      Database.query [[BEGIN]]
-      self.resource:refresh ("editor_url", "docker_url")
-      if self.resource.editor_url then
-        Database.query [[ROLLBACK]]
-        delete (resource)
-        return { status = 409 }
+      while true do
+        Database.query [[BEGIN]]
+        self.resource:refresh ("editor_url", "docker_url")
+        if self.resource.editor_url then
+          Database.query [[ROLLBACK]]
+          Docker.delete (resource)
+          if Ws.test (self.resource.editor_url, "cosy") then
+            return { redirect_to = self.resource.editor_url }
+          else
+            return { status = 409 }
+          end
+        end
+        self.resource:update {
+          docker_url = resource,
+          editor_url = endpoint,
+        }
+        if Database.query [[COMMIT]] then
+          break
+        end
       end
-      self.resource:update {
-        docker_url = resource,
-        editor_url = endpoint,
-      }
-      assert (Database.query [[COMMIT]])
-      return {
-        redirect_to = self.resource.editor_url,
-      }
+      return { redirect_to = self.resource.editor_url }
     end,
     DELETE  = Decorators.exists {}
            .. Decorators.is_authentified
@@ -183,7 +178,7 @@ return function (app)
         return { status = 403 }
       end
       if self.resource.editor_url then
-        delete (self.resource.docker_url)
+        Docker.delete (self.resource.docker_url)
         self.resource:update ({
           editor_url = Database.NULL,
           docker_url = Database.NULL,

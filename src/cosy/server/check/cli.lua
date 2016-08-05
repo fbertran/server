@@ -53,13 +53,13 @@ do
     rm -f luacov.*
   ]]
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/busted" --lazy --verbose "<%- tags %>" src/
+    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/busted" --output=TAP --lazy --verbose "<%- tags %>" src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%- prefix %>/bin/busted" --lazy --verbose --coverage "<%- tags %>" src/
+    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%- prefix %>/bin/busted" --output=TAP --lazy --verbose --coverage "<%- tags %>" src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,

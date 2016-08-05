@@ -3,6 +3,7 @@ local Database    = require "lapis.db"
 local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
 local Http        = require "cosy.server.http"
+local Docker      = require "cosy.server.docker"
 local Mime        = require "mime"
 
 return function (app)
@@ -32,12 +33,14 @@ return function (app)
           method  = "GET",
           headers = headers,
         }
+        if status ~= 200 and status ~= 404 then
+          return { status = 503 }
+        end
         if status == 404 then
           self.execution:update ({
             docker_url = Database.NULL,
           }, { timestamp = false })
-        else
-          assert (status == 200)
+        elseif status == 200 then
           if result.state:lower () == "exited" then
             self.execution:update ({
               docker_url = Database.NULL,
@@ -63,23 +66,7 @@ return function (app)
            .. Decorators.can_write
            .. function (self)
       if self.execution.docker_url then
-        local headers = {
-          ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-        }
-        while true do
-          local _, deleted_status = Http.json {
-            url     = self.execution.docker_url,
-            method  = "DELETE",
-            headers = headers,
-          }
-          if deleted_status == 202 or deleted_status == 404 then
-            break
-          elseif _G.ngx and _G.ngx.sleep then
-            _G.ngx.sleep (1)
-          else
-            os.execute "sleep 1"
-          end
-        end
+        Docker.delete (self.execution.docker_url)
         self.execution:update {
           docker_url = Database.NULL,
         }

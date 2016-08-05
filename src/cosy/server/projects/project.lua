@@ -1,5 +1,6 @@
 local respond_to  = require "lapis.application".respond_to
 local Decorators  = require "cosy.server.decorators"
+local Docker      = require "cosy.server.docker"
 
 return function (app)
 
@@ -38,6 +39,16 @@ return function (app)
     DELETE  = Decorators.exists {}
            .. Decorators.can_admin
            .. function (self)
+      for _, resource in ipairs (self.project:get_resources ()) do
+        if resource.docker_url then
+          Docker.delete (resource.docker_url)
+        end
+      end
+      for _, execution in ipairs (self.project:get_executions ()) do
+        if execution.docker_url then
+          Docker.delete (execution.docker_url)
+        end
+      end
       self.project:get_identity():delete ()
       return {
         status = 204,

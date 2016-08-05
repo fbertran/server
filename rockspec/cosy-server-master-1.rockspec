@@ -31,6 +31,7 @@ build = {
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
     ["cosy.server.alias"               ] = "src/cosy/server/alias.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
+    ["cosy.server.docker"              ] = "src/cosy/server/docker.lua",
     ["cosy.server.http"                ] = "src/cosy/server/http.lua",
     ["cosy.server.ws"                  ] = "src/cosy/server/ws.lua",
     ["cosy.server.quote"               ] = "src/cosy/server/quote.lua",
