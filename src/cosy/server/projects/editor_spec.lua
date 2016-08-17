@@ -36,7 +36,7 @@ package.preload ["websocket.client_sync"] = function ()
   return new
 end
 
-describe ("route /projects/:project/resources/:resource/editor", function ()
+describe ("route /projects/:project/resources/:resource/editor #long", function ()
 
   Test.environment.use ()
 

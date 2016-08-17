@@ -28,9 +28,14 @@ if os.getenv "RUN_COVERAGE" then
           options.headers ["Content-length"] = #options.body
         end
         options.allow_error = true
-        local status, body, headers = mock_request (app, url, options)
-        body = type (body) == "string" and body ~= "" and Util.from_json (body)
-        return status, body, headers
+        for _ = 1, 5 do
+          local status, body, headers = mock_request (app, url, options)
+          body = type (body) == "string" and body ~= "" and Util.from_json (body)
+          if status ~= 503 then
+            return status, body, headers
+          end
+        end
+        return 503
       end
     end,
     server = function ()
@@ -57,9 +62,14 @@ else
           options.headers ["Content-type"  ] = "application/json"
           options.headers ["Content-length"] = #options.post
         end
-        local status, body, headers = Server.request (url, options)
-        body = type (body) == "string" and body ~= "" and Util.from_json (body)
-        return status, body, headers
+        for _ = 1, 5 do
+          local status, body, headers = Server.request (url, options)
+          if status ~= 503 then
+            body = type (body) == "string" and body ~= "" and Util.from_json (body)
+            return status, body, headers
+          end
+        end
+        return 503
       end
     end,
     server = function ()

@@ -15,12 +15,8 @@ if _G.ngx then
     options.headers ["Content-type"] = options.body and "application/json"
     options.headers ["Accept"      ] = "application/json"
     local client = Http.new ()
-    client:set_timeout ((options.timeout or 2) * 1000) -- milliseconds
-    local result, err = client:request_uri (options.url, options)
-    if not result then
-      print (options.url)
-      assert (false, err)
-    end
+    client:set_timeout ((options.timeout or 5) * 1000) -- milliseconds
+    local result = assert (client:request_uri (options.url, options))
     -- client:set_keepalive ()
     result.body = result.body
               and result.body ~= ""

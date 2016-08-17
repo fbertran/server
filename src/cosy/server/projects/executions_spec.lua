@@ -26,7 +26,7 @@ do
   file:close ()
 end
 
-describe ("route /projects/:project/executions/", function ()
+describe ("route /projects/:project/executions/ #long", function ()
 
   Test.environment.use ()
 
@@ -132,7 +132,18 @@ describe ("route /projects/:project/executions/", function ()
               endpoint = endpoint:sub (1, #endpoint-1)
             end
             server_url = endpoint
-            return
+            for _ = 1, 5 do
+              local _, status = Http.json {
+                url     = server_url,
+                method  = "GET",
+              }
+              if status == 200 then
+                return
+              else
+                os.execute "sleep 1"
+              end
+            end
+            assert (false)
           end
         end
       end
@@ -147,7 +158,7 @@ describe ("route /projects/:project/executions/", function ()
         method  = "DELETE",
         headers = headers,
       }
-      if deleted_status == 200 or deleted_status == 404 then
+      if deleted_status == 202 or deleted_status == 404 then
         break
       else
         os.execute "sleep 1"
@@ -853,7 +864,7 @@ describe ("route /projects/:project/executions/", function ()
                 resource = resource_url,
               },
             })
-            assert.are.same (status, 404)
+            assert.are.same (status, 403)
           end)
         end
 
