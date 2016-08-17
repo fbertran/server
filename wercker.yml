@@ -20,16 +20,9 @@ build:
         code: |
           lapis migrate test
     - script:
-        name: "run"
+        name: "check and test"
         code: |
-          cosy-server &
-          sleep 5
-          curl -v http://localhost:8080/
-          curl -v http://localhost:8080/aliases/unknown
-    # - script:
-    #     name: "check and test"
-    #     code: |
-    #       cosy-check-server
+          cosy-check-server
   after-steps:
     - script:
         name: "export to coveralls"
