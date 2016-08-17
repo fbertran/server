@@ -45,7 +45,6 @@ app:match ("/", respond_to {
           domain    = Config.auth0.domain,
           client_id = Config.auth0.client_id,
         },
-        configuration = Config,
       }
     }
   end,
