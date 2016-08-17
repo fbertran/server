@@ -36,6 +36,8 @@ local common = {
 }
 
 local Json = require "cjson"
-print (Json.encode (common))
+local file = assert (io.open (os.getenv "HOME" .. "/config.dump", "w"))
+file:write (Json.encode (common))
+file:close ()
 
 Config ({ "test", "development", "production" }, common)

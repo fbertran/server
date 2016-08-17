@@ -22,9 +22,11 @@ build:
     - script:
         name: "run"
         code: |
+          rm -f "${HOME}/config.dump"
           cosy-server &
           sleep 5
           curl -v http://localhost:8080/aliases/unknown
+          cat "${HOME}/config.dump"
     # - script:
     #     name: "check and test"
     #     code: |
