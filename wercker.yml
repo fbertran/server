@@ -10,7 +10,6 @@ build:
     - script:
         name: "install"
         code: |
-          luarocks install compat53
           luarocks install luasec OPENSSL_LIBDIR="/usr/lib/x86_64-linux-gnu/"
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
