@@ -28,6 +28,7 @@ build = {
   type    = "builtin",
   modules = {
     ["config"                          ] = "config.lua",
+    ["migrations"                      ] = "migrations.lua",
     ["models"                          ] = "models.lua",
     ["cosy.server.check.cli"           ] = "src/cosy/server/check/cli.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
