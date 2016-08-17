@@ -15,11 +15,6 @@ build:
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
           luarocks install lua-cjson-ol
-          cp config.lua      /opt/openresty/nginx/conf/config.lua
-          cp migrations.lua  /opt/openresty/nginx/conf/migrations.lua
-          cp models.lua      /opt/openresty/nginx/conf/models.lua
-          cp mime.types      /opt/openresty/nginx/conf/mime.types
-          cp nginx.conf      /opt/openresty/nginx/conf/nginx.conf
     - script:
         name: "configure"
         code: |
