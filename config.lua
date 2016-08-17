@@ -35,8 +35,7 @@ local common = {
   },
 }
 
-if _G.ngx and os.getenv "DATABASE_PORT" then
-  common.postgres.host = os.getenv "DATABASE_PORT":match "tcp://([^:]*)"
-end
+local Json = require "cjson"
+print (Json.encode (common))
 
 Config ({ "test", "development", "production" }, common)
