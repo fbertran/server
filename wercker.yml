@@ -1,8 +1,4 @@
-box: debian:testing
-entrypoint:
-  - /bin/bash
-  - -c
-cmd:
+box: cosyverif/lapis-forwercker
 services:
   - id: postgres
     env:
@@ -12,12 +8,13 @@ services:
 build:
   steps:
     - script:
-        name: "install environment"
+        name: "install"
         code: |
-          apt-get update  --yes
-          apt-get install --yes git curl
-          ./bin/install --prefix=/usr/local
           luarocks install compat53
+          luarocks install luasec OPENSSL_LIBDIR="/usr/lib/x86_64-linux-gnu/"
+          luarocks make rockspec/cosy-server-env-master-1.rockspec
+          luarocks make rockspec/cosy-server-master-1.rockspec
+          luarocks install lua-cjson-ol
     - script:
         name: "configure"
         code: |

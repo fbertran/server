@@ -1,5 +1,3 @@
-pcall (require, "compat53")
-
 local Arguments = require "argparse"
 local Colors    = require 'ansicolors'
 local Et        = require "etlua"
@@ -39,7 +37,7 @@ local status = true
 
 do
   status = os.execute (Et.render ([[
-    "<%- prefix %>/bin/luacheck" --std max --std +busted "<%- source %>"
+    "<%- prefix %>/bin/luacheck" "<%- source %>"
   ]], {
     prefix = prefix,
     source = source,
@@ -53,13 +51,13 @@ do
     rm -f luacov.*
   ]]
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/busted" --output=TAP --lazy --verbose "<%- tags %>" src/
+    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" "<%- prefix %>/bin/busted" --exclude-tags=long --no-coverage "<%- tags %>" src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
   })) == 0 and status
   status = os.execute (Et.render ([[
-    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%- prefix %>/bin/busted" --output=TAP --lazy --verbose --coverage "<%- tags %>" src/
+    LAPIS_OPENRESTY="<%- prefix %>/nginx/sbin/nginx" RUN_COVERAGE=true "<%- prefix %>/bin/busted" --exclude-tags=long "<%- tags %>" src/
   ]], {
     prefix = prefix,
     tags   = arguments.tags and "--tags=" .. arguments.tags,
