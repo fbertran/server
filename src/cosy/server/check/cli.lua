@@ -163,26 +163,4 @@ end
 
 print ()
 
--- shellcheck
--- ==========
-
-do
-  -- We know that we are in developper mode. Thus, there is a link to the user
-  -- sources of cosy library.
-  if os.execute "command -v shellcheck > /dev/null 2>&1" == 0 then
-    local s = os.execute (Et.render ([[
-      if [ -d bin ]; then
-        . "<%- prefix %>/bin/realpath.sh"
-        shellcheck $(realpath bin/*)
-      fi
-    ]], {
-      prefix = prefix,
-    }))
-    if s then
-      print (Colors ("Shellcheck detects %{bright green}no problems%{reset}."))
-    end
-    status = s and status
-  end
-end
-
 os.exit (status and 0 or 1)
