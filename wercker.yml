@@ -23,20 +23,6 @@ build:
         name: "check and test"
         code: |
           cosy-check-server
-  after-steps:
-    - script:
-        name: "export to coveralls"
-        code: |
-          branch=$(git rev-parse --abbrev-ref HEAD)
-          luacov-coveralls \
-            --repo-token "${COVERALLS_TOKEN}" \
-            --exclude share --exclude busted --exclude _spec \
-            --include cosy \
-            --root src/ \
-            --service-name "${branch}"
-
-deploy:
-  luarocks:
     - script:
         name: "upload to luarocks"
         code: |
@@ -51,3 +37,14 @@ deploy:
             --api-key="${LUAROCKS_TOKEN}" \
             "${name}"-"${tag}"-"${count}".rockspec
           cd ..
+  after-steps:
+    - script:
+        name: "export to coveralls"
+        code: |
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          luacov-coveralls \
+            --repo-token "${COVERALLS_TOKEN}" \
+            --exclude share --exclude busted --exclude _spec \
+            --include cosy \
+            --root src/ \
+            --service-name "${branch}"
