@@ -23,20 +23,6 @@ build:
         name: "check and test"
         code: |
           cosy-check-server
-    - script:
-        name: "upload to luarocks"
-        code: |
-          tag=$(git describe --tags --abbrev=0 || echo "0.0")
-          count=$(git rev-list --count HEAD ^"${tag}" || git rev-list --count HEAD)
-          cd rockspec || exit 1
-          rockspec=cosy-server-master-1.rockspec
-          name=cosy-server
-          sed -e "s/master-1/${tag}-${count}/" "${rockspec}" \
-            > "${name}"-"${tag}"-"${count}".rockspec
-          luarocks upload \
-            --api-key="${LUAROCKS_TOKEN}" \
-            "${name}"-"${tag}"-"${count}".rockspec
-          cd ..
   after-steps:
     - script:
         name: "export to coveralls"
