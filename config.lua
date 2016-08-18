@@ -35,4 +35,8 @@ local common = {
   },
 }
 
+if _G.ngx and os.getenv "DATABASE_PORT" then
+  common.postgres.host = os.getenv "DATABASE_PORT":match "tcp://([^:]*)"
+end
+
 Config ({ "test", "development", "production" }, common)
