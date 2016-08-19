@@ -108,7 +108,7 @@ return function (app)
         end
         if running.state:lower () ~= "running" then
           Docker.delete (execution_url)
-          return { status = 503 }
+          execution_url = nil
         end
       end
       local execution = Model.executions:create {
