@@ -342,7 +342,7 @@ describe ("route /projects/:project/executions/ #long", function ()
                 local status = request (app, route, {
                   method = method,
                   json   = {
-                    image    = "cogniteev/echo",
+                    image    = "sylvainlasnier/echo",
                     resource = resource_url,
                   },
                 })
@@ -388,7 +388,7 @@ describe ("route /projects/:project/executions/ #long", function ()
               local status = request (app, route, {
                 method = method,
                 json   = {
-                  image    = "cogniteev/echo",
+                  image    = "sylvainlasnier/echo",
                   resource = resource_url,
                 },
               })
@@ -453,7 +453,7 @@ describe ("route /projects/:project/executions/ #long", function ()
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                   json    = {
-                    image    = "cogniteev/echo",
+                    image    = "sylvainlasnier/echo",
                     resource = resource_url,
                   },
                 })
@@ -560,7 +560,7 @@ describe ("route /projects/:project/executions/ #long", function ()
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                   json    = {
-                    image    = "cogniteev/echo",
+                    image    = "sylvainlasnier/echo",
                     resource = resource_url,
                   },
                 })
@@ -671,7 +671,7 @@ describe ("route /projects/:project/executions/ #long", function ()
               method  = method,
               headers = { Authorization = "Bearer " .. token},
               json    = {
-                image    = "cogniteev/echo",
+                image    = "sylvainlasnier/echo",
                 resource = resource_url,
               },
             })
@@ -787,7 +787,7 @@ describe ("route /projects/:project/executions/ #long", function ()
               method  = method,
               headers = { Authorization = "Bearer " .. token},
               json    = {
-                image    = "cogniteev/echo",
+                image    = "sylvainlasnier/echo",
                 resource = resource_url,
               },
             })
@@ -860,7 +860,7 @@ describe ("route /projects/:project/executions/ #long", function ()
               method  = method,
               headers = { Authorization = "Bearer " .. token},
               json    = {
-                image    = "cogniteev/echo",
+                image    = "sylvainlasnier/echo",
                 resource = resource_url,
               },
             })
