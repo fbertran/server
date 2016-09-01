@@ -30,7 +30,6 @@ build = {
     ["config"                          ] = "config.lua",
     ["migrations"                      ] = "migrations.lua",
     ["models"                          ] = "models.lua",
-    ["cosy.server.check.cli"           ] = "src/cosy/server/check/cli.lua",
     ["cosy.server"                     ] = "src/cosy/server/init.lua",
     ["cosy.server.alias"               ] = "src/cosy/server/alias.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
@@ -62,8 +61,7 @@ build = {
   },
   install = {
     bin = {
-      ["cosy-check-server"] = "src/cosy/server/check/bin.lua",
-      ["cosy-server"      ] = "src/cosy/server/bin.lua",
+      ["cosy-server"] = "src/cosy/server/bin.lua",
     },
   },
 }

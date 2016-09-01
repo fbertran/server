@@ -10,8 +10,8 @@ build:
     - script:
         name: "install"
         code: |
-          apt-get install curl
           luarocks install luasec OPENSSL_LIBDIR="/usr/lib/x86_64-linux-gnu/"
+          luarocks install https://raw.githubusercontent.com/un-def/hashids.lua/master/hashids-1.0.2-1.rockspec
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
           luarocks install lua-cjson-ol
@@ -20,17 +20,27 @@ build:
         code: |
           lapis migrate test
     - script:
-        name: "check and test"
+        name: "check"
         code: |
-          cosy-check-server
+          luacheck src/
+    - script:
+        name: "test"
+        code: |
+          busted --tags=current --exclude-tags=exclude --no-coverage src/
+    - script:
+        name: "coverage"
+        code: |
+          RUN_COVERAGE=true busted --tags=current --exclude-tags=exclude src/
+          luacov
+          ./colorize.lua
   after-steps:
     - script:
         name: "export to coveralls"
         code: |
-          branch=$(git rev-parse --abbrev-ref HEAD)
-          luacov-coveralls \
-            --repo-token "${COVERALLS_TOKEN}" \
-            --exclude share --exclude busted --exclude _spec \
-            --include cosy \
-            --root src/ \
-            --service-name "${branch}"
+          # branch=$(git rev-parse --abbrev-ref HEAD)
+          # luacov-coveralls \
+          #   --repo-token "${COVERALLS_TOKEN}" \
+          #   --exclude share --exclude busted --exclude _spec \
+          #   --include cosy \
+          #   --root src/ \
+          #   --service-name "${branch}"
