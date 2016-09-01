@@ -69,23 +69,26 @@ return function (app)
         method  = "POST",
         headers = headers,
         body    = {
-          image           = self.json.image,
-          run_command     = table.concat (arguments, " "),
-          autorestart     = "OFF",
-          autodestroy     = "ALWAYS",
-          autoredeploy    = false,
+          image        = self.json.image,
+          run_command  = table.concat (arguments, " "),
+          autorestart  = "OFF",
+          autodestroy  = "ALWAYS",
+          autoredeploy = false,
+          tags         = { Config.branch },
         },
       }
-      if service_status ~= 201 then
+      if service_status == 400 then
+        return { status = service_status }
+      elseif service_status ~= 201 then
         return { status = 503 }
       end
       -- Start service:
       local execution_url = url .. service.resource_uri
       local _, started_status = Http.json {
-        url        = execution_url .. "start/",
-        method     = "POST",
-        headers    = headers,
-        timeout    = 5, -- seconds
+        url     = execution_url .. "start/",
+        method  = "POST",
+        headers = headers,
+        timeout = 10, -- seconds
       }
       if started_status ~= 202 then
         Docker.delete (execution_url)
