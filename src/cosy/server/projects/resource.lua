@@ -1,5 +1,9 @@
+local Config     = require "lapis.config".get ()
+local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
+local Model      = require "cosy.server.model"
+local Jwt        = require "jwt"
 
 return function (app)
 
@@ -39,11 +43,48 @@ return function (app)
     PATCH   = Decorators.exists {}
            .. Decorators.can_write
            .. function (self)
+      if self.params.patches then
+        assert (self.params.data)
+        local header = self.req.headers ["COSY_EDITOR"]
+        if not header then
+          return { status = 403 }
+        end
+        local token = header:match "Bearer%s+(.+)"
+        if not token then
+          return { status = 401 }
+        end
+        local jwt = Jwt.decode (token, {
+          keys = {
+            public = Config.auth0.client_secret
+          }
+        })
+        if not jwt then
+          return { status = 401 }
+        end
+        local identity = Model.identities:find {
+          identifier = jwt.sub
+        }
+        if not identity
+        or identity.type ~= "project"
+        or identity.id ~= self.project.id then
+          return { status = 401 }
+        end
+        Database.query [[BEGIN]]
+        for _, patch in ipairs (self.params.patches) do
+          Model.histories:create {
+            user_id     = self.authentified.id,
+            resource_id = self.resource.id,
+            data        = patch,
+          }
+        end
+        self.resource:update {
+          data = self.params.data,
+        }
+        assert (Database.query [[COMMIT]])
+      end
       self.resource:update {
         name        = self.params.name,
         description = self.params.description,
-        history     = self.params.history,
-        data        = self.params.data,
       }
       return { status = 204 }
     end,
