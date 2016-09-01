@@ -26,7 +26,7 @@ if not branch or branch == "master" then
   file:close ()
 end
 
-describe ("route /projects/:project/executions/ #long", function ()
+describe ("route /projects/:project/executions/", function ()
 
   Test.environment.use ()
 
@@ -51,11 +51,13 @@ describe ("route /projects/:project/executions/ #long", function ()
         services = {
           { name  = "database",
             image = "postgres",
+            tags  = { Config.branch },
           },
           { name  = "api",
             image = Et.render ("cosyverif/server:<%- branch %>", {
               branch = branch,
             }),
+            tags  = { Config.branch },
             ports = {
               "8080",
             },
@@ -132,7 +134,7 @@ describe ("route /projects/:project/executions/ #long", function ()
               endpoint = endpoint:sub (1, #endpoint-1)
             end
             server_url = endpoint
-            for _ = 1, 5 do
+            while true do
               local _, status = Http.json {
                 url     = server_url,
                 method  = "GET",
@@ -143,7 +145,6 @@ describe ("route /projects/:project/executions/ #long", function ()
                 os.execute "sleep 1"
               end
             end
-            assert (false)
           end
         end
       end
@@ -166,7 +167,125 @@ describe ("route /projects/:project/executions/ #long", function ()
     end
   end)
 
-  local app, project, project_url, resource_url, route, execution, request, naouna
+  local app, project, resources, route, request, naouna
+
+  setup (function ()
+    local token = Test.make_token (Test.identities.rahan)
+    resources   = {}
+    do -- existing resource
+      local result, status = Http.json {
+        url     = server_url .. "/projects/",
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 201)
+      local project_url = server_url .. "/projects/" .. result.id
+      local _
+      _, status = Http.json {
+        url     = project_url .. "/permissions/user",
+        method  = "PUT",
+        body    = { permission = "read" },
+        headers = { ["Authorization"] = "Bearer " .. token },
+      }
+      assert.are.same (status, 202)
+      _, status = Http.json {
+        url     = project_url .. "/permissions/anonymous",
+        method  = "PUT",
+        body    = { permission = "read" },
+        headers = { ["Authorization"] = "Bearer " .. token },
+      }
+      assert.are.same (status, 202)
+      result, status = Http.json {
+        url     = project_url .. "/resources/",
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 201)
+      resources.readable = project_url .. "/resources/" .. result.id
+    end
+    do -- missing resource
+      local result, status = Http.json {
+        url     = server_url .. "/projects/",
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 201)
+      local project_url = server_url .. "/projects/" .. result.id
+      local _
+      _, status = Http.json {
+        url     = project_url .. "/permissions/user",
+        method  = "PUT",
+        body    = { permission = "read" },
+        headers = { ["Authorization"] = "Bearer " .. token },
+      }
+      assert.are.same (status, 202)
+      _, status = Http.json {
+        url     = project_url .. "/permissions/anonymous",
+        method  = "PUT",
+        body    = { permission = "read" },
+        headers = { ["Authorization"] = "Bearer " .. token },
+      }
+      assert.are.same (status, 202)
+      result, status = Http.json {
+        url     = project_url .. "/resources/",
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 201)
+      resources.missing = project_url .. "/resources/" .. result.id
+      _, status = Http.json {
+        url     = resources.missing,
+        method  = "DELETE",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 204)
+    end
+    do -- non-readable resource
+      local result, status = Http.json {
+        url     = server_url .. "/projects/",
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 201)
+      local project_url = server_url .. "/projects/" .. result.id
+      local _
+      _, status = Http.json {
+        url     = project_url .. "/permissions/user",
+        method  = "PUT",
+        body    = { permission = "none" },
+        headers = { ["Authorization"] = "Bearer " .. token },
+      }
+      assert.are.same (status, 202)
+      _, status = Http.json {
+        url     = project_url .. "/permissions/anonymous",
+        method  = "PUT",
+        body    = { permission = "none" },
+        headers = { ["Authorization"] = "Bearer " .. token },
+      }
+      assert.are.same (status, 202)
+      result, status = Http.json {
+        url     = project_url .. "/resources/",
+        method  = "POST",
+        headers = {
+          Authorization = "Bearer " .. token,
+        },
+      }
+      assert.are.same (status, 201)
+      resources.hidden = project_url .. "/resources/" .. result.id
+    end
+  end)
 
   before_each (function ()
     Test.clean_db ()
@@ -196,52 +315,7 @@ describe ("route /projects/:project/executions/ #long", function ()
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
     project = "/projects/" .. result.id
-    route    = project .. "/executions/"
-  end)
-
-  before_each (function ()
-    local token = Test.make_token (Test.identities.rahan)
-    local result, status = Http.json {
-      url     = server_url .. "/projects/",
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    }
-    assert.are.same (status, 201)
-    project_url = server_url .. "/projects/" .. result.id
-    result, status = Http.json {
-      url     = project_url .. "/resources/",
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    }
-    assert.are.same (status, 201)
-    resource_url = project_url .. "/resources/" .. result.id
-    local _ = nil
-    _, status = Http.json {
-      url     = project_url .. "/permissions/user",
-      method  = "PUT",
-      body    = { permission = "write" },
-      headers = { ["Authorization"] = "Bearer " .. token },
-    }
-    assert.are.same (status, 202)
-    _, status = Http.json {
-      url     = project_url .. "/permissions/anonymous",
-      method  = "PUT",
-      body    = { permission = "write" },
-      headers = { ["Authorization"] = "Bearer " .. token },
-    }
-    assert.are.same (status, 202)
-  end)
-
-  after_each (function ()
-    local token = Test.make_token (project)
-    pcall (request, app, execution, {
-      method  = "DELETE",
-      headers = { ["Authorization"] = "Bearer " .. token },
-    })
+    route   = project .. "/executions/"
   end)
 
   describe ("accessed as", function ()
@@ -343,7 +417,7 @@ describe ("route /projects/:project/executions/ #long", function ()
                   method = method,
                   json   = {
                     image    = "sylvainlasnier/echo",
-                    resource = resource_url,
+                    resource = resources.readable,
                   },
                 })
                 assert.are.same (status, 401)
@@ -389,7 +463,7 @@ describe ("route /projects/:project/executions/ #long", function ()
                 method = method,
                 json   = {
                   image    = "sylvainlasnier/echo",
-                  resource = resource_url,
+                  resource = resources.readable,
                 },
               })
               assert.are.same (status, 401)
@@ -454,11 +528,16 @@ describe ("route /projects/:project/executions/ #long", function ()
                   headers = { Authorization = "Bearer " .. token},
                   json    = {
                     image    = "sylvainlasnier/echo",
-                    resource = resource_url,
+                    resource = resources.readable,
                   },
                 })
                 assert.are.same (status, 201)
-                execution = project .. "/executions/" .. result.id
+                local execution = project .. "/executions/" .. result.id
+                status = request (app, execution, {
+                  method  = "DELETE",
+                  headers = { Authorization = "Bearer " .. token},
+                })
+                assert.are.same (status, 204)
               end)
             end
 
@@ -555,17 +634,22 @@ describe ("route /projects/:project/executions/ #long", function ()
 
             for _, method in ipairs { "POST" } do
               it ("answers to " .. method, function ()
-                local token = Test.make_token (Test.identities.naouna)
+                local token = Test.make_token (Test.identities.rahan)
                 local status, result = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                   json    = {
                     image    = "sylvainlasnier/echo",
-                    resource = resource_url,
+                    resource = resources.readable,
                   },
                 })
                 assert.are.same (status, 201)
-                execution = project .. "/executions/" .. result.id
+                local execution = project .. "/executions/" .. result.id
+                status = request (app, execution, {
+                  method  = "DELETE",
+                  headers = { Authorization = "Bearer " .. token},
+                })
+                assert.are.same (status, 204)
               end)
             end
 
@@ -672,7 +756,7 @@ describe ("route /projects/:project/executions/ #long", function ()
               headers = { Authorization = "Bearer " .. token},
               json    = {
                 image    = "sylvainlasnier/echo",
-                resource = resource_url,
+                resource = resources.readable,
               },
             })
             assert.are.same (status, 401)
@@ -694,28 +778,6 @@ describe ("route /projects/:project/executions/ #long", function ()
 
       describe ("with non existing image", function ()
 
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
-          end)
-        end
-
         for _, method in ipairs { "POST" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.rahan)
@@ -724,21 +786,10 @@ describe ("route /projects/:project/executions/ #long", function ()
               headers = { Authorization = "Bearer " .. token},
               json    = {
                 image    = "cosyverif/nothing",
-                resource = resource_url,
+                resource = resources.readable,
               },
             })
             assert.are.same (status, 400)
-          end)
-        end
-
-        for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 405)
           end)
         end
 
@@ -746,40 +797,6 @@ describe ("route /projects/:project/executions/ #long", function ()
 
       describe ("with non existing resource", function ()
 
-        before_each (function ()
-          local token = Test.make_token (Test.identities.rahan)
-          local _, status = Http.json {
-            url     = resource_url,
-            method  = "DELETE",
-            headers = {
-              Authorization = "Bearer " .. token,
-            },
-          }
-          assert.are.same (status, 204)
-        end)
-
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
-          end)
-        end
-
         for _, method in ipairs { "POST" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.rahan)
@@ -788,21 +805,10 @@ describe ("route /projects/:project/executions/ #long", function ()
               headers = { Authorization = "Bearer " .. token},
               json    = {
                 image    = "sylvainlasnier/echo",
-                resource = resource_url,
+                resource = resources.missing,
               },
             })
             assert.are.same (status, 404)
-          end)
-        end
-
-        for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 405)
           end)
         end
 
@@ -810,49 +816,6 @@ describe ("route /projects/:project/executions/ #long", function ()
 
       describe ("with non readable resource", function ()
 
-        before_each (function ()
-          local token = Test.make_token (Test.identities.rahan)
-          local _, status = Http.json {
-            url     = project_url .. "/permissions/user",
-            method  = "PUT",
-            body    = { permission = "none" },
-            headers = { ["Authorization"] = "Bearer " .. token },
-          }
-          assert.are.same (status, 202)
-        end)
-
-        before_each (function ()
-          local token  = Test.make_token (Test.identities.rahan)
-          local status = request (app, project .. "/permissions/" .. naouna, {
-            method  = "PUT",
-            json    = { permission = "admin" },
-            headers = { ["Authorization"] = "Bearer " .. token },
-          })
-          assert.are.same (status, 201)
-        end)
-
-        for _, method in ipairs { "HEAD", "OPTIONS" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.naouna)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 204)
-          end)
-        end
-
-        for _, method in ipairs { "GET" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.naouna)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 200)
-          end)
-        end
-
         for _, method in ipairs { "POST" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.naouna)
@@ -861,21 +824,10 @@ describe ("route /projects/:project/executions/ #long", function ()
               headers = { Authorization = "Bearer " .. token},
               json    = {
                 image    = "sylvainlasnier/echo",
-                resource = resource_url,
+                resource = resources.hidden,
               },
             })
             assert.are.same (status, 403)
-          end)
-        end
-
-        for _, method in ipairs { "DELETE", "PATCH", "PUT" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.naouna)
-            local status = request (app, route, {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 405)
           end)
         end
 
