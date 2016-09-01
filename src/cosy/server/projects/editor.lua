@@ -92,10 +92,10 @@ return function (app)
       -- Start service:
       local resource = url .. service.resource_uri
       local _, started_status = Http.json {
-        url        = resource .. "start/",
-        method     = "POST",
-        headers    = headers,
-        timeout    = 5, -- seconds
+        url     = resource .. "start/",
+        method  = "POST",
+        headers = headers,
+        timeout = 5, -- seconds
       }
       if started_status ~= 202 then
         Docker.delete (resource)
