@@ -33,6 +33,7 @@ return function (app)
     end,
     POST    = Decorators.exists {}
            .. Decorators.can_write
+           .. Decorators.is_user
            .. function (self)
       local _, status = Http.json {
         url     = self.json.resource,

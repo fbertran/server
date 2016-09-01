@@ -21,6 +21,16 @@ function Decorators.is_authentified (f)
   end
 end
 
+function Decorators.is_user (f)
+  return Decorators.is_authentified ..
+         function (self)
+    if self.identity.type ~= "user" then
+      return { status = 401 }
+    end
+    return f (self)
+  end
+end
+
 function Decorators.exists (except)
   return function (f)
     return function (self)
