@@ -26,11 +26,11 @@ build:
     - script:
         name: "test"
         code: |
-          busted --tags=current --exclude-tags=exclude --no-coverage src/
+          busted --no-coverage src/
     - script:
         name: "coverage"
         code: |
-          RUN_COVERAGE=true busted --tags=current --exclude-tags=exclude src/
+          RUN_COVERAGE=true busted src/
           luacov
           ./colorize.lua
   after-steps:
