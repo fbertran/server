@@ -36,11 +36,18 @@ package.preload ["websocket.client_sync"] = function ()
   return new
 end
 
+Test.environment.use ()
+
 describe ("route /projects/:project/resources/:resource/editor", function ()
 
-  Test.environment.use ()
+  local app, request
 
-  local app, project, route, request, naouna, created
+  setup (function ()
+    request = Test.environment.request ()
+    app     = Test.environment.app ()
+  end)
+
+  local project, route, naouna, created
 
   local function wsconnect (headers)
     for _ = 1, 5 do
@@ -54,8 +61,6 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
   before_each (function ()
     Test.clean_db ()
-    request = Test.environment.request ()
-    app     = Test.environment.app ()
   end)
 
   before_each (function ()

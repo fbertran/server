@@ -26,9 +26,9 @@ if not branch or branch == "master" then
   file:close ()
 end
 
-describe ("route /projects/:project/executions/", function ()
+Test.environment.use ()
 
-  Test.environment.use ()
+describe ("route /projects/:project/executions/", function ()
 
   local server_url, docker_url
   local headers = {
@@ -167,7 +167,14 @@ describe ("route /projects/:project/executions/", function ()
     end
   end)
 
-  local app, project, resources, route, request, naouna
+  local app, request
+
+  setup (function ()
+    request = Test.environment.request ()
+    app     = Test.environment.app ()
+  end)
+
+  local project, resources, route, naouna
 
   setup (function ()
     local token = Test.make_token (Test.identities.rahan)
@@ -289,8 +296,6 @@ describe ("route /projects/:project/executions/", function ()
 
   before_each (function ()
     Test.clean_db ()
-    request = Test.environment.request ()
-    app     = Test.environment.app ()
   end)
 
   before_each (function ()
