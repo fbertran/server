@@ -117,9 +117,11 @@ return function (app)
       if not permission then
        return { status = 404 }
       end
-      local count = Model.permissions:count ([[ project_id = ? and permission = 'admin' and identity_id != ? ]], self.project.id, self.project.id)
-      if count < 2 then
-        return { status = 409 }
+      if permission.permission == "admin" then
+        local count = Model.permissions:count ([[ project_id = ? and permission = 'admin' and identity_id != ? and identity_id != ? ]], self.project.id, self.project.id, self.user.id)
+        if count == 0 then
+          return { status = 409 }
+        end
       end
       permission:delete ()
       return { status = 204 }

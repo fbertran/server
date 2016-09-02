@@ -805,7 +805,7 @@ describe ("route /projects/:project/permissions/user", function ()
 
 end)
 
-describe ("route /projects/:project/permissions/:permission", function ()
+describe ("route /projects/:project/permissions/:user", function ()
 
   Test.environment.use ()
 
