@@ -1,3 +1,5 @@
+local Cjson  = require "cjson"
+Cjson.encode_empty_table = function () end -- Fix for Jwt
 local Config = require "lapis.config".get ()
 local Jwt    = require "jwt"
 local Time   = require "socket".gettime
