@@ -5,16 +5,29 @@ services:
       POSTGRES_USER: cosyverif
       POSTGRES_PASSWORD:
       POSTGRES_DATABASE: cosyverif
+  - id: redis
 build:
   steps:
+    - script:
+        name: "fix environment"
+        code: |
+          export POSTGRES_USER="${POSTGRES_ENV_POSTGRES_USER}"
+          export POSTGRES_PASSWORD="${POSTGRES_ENV_POSTGRES_PASSWORD}"
+          export POSTGRES_DATABASE="${POSTGRES_ENV_POSTGRES_DATABASE}"
     - script:
         name: "install"
         code: |
           luarocks install luasec OPENSSL_LIBDIR="/usr/lib/x86_64-linux-gnu/"
           luarocks install https://raw.githubusercontent.com/un-def/hashids.lua/master/hashids-1.0.2-1.rockspec
+          luarocks install https://raw.githubusercontent.com/pintsized/lua-resty-qless/master/lua-resty-qless-0.07-0.rockspec
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
           luarocks install lua-cjson-ol
+    - script:
+      name: "wait for services"
+      code: |
+        while ! nc -q 1 $REDIS_PORT_6379_TCP_ADDR    $REDIS_PORT_6379_TCP_PORT    < /dev/null; do sleep 1; done
+        while ! nc -q 1 $POSTGRES_PORT_5432_TCP_ADDR $POSTGRES_PORT_5432_TCP_PORT < /dev/null; do sleep 1; done
     - script:
         name: "configure"
         code: |

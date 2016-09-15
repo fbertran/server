@@ -15,10 +15,16 @@ local common = {
   branch      = assert (branch),
   postgres    = {
     backend  = "pgmoon",
-    host     = assert (os.getenv "POSTGRES_HOST"     or os.getenv "POSTGRES_PORT_5432_TCP_ADDR"   ),
-    user     = assert (os.getenv "POSTGRES_USER"     or os.getenv "POSTGRES_ENV_POSTGRES_USER"    ),
-    password = assert (os.getenv "POSTGRES_PASSWORD" or os.getenv "POSTGRES_ENV_POSTGRES_PASSWORD"),
-    database = assert (os.getenv "POSTGRES_DATABASE" or os.getenv "POSTGRES_ENV_POSTGRES_DATABASE"),
+    host     = assert (os.getenv "POSTGRES_PORT":match "tcp://([^:]+):%d+"),
+    port     = assert (os.getenv "POSTGRES_PORT":match "tcp://[^:]+:(%d+)"),
+    user     = assert (os.getenv "POSTGRES_USER"    ),
+    password = assert (os.getenv "POSTGRES_PASSWORD"),
+    database = assert (os.getenv "POSTGRES_DATABASE"),
+  },
+  redis       = {
+    host    = assert (os.getenv "REDIS_PORT":match "tcp://([^:]+):%d+"),
+    port    = assert (os.getenv "REDIS_PORT":match "tcp://[^:]+:(%d+)"),
+    timeout = 500,
   },
   auth0       = {
     domain        = assert (os.getenv "AUTH0_DOMAIN"),
@@ -34,9 +40,5 @@ local common = {
     timeout = 60,
   },
 }
-
-if _G.ngx and os.getenv "DATABASE_PORT" then
-  common.postgres.host = os.getenv "DATABASE_PORT":match "tcp://([^:]*)"
-end
 
 Config ({ "test", "development", "production" }, common)

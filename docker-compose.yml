@@ -1,7 +1,9 @@
 version: "2"
 services:
-  database:
+  postgres:
     image: postgres
+  redis:
+    image: redis:alpine
   api:
     build: .
     ports:
@@ -15,7 +17,7 @@ services:
       COSY_PREFIX: /usr/local
       COSY_HOST: api:8080
       COSY_BRANCH: ${COSY_BRANCH}
-      POSTGRES_HOST: database
+      POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ""
       POSTGRES_DATABASE: postgres
