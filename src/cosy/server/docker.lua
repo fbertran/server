@@ -1,6 +1,6 @@
-local Config      = require "lapis.config".get ()
-local Http        = require "cosy.server.http"
-local Mime        = require "mime"
+local Config = require "lapis.config".get ()
+local Http   = require "cosy.server.http"
+local Mime   = require "mime"
 
 local Docker = {}
 
