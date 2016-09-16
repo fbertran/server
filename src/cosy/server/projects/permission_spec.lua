@@ -825,7 +825,7 @@ describe ("route /projects/:project/permissions/:user", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    crao = result.authentified.id
+    crao = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -836,7 +836,7 @@ describe ("route /projects/:project/permissions/:user", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    rahan = result.authentified.id
+    rahan = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
