@@ -2,10 +2,10 @@ box: cosyverif/lapis-forwercker
 services:
   - id: postgres
     env:
-      POSTGRES_USER: cosyverif
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD:
-      POSTGRES_DATABASE: cosyverif
-  - id: redis
+      POSTGRES_DATABASE: postgres
+  - id: redis:3.0.7 # because of bug in qless
 build:
   steps:
     - script:

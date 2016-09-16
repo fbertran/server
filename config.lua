@@ -7,24 +7,23 @@ if not branch or branch == "master" then
 end
 
 local common = {
-  resolvers   = assert (os.getenv "RESOLVERS"),
   hostname    = assert (hostname:match "[^:]+"),
   port        = assert (tonumber (hostname:match ":(%d+)")),
-  num_workers = os.getenv "CI" and 1 or 4,
+  num_workers = os.getenv "CI" and 2 or 4,
   code_cache  = "on",
   branch      = assert (branch),
   postgres    = {
     backend  = "pgmoon",
     host     = assert (os.getenv "POSTGRES_PORT":match "tcp://([^:]+):%d+"),
-    port     = assert (os.getenv "POSTGRES_PORT":match "tcp://[^:]+:(%d+)"),
+    port     = assert (tonumber (os.getenv "POSTGRES_PORT":match "tcp://[^:]+:(%d+)")),
     user     = assert (os.getenv "POSTGRES_USER"    ),
     password = assert (os.getenv "POSTGRES_PASSWORD"),
     database = assert (os.getenv "POSTGRES_DATABASE"),
   },
   redis       = {
-    host    = assert (os.getenv "REDIS_PORT":match "tcp://([^:]+):%d+"),
-    port    = assert (os.getenv "REDIS_PORT":match "tcp://[^:]+:(%d+)"),
-    timeout = 500,
+    host     = assert (os.getenv "REDIS_PORT":match "tcp://([^:]+):%d+"),
+    port     = assert (tonumber (os.getenv "REDIS_PORT":match "tcp://[^:]+:(%d+)")),
+    database = 0,
   },
   auth0       = {
     domain        = assert (os.getenv "AUTH0_DOMAIN"),

@@ -3,24 +3,27 @@ services:
   postgres:
     image: postgres
   redis:
-    image: redis:alpine
+    image: redis:3.0.7 # because of bug in qless
+    ports:
+      - "6379"
   api:
     build: .
     ports:
       - "8080"
     links:
-      - database
+      - postgres
+      - redis
     logging:
       driver: "json-file"
     environment:
-      RESOLVERS: "8.8.8.8 8.8.4.4"
       COSY_PREFIX: /usr/local
-      COSY_HOST: api:8080
+      COSY_HOST: localhost:8080
       COSY_BRANCH: ${COSY_BRANCH}
-      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "tcp://postgres:5432"
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ""
       POSTGRES_DATABASE: postgres
+      REDIS_PORT: "tcp://redis:6379"
       AUTH0_DOMAIN: ${AUTH0_DOMAIN}
       AUTH0_ID: ${AUTH0_ID}
       AUTH0_SECRET: ${AUTH0_SECRET}
