@@ -64,7 +64,7 @@ return function (app)
           assert (status == 204)
         end
       end
-      self.project:delete ()
+      self.project:get_identity ():delete ()
       return {
         status = 204,
       }

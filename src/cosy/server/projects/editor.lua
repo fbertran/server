@@ -1,6 +1,8 @@
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
+local Qless      = require "resty.qless"
+local Job        = require "cosy.server.jobs.editor"
 
 return function (app)
 
@@ -21,7 +23,6 @@ return function (app)
       if self.resource.editor_url then
         return { redirect_to = self.resource.editor_url }
       end
-      local Qless = require "resty.qless"
       local qless = Qless.new {
         host = Config.redis.host,
         port = Config.redis.port,
@@ -50,15 +51,13 @@ return function (app)
       or self.authentified.id ~= self.project.id then
         return { status = 403 }
       end
-      local Qless = require "resty.qless"
       local qless = Qless.new {
         host = Config.redis.host,
         port = Config.redis.port,
         db   = Config.redis.database,
       }
-      local job   = qless.jobs:get (self.resource.url .. "/editor")
+      local job = qless.jobs:get (self.resource.url .. "/editor")
       if job then
-        local Job = require "cosy.server.jobs.editor"
         Job.cleanup (job)
         job:cancel ()
       end

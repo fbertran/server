@@ -9,8 +9,10 @@ local Jwt        = require "jwt"
 
 return function (app)
 
-  require "cosy.server.projects.editor"  (app)
   require "cosy.server.projects.aliases" (app)
+  if _G.ngx then
+    require "cosy.server.projects.editor"  (app)
+  end
 
   app:match ("/projects/:project/resources/:resource", respond_to {
     HEAD    = Decorators.exists {}

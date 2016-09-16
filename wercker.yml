@@ -43,7 +43,7 @@ build:
     - script:
         name: "coverage"
         code: |
-          RUN_COVERAGE=true busted src/
+          RUN_COVERAGE=true busted --exclude-tags=resty src/
           luacov
           ./colorize.lua
   after-steps:

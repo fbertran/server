@@ -6,12 +6,14 @@ local Et         = require "etlua"
 
 return function (app)
 
-  require "cosy.server.projects.executions"  (app)
   require "cosy.server.projects.project"     (app)
   require "cosy.server.projects.permissions" (app)
   require "cosy.server.projects.resources"   (app)
   require "cosy.server.projects.stars"       (app)
   require "cosy.server.projects.tags"        (app)
+  if _G.ngx then
+    require "cosy.server.projects.executions"  (app)
+  end
 
   app:match ("/projects(/)", respond_to {
     HEAD    = function ()

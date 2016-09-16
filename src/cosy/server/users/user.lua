@@ -1,8 +1,8 @@
-local respond_to  = require "lapis.application".respond_to
-local Config      = require "lapis.config".get ()
-local Util        = require "lapis.util"
-local Decorators  = require "cosy.server.decorators"
-local Http        = require "cosy.server.http"
+local respond_to = require "lapis.application".respond_to
+local Config     = require "lapis.config".get ()
+local Util       = require "lapis.util"
+local Decorators = require "cosy.server.decorators"
+local Http       = require "cosy.server.http"
 
 return function (app)
 
@@ -61,7 +61,7 @@ return function (app)
           status = 403,
         }
       end
-      self.user:get_identity():delete ()
+      self.user:get_identity ():delete ()
       return {
         status = 204,
       }
