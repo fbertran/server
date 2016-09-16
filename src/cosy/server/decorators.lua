@@ -46,15 +46,6 @@ end
 
 local function permission (self)
   assert (self.project)
-  -- if self.execution then
-  --   self.resource = self.resource or self.execution:get_resource ()
-  --   self.project  = self.project  or self.resource :get_project  ()
-  --   if  self.authentication
-  --   and self.user
-  --   and self.authentication.id == self.user.id then
-  --     return "admin"
-  --   end
-  -- end
   if self.authentified and self.project then
     local p = Model.permissions:find {
       identity_id = self.identity.id,
