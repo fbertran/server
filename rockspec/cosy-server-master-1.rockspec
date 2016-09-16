@@ -19,9 +19,11 @@ dependencies = {
   "jwt",
   "lapis",
   "layeredata",
+  "luaposix",
   "luasec",
   "luasocket",
   "lua-resty-http",
+  -- "lua-resty-qless", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
 }
 
 build = {
@@ -58,6 +60,8 @@ build = {
     ["cosy.server.decorators"          ] = "src/cosy/server/decorators.lua",
     ["cosy.server.model"               ] = "src/cosy/server/model.lua",
     ["cosy.server.token"               ] = "src/cosy/server/token.lua",
+    ["cosy.server.jobs.editor"         ] = "src/cosy/server/jobs/editor.lua",
+    ["cosy.server.jobs.execution"      ] = "src/cosy/server/jobs/execution.lua",
   },
   install = {
     bin = {

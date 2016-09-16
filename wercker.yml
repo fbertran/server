@@ -19,7 +19,7 @@ build:
         code: |
           luarocks install luasec OPENSSL_LIBDIR="/usr/lib/x86_64-linux-gnu/"
           luarocks install https://raw.githubusercontent.com/un-def/hashids.lua/master/hashids-1.0.2-1.rockspec
-          luarocks install https://raw.githubusercontent.com/pintsized/lua-resty-qless/master/lua-resty-qless-0.07-0.rockspec
+          luarocks install rockspec/lua-resty-qless-master-1.rockspec
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
           luarocks install lua-cjson-ol
