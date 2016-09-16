@@ -22,7 +22,6 @@ build:
           luarocks install rockspec/lua-resty-qless-master-1.rockspec
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
-          luarocks install lua-cjson-ol
     - script:
       name: "wait for services"
       code: |
