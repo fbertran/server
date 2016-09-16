@@ -23,6 +23,7 @@ dependencies = {
   "luasec",
   "luasocket",
   "lua-resty-http",
+  -- "hashids",         -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
   -- "lua-resty-qless", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
 }
 
@@ -36,6 +37,7 @@ build = {
     ["cosy.server.alias"               ] = "src/cosy/server/alias.lua",
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
     ["cosy.server.docker"              ] = "src/cosy/server/docker.lua",
+    ["cosy.server.hashid"              ] = "src/cosy/server/hashid.lua",
     ["cosy.server.http"                ] = "src/cosy/server/http.lua",
     ["cosy.server.ws"                  ] = "src/cosy/server/ws.lua",
     ["cosy.server.quote"               ] = "src/cosy/server/quote.lua",

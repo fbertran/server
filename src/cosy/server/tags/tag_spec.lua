@@ -18,7 +18,8 @@ describe ("route /tags/:tag", function ()
       headers = { Authorization = "Bearer " .. token},
     })
     assert.are.same (status, 201)
-    status = request (app, "/projects/" .. result.id .. "/tags/rahan", {
+    local project = result.url
+    status = request (app, project .. "/tags/rahan", {
       method  = "PUT",
       headers = { Authorization = "Bearer " .. token},
     })

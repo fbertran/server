@@ -20,7 +20,7 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -33,7 +33,7 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
+    project = result.url
     status, result = request (app, project .. "/resources", {
       method  = "POST",
       headers = {
@@ -42,7 +42,7 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    resource = project.. "/resources/" .. result.id
+    resource = result.url
     route    = resource .. "/aliases/"
     status = request (app, resource .. "/aliases/alias-1", {
       method  = "PUT",

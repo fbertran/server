@@ -21,6 +21,9 @@ return function (app)
            .. Decorators.can_read
            .. function (self)
       local aliases = Model.aliases:select ("where resource_id = ?", self.resource.id) or {}
+      for _, alias in ipairs (aliases) do
+        alias.resource_url = self.resource.url
+      end
       return {
         status = 200,
         json   = aliases,

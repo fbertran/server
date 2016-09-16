@@ -1,4 +1,3 @@
-local Et         = require "etlua"
 local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
@@ -9,12 +8,7 @@ return function (app)
     local resource = Model.resources:find {
       id = self.alias.resource_id,
     }
-    return {
-      redirect_to = Et.render ("/projects/<%- project %>/resources/<%- resource %>", {
-        project  = resource.project_id,
-        resource = resource.id,
-      }),
-    }
+    return { redirect_to = resource.url }
   end
 
   app:match ("/aliases/:alias", respond_to {

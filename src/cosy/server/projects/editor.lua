@@ -1,9 +1,6 @@
 local Config     = require "lapis.config".get ()
-local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
-local Docker     = require "cosy.server.docker"
-local Et         = require "etlua"
 
 return function (app)
 
@@ -35,10 +32,7 @@ return function (app)
         project  = self.project .id,
         resource = self.resource.id,
       }, {
-        jid = Et.render ("/projects/<%- project %>/resources/<%- resource %>/editor", {
-          project  = self.project .id,
-          resource = self.resource.id,
-        }),
+        jid = self.resource.url .. "/editor",
       })
       for _ = 1, 30 do
         self.resource:refresh ()
@@ -62,19 +56,11 @@ return function (app)
         port = Config.redis.port,
         db   = Config.redis.database,
       }
-      local job   = qless.jobs:get (Et.render ("/projects/<%- project %>/resources/<%- resource %>/editor", {
-        project  = self.project .id,
-        resource = self.resource.id,
-      }))
+      local job   = qless.jobs:get (self.resource.url .. "/editor")
       if job then
+        local Job = require "cosy.server.jobs.editor"
+        Job.cleanup (job)
         job:cancel ()
-      end
-      if self.resource.docker_url then
-        Docker.delete (self.resource.docker_url)
-        self.resource:update ({
-          editor_url = Database.NULL,
-          docker_url = Database.NULL,
-        }, { timestamp = false })
       end
       return { status = 204 }
     end,

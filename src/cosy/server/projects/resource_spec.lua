@@ -20,7 +20,7 @@ describe ("route /projects/:project/resources/:resource", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -33,7 +33,7 @@ describe ("route /projects/:project/resources/:resource", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
+    project = result.url
     status, result = request (app, project .. "/resources", {
       method  = "POST",
       headers = {
@@ -42,7 +42,7 @@ describe ("route /projects/:project/resources/:resource", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    route   = project.. "/resources/" .. result.id
+    route   = result.url
   end)
 
   describe ("accessed as", function ()
@@ -528,21 +528,6 @@ describe ("route /projects/:project/resources/:resource", function ()
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 401)
-          end)
-        end
-
-      end)
-
-      describe ("with invalid identifier", function ()
-
-        for _, method in ipairs { "DELETE", "HEAD", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
-          it ("answers to " .. method, function ()
-            local token  = Test.make_token (Test.identities.rahan)
-            local status = request (app, project .. "/resources/invalid-identifier", {
-              method  = method,
-              headers = { Authorization = "Bearer " .. token},
-            })
-            assert.are.same (status, 400)
           end)
         end
 

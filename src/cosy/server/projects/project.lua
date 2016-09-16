@@ -1,6 +1,8 @@
-local respond_to  = require "lapis.application".respond_to
-local Decorators  = require "cosy.server.decorators"
-local Docker      = require "cosy.server.docker"
+local Config     = require "lapis.config".get ()
+local respond_to = require "lapis.application".respond_to
+local Decorators = require "cosy.server.decorators"
+local Http       = require "cosy.server.http"
+local Token      = require "cosy.server.token"
 
 return function (app)
 
@@ -39,17 +41,30 @@ return function (app)
     DELETE  = Decorators.exists {}
            .. Decorators.can_admin
            .. function (self)
-      for _, resource in ipairs (self.project:get_resources ()) do
-        if resource.docker_url then
-          Docker.delete (resource.docker_url)
+      local token = Token (self.project.url, {}, math.huge)
+      if Config._name ~= "test" then
+        for _, resource in ipairs (self.project:get_resources ()) do
+          local _, status = Http.json {
+            url     = Config.url .. resource.url,
+            method  = "DELETE",
+            headers = {
+              Authorization = "Bearer " .. token,
+            },
+          }
+          assert (status == 204)
+        end
+        for _, execution in ipairs (self.project:get_executions ()) do
+          local _, status = Http.json {
+            url     = Config.url .. execution.url,
+            method  = "DELETE",
+            headers = {
+              Authorization = "Bearer " .. token,
+            },
+          }
+          assert (status == 204)
         end
       end
-      for _, execution in ipairs (self.project:get_executions ()) do
-        if execution.docker_url then
-          Docker.delete (execution.docker_url)
-        end
-      end
-      self.project:get_identity():delete ()
+      self.project:delete ()
       return {
         status = 204,
       }

@@ -47,7 +47,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
     app     = Test.environment.app ()
   end)
 
-  local project, route, naouna, created
+  local project, project_token, route, naouna, created
 
   local function wsconnect (headers)
     for _ = 1, 5 do
@@ -71,7 +71,7 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -84,7 +84,8 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
+    project = result.url
+    project_token = Test.make_token (result.url)
     status, result = request (app, project .. "/resources", {
       method  = "POST",
       headers = {
@@ -93,15 +94,14 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    route = project.. "/resources/" .. result.id .. "/editor"
+    route = result.url .. "/editor"
   end)
 
   after_each (function ()
-    local token = Test.make_token (project)
     if created then
       request (app, route, {
         method  = "DELETE",
-        headers = { ["Authorization"] = "Bearer " .. token },
+        headers = { ["Authorization"] = "Bearer " .. project_token },
       })
     end
   end)
@@ -486,10 +486,9 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 204)
           end)
@@ -497,16 +496,15 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "GET" } do
           it ("answers to double " .. method .. " after timeout", function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 302)
             os.execute ("sleep " .. tostring (Config.editor.timeout + 10))
             status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 302)
             created = true
@@ -515,10 +513,9 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 405)
           end)
@@ -530,10 +527,9 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         setup (function ()
           Config.editor.timeout = 3600
-          local token = Test.make_token (project)
           local status, _, headers = request (app, route, {
             method  = "GET",
-            headers = { Authorization = "Bearer " .. token},
+            headers = { Authorization = "Bearer " .. project_token},
           })
           assert.are.same (status, 302)
           created = true
@@ -542,10 +538,9 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 204)
           end)
@@ -553,10 +548,9 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
-            local token = Test.make_token (project)
             local status, _, headers = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 302)
             wsconnect (headers)
@@ -566,10 +560,9 @@ describe ("route /projects/:project/resources/:resource/editor", function ()
 
         for _, method in ipairs { "PATCH", "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 405)
           end)

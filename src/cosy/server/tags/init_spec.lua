@@ -22,13 +22,14 @@ describe ("route /tags", function ()
       })
       assert.are.same (status, 201)
       assert.is.not_nil (result.id)
+      local project = result.url
       projects [key] = result.id
-      status = request (app, "/projects/" .. result.id .. "/tags/" .. key, {
+      status = request (app, project .. "/tags/" .. key, {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 201)
-      status = request (app, "/projects/" .. result.id .. "/tags/shared", {
+      status = request (app, project .. "/tags/shared", {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
       })

@@ -20,7 +20,7 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -33,7 +33,7 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
+    project = result.url
     status, result = request (app, project .. "/resources", {
       method  = "POST",
       headers = {
@@ -42,7 +42,7 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    resource = project.. "/resources/" .. result.id
+    resource = result.url
     route    = resource .. "/aliases/alias"
     status = request (app, resource .. "/aliases/alias", {
       method  = "PUT",
@@ -128,21 +128,13 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
               assert.are.same (status, 202)
             end)
 
-            for _, method in ipairs { "HEAD", "OPTIONS" } do
+            for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
               it ("answers to " .. method, function ()
-                local status = request (app, route, {
+                local status, _, headers = request (app, route, {
                   method = method,
                 })
-                assert.are.same (status, 204)
-              end)
-            end
-
-            for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
-                local status = request (app, route, {
-                  method = method,
-                })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                assert.is_truthy (headers.location:match (resource))
               end)
             end
 
@@ -180,21 +172,13 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
               assert.are.same (status, 202)
             end)
 
-            for _, method in ipairs { "HEAD", "OPTIONS" } do
+            for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
               it ("answers to " .. method, function ()
-                local status = request (app, route, {
+                local status, _, headers = request (app, route, {
                   method = method,
                 })
-                assert.are.same (status, 204)
-              end)
-            end
-
-            for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
-                local status = request (app, route, {
-                  method = method,
-                })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                assert.is_truthy (headers.location:match (resource))
               end)
             end
 
@@ -277,25 +261,15 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
               assert.are.same (status, 201)
             end)
 
-            for _, method in ipairs { "HEAD", "OPTIONS" } do
+            for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
               it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
+                local token = Test.make_token (Test.identities.naouna)
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
-                assert.are.same (status, 204)
-              end)
-            end
-
-            for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
-                  method  = method,
-                  headers = { Authorization = "Bearer " .. token},
-                })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                assert.is_truthy (headers.location:match (resource))
               end)
             end
 
@@ -371,25 +345,15 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
               assert.are.same (status, 201)
             end)
 
-            for _, method in ipairs { "HEAD", "OPTIONS" } do
+            for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
               it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
+                local token = Test.make_token (Test.identities.naouna)
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
-                assert.are.same (status, 204)
-              end)
-            end
-
-            for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
-                  method  = method,
-                  headers = { Authorization = "Bearer " .. token},
-                })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                assert.is_truthy (headers.location:match (resource))
               end)
             end
 
@@ -471,25 +435,15 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
               assert.are.same (status, 202)
             end)
 
-            for _, method in ipairs { "HEAD", "OPTIONS" } do
+            for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
               it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
+                local token = Test.make_token (Test.identities.naouna)
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
-                assert.are.same (status, 204)
-              end)
-            end
-
-            for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
-                  method  = method,
-                  headers = { Authorization = "Bearer " .. token},
-                })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                assert.is_truthy (headers.location:match (resource))
               end)
             end
 
@@ -565,25 +519,15 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
               assert.are.same (status, 202)
             end)
 
-            for _, method in ipairs { "HEAD", "OPTIONS" } do
+            for _, method in ipairs { "HEAD", "GET", "OPTIONS" } do
               it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
+                local token = Test.make_token (Test.identities.naouna)
+                local status, _, headers = request (app, route, {
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                 })
-                assert.are.same (status, 204)
-              end)
-            end
-
-            for _, method in ipairs { "GET" } do
-              it ("answers to " .. method, function ()
-                local token  = Test.make_token (Test.identities.naouna)
-                local status = request (app, route, {
-                  method  = method,
-                  headers = { Authorization = "Bearer " .. token},
-                })
-                assert.are.same (status, 200)
+                assert.are.same (status, 302)
+                assert.is_truthy (headers.location:match (resource))
               end)
             end
 

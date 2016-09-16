@@ -1,7 +1,8 @@
-local Et         = require "etlua"
 local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
+local Hashid     = require "cosy.server.hashid"
+local Et         = require "etlua"
 
 return function (app)
 
@@ -38,12 +39,13 @@ return function (app)
         type       = "project",
       }
       identity:update {
-        identifier = Et.render ("/projects/<%- id %>", {
-          id = identity.id,
+        identifier = Et.render ("/projects/<%- project %>", {
+          project = Hashid.encode (identity.id),
         }),
       }
       local project = Model.projects:create {
         id          = identity.id,
+        url         = identity.identifier,
         name        = self.json.name,
         description = self.json.description,
         permission_anonymous = "read",

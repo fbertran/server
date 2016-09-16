@@ -1,10 +1,12 @@
-local Cjson  = require "cjson"
+local Cjson   = require "cjson"
 Cjson.encode_empty_table = function () end -- Fix for Jwt
-local Jwt    = require "jwt"
-local Config = require "lapis.config".get ()
-local Util   = require "lapis.util"
-local Model  = require "cosy.server.model"
-local Http   = require "cosy.server.http"
+local Config  = require "lapis.config".get ()
+local Util    = require "lapis.util"
+local Model   = require "cosy.server.model"
+local Http    = require "cosy.server.http"
+local Hashid  = require "cosy.server.hashid"
+local Et      = require "etlua"
+local Jwt     = require "jwt"
 
 return function (app)
 
@@ -83,6 +85,9 @@ return function (app)
       }
       self.authentified = Model.users:create {
         id       = self.identity.id,
+        url      = Et.render ("/users/<%- user %>", {
+          user = Hashid.encode (self.identity.id),
+        }),
         email    = info.email,
         name     = info.name,
         nickname = info.nickname,
@@ -93,7 +98,7 @@ return function (app)
 
   local function fetch_params (self)
     if self.params.user then
-      local id = Util.unescape (self.params.user)
+      local id = Hashid.decode (Util.unescape (self.params.user))
       if not tonumber (id) then
         return { status = 400 }
       end
@@ -102,7 +107,7 @@ return function (app)
       } or false
     end
     if self.params.project then
-      local id = Util.unescape (self.params.project)
+      local id = Hashid.decode (Util.unescape (self.params.project))
       if not tonumber (id) then
         return { status = 400 }
       end
@@ -119,7 +124,7 @@ return function (app)
       } or false
     end
     if self.params.resource then
-      local id = Util.unescape (self.params.resource)
+      local id = Hashid.decode (Util.unescape (self.params.resource))
       if not tonumber (id) then
         return { status = 400 }
       end
@@ -129,7 +134,7 @@ return function (app)
       } or false
     end
     if self.params.execution then
-      local id = Util.unescape (self.params.execution)
+      local id = Hashid.decode (Util.unescape (self.params.execution))
       if not tonumber (id) then
         return { status = 400 }
       end

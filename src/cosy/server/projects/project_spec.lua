@@ -20,7 +20,7 @@ describe ("route /projects/:project", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -33,22 +33,7 @@ describe ("route /projects/:project", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    route = "/projects/" .. result.id
-  end)
-
-  describe ("with invalid id", function ()
-
-    for _, method in ipairs { "HEAD", "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
-      it ("answers to " .. method, function ()
-        local token  = Test.make_token (Test.identities.naouna)
-        local status = request (app, "/projects/abcde", {
-          method  = method,
-          headers = { Authorization = "Bearer " .. token},
-        })
-        assert.are.same (status, 400)
-      end)
-    end
-
+    route = result.url
   end)
 
   describe ("accessed as", function ()

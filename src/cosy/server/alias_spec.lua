@@ -27,7 +27,7 @@ describe ("route /aliases/:alias", function ()
 
   describe ("redirects on existing alias", function ()
 
-    local project, resource, alias
+    local resource, alias
 
     before_each (function ()
       alias = "myalias"
@@ -39,15 +39,14 @@ describe ("route /aliases/:alias", function ()
         },
       })
       assert.are.same (status, 201)
-      project = "/projects/" .. result.id
-      status, result = request (app, project .. "/resources", {
+      status, result = request (app, result.url .. "/resources", {
         method  = "POST",
         headers = {
           Authorization = "Bearer " .. token,
         },
       })
       assert.are.same (status, 201)
-      resource = project.. "/resources/" .. result.id
+      resource = result.url
       status = request (app, resource .. "/aliases/" .. alias, {
         method  = "PUT",
         headers = {

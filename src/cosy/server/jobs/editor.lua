@@ -13,19 +13,20 @@ function Editor.cleanup (job)
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
   }
-  if not job.data.docker_url then
-    return
-  end
   local mresource = Model.resources:find {
     id = job.data.resource,
   }
+  local docker_url = job.data.docker_url or mresource.docker_url
   mresource:update ({
     editor_url = Database.NULL,
     docker_url = Database.NULL,
   }, { timestamp = false })
+  if not docker_url then
+    return
+  end
   while true do
     local _, deleted_status = Http.json {
-      url     = job.data.docker_url,
+      url     = docker_url,
       method  = "DELETE",
       headers = headers,
     }
@@ -53,15 +54,17 @@ function Editor.perform (job)
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
   }
+  local mresource = Model.resources:find {
+    id = job.data.resource,
+  }
+  local mproject  = mresource:get_project ()
   -- Create service:
   local data = {
     port     = 8080,
     timeout  = Config.editor.timeout,
     project  = job.data.project,
     resource = job.data.resource,
-    token    = Token (Et.render ("/projects/<%- project %>", {
-      project  = job.data.project,
-    }), {}, math.huge),
+    token    = Token (mproject.url, {}, math.huge),
   }
   if Config.hostname ~= "localhost" then
     data.api = Et.render ("http://<%- host %>:<%- port %>", {
@@ -163,9 +166,6 @@ function Editor.perform (job)
     Editor.cleanup (job)
     return
   end
-  local mresource = Model.resources:find {
-    id = job.data.resource,
-  }
   mresource:update ({
     docker_url = resource,
     editor_url = endpoint,

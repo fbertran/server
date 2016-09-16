@@ -4,24 +4,28 @@ local Model      = require "cosy.server.model"
 
 return function (app)
 
+  local function redirect (self)
+    local resource = Model.resources:find {
+      id = self.alias.resource_id,
+    }
+    return { redirect_to = resource.url }
+  end
+
   app:match ("/projects/:project/resources/:resource/aliases/:alias", respond_to {
     HEAD    = Decorators.exists {}
            .. Decorators.can_read
-           .. function ()
-      return { status = 204 }
+           .. function (self)
+      return redirect (self)
     end,
     OPTIONS = Decorators.exists {}
            .. Decorators.can_read
-           .. function ()
-      return { status = 204 }
+           .. function (self)
+      return redirect (self)
     end,
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
-      return {
-        status = 200,
-        json = self.alias,
-      }
+      return redirect (self)
     end,
     DELETE  = Decorators.exists {}
            .. Decorators.can_write
@@ -35,14 +39,11 @@ return function (app)
       if self.alias then
         return { status = 202 }
       end
-      local alias = Model.aliases:create {
+      Model.aliases:create {
         id          = self.params.alias,
         resource_id = self.resource.id,
       }
-      return {
-        status = 201,
-        json = alias,
-      }
+      return { status = 201 }
     end,
     PATCH   = Decorators.exists {}
            .. function ()

@@ -34,15 +34,15 @@ describe ("cosyverif api", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
-    local project = result.id
+    local project = result.url
     -- Star project:
-    status = request (app, "/projects/" .. project .. "/stars", {
+    status = request (app, project .. "/stars", {
       method  = "PUT",
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
     -- Tag project:
-    status = request (app, "/projects/" .. project .. "/tags/mytag", {
+    status = request (app, project .. "/tags/mytag", {
       method  = "PUT",
       headers = { Authorization = "Bearer " .. token },
     })

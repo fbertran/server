@@ -20,8 +20,8 @@ describe ("route /projects/:project/tags", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
-    route   = "/projects/" .. result.id .. "/tags"
+    project = result.url
+    route   = project .. "/tags"
   end)
 
   describe ("accessed as", function ()

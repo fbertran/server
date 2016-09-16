@@ -20,7 +20,7 @@ describe ("route /projects/:project/permissions/anonymous", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -33,8 +33,8 @@ describe ("route /projects/:project/permissions/anonymous", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
-    route   = "/projects/" .. result.id .. "/permissions/anonymous"
+    project = result.url
+    route   = project .. "/permissions/anonymous"
   end)
 
   describe ("accessed as", function ()
@@ -423,7 +423,7 @@ describe ("route /projects/:project/permissions/user", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -436,8 +436,8 @@ describe ("route /projects/:project/permissions/user", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
-    route   = "/projects/" .. result.id .. "/permissions/user"
+    project = result.url
+    route   = project .. "/permissions/user"
   end)
 
   describe ("accessed as", function ()
@@ -847,7 +847,7 @@ describe ("route /projects/:project/permissions/:user", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -860,8 +860,8 @@ describe ("route /projects/:project/permissions/:user", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
-    route   = "/projects/" .. result.id .. "/permissions/" .. crao
+    project = result.url
+    route   = project .. "/permissions/" .. crao
   end)
 
   describe ("accessed as", function ()

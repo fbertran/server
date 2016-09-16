@@ -1,6 +1,8 @@
-local respond_to  = require "lapis.application".respond_to
-local Model       = require "cosy.server.model"
-local Decorators  = require "cosy.server.decorators"
+local respond_to = require "lapis.application".respond_to
+local Model      = require "cosy.server.model"
+local Decorators = require "cosy.server.decorators"
+local Hashid     = require "cosy.server.hashid"
+local Et         = require "etlua"
 
 return function (app)
 
@@ -33,6 +35,12 @@ return function (app)
         name        = self.json.name,
         description = self.json.description,
         data        = self.json.data or [[ return function () end ]],
+      }
+      resource:update {
+        url = Et.render ("/projects/<%- project %>/resources/<%- resource %>", {
+          project  = Hashid.encode (self.project.id),
+          resource = Hashid.encode (resource.id),
+        }),
       }
       return {
         status = 201,

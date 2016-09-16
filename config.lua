@@ -7,10 +7,15 @@ if not branch or branch == "master" then
 end
 
 local common = {
+  url         = "http://" .. assert (hostname),
   hostname    = assert (hostname:match "[^:]+"),
   port        = assert (tonumber (hostname:match ":(%d+)")),
   num_workers = os.getenv "CI" and 2 or 4,
   code_cache  = "on",
+  hashid      = {
+    salt   = "cosyverif rocks",
+    length = 8,
+  },
   branch      = assert (branch),
   postgres    = {
     backend  = "pgmoon",

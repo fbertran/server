@@ -20,7 +20,7 @@ describe ("route /projects/:project/permissions", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -33,8 +33,8 @@ describe ("route /projects/:project/permissions", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = "/projects/" .. result.id
-    route   = "/projects/" .. result.id .. "/permissions"
+    project = result.url
+    route   = project .. "/permissions"
   end)
 
   describe ("accessed as", function ()

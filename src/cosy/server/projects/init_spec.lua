@@ -1,5 +1,4 @@
 local Test = require "cosy.server.test"
-local Et   = require "etlua"
 
 describe ("route /projects", function ()
 
@@ -145,9 +144,7 @@ describe ("route /projects", function ()
         })
         assert.are.same (status, 201)
         local project = result
-        token = Test.make_token (Et.render ("/projects/<%- id %>", {
-          id = project.id,
-        }))
+        token = Test.make_token (project.url)
         status = request (app, "/projects", {
           method  = method,
           headers = { Authorization = "Bearer " .. token},

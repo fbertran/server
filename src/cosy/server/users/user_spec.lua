@@ -21,20 +21,7 @@ describe ("route /users/:user", function ()
       },
     })
     assert.are.same (status, 200)
-    route = "/users/" .. result.authentified.id
-  end)
-
-  describe ("with invalid id", function ()
-
-    for _, method in ipairs { "HEAD", "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT" } do
-      it ("answers to " .. method, function ()
-        local status = request (app, "/users/abcde", {
-          method  = method,
-        })
-        assert.are.same (status, 400)
-      end)
-    end
-
+    route = result.authentified.url
   end)
 
   describe ("accessed as", function ()
