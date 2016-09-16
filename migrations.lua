@@ -32,7 +32,7 @@ return {
     ]]
     Schema.create_table ("projects", {
       { "id"                  , Schema.types.serial { primary_key = true } },
-      { "url"                 , Schema.types.text    { null = true } },
+      { "url"                 , Schema.types.text   { null = true } },
       { "name"                , Schema.types.text   { null = true } },
       { "description"         , Schema.types.text   { null = true } },
       { "permission_anonymous", [[ permission NOT NULL ]] },
