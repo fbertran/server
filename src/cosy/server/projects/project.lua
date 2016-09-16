@@ -3,6 +3,7 @@ local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
 local Http       = require "cosy.server.http"
 local Token      = require "cosy.server.token"
+local Url        = require "socket.url"
 
 return function (app)
 
@@ -45,7 +46,12 @@ return function (app)
       if Config._name ~= "test" then
         for _, resource in ipairs (self.project:get_resources ()) do
           local _, status = Http.json {
-            url     = Config.url .. resource.url,
+            url     = Url.build {
+              scheme = "http",
+              host   = Config.host,
+              port   = Config.port,
+              path   = resource.url,
+            },
             method  = "DELETE",
             headers = {
               Authorization = "Bearer " .. token,
@@ -55,7 +61,12 @@ return function (app)
         end
         for _, execution in ipairs (self.project:get_executions ()) do
           local _, status = Http.json {
-            url     = Config.url .. execution.url,
+            url     = Url.build {
+              scheme = "http",
+              host   = Config.host,
+              port   = Config.port,
+              path   = execution.url,
+            },
             method  = "DELETE",
             headers = {
               Authorization = "Bearer " .. token,

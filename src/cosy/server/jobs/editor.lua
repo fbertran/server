@@ -66,9 +66,9 @@ function Editor.perform (job)
     resource = job.data.resource,
     token    = Token (mproject.url, {}, math.huge),
   }
-  if Config.hostname ~= "localhost" then
+  if Config.host ~= "localhost" then
     data.api = Et.render ("http://<%- host %>:<%- port %>", {
-      host = Config.hostname,
+      host = Config.host,
       port = Config.port,
     })
   end

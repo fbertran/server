@@ -1,15 +1,18 @@
 local Config = require "lapis.config"
+local Url    = require "socket.url"
 
-local hostname = assert (os.getenv "COSY_HOST")
-local branch   = assert (os.getenv "COSY_BRANCH" or os.getenv "WERCKER_GIT_BRANCH")
+local branch = assert (os.getenv "COSY_BRANCH" or os.getenv "WERCKER_GIT_BRANCH")
 if not branch or branch == "master" then
   branch = "latest"
 end
 
+local server_url   = assert (Url.parse (os.getenv "API_PORT"     ))
+local postgres_url = assert (Url.parse (os.getenv "POSTGRES_PORT"))
+local redis_url    = assert (Url.parse (os.getenv "REDIS_PORT"   ))
+
 local common = {
-  url         = "http://" .. assert (hostname),
-  hostname    = assert (hostname:match "[^:]+"),
-  port        = assert (tonumber (hostname:match ":(%d+)")),
+  host        = assert (server_url.host),
+  port        = assert (server_url.port),
   num_workers = os.getenv "CI" and 2 or 4,
   code_cache  = "on",
   hashid      = {
@@ -19,15 +22,15 @@ local common = {
   branch      = assert (branch),
   postgres    = {
     backend  = "pgmoon",
-    host     = assert (os.getenv "POSTGRES_PORT":match "tcp://([^:]+):%d+"),
-    port     = assert (tonumber (os.getenv "POSTGRES_PORT":match "tcp://[^:]+:(%d+)")),
+    host     = assert (postgres_url.host),
+    port     = assert (postgres_url.port),
     user     = assert (os.getenv "POSTGRES_USER"    ),
     password = assert (os.getenv "POSTGRES_PASSWORD"),
     database = assert (os.getenv "POSTGRES_DATABASE"),
   },
   redis       = {
-    host     = assert (os.getenv "REDIS_PORT":match "tcp://([^:]+):%d+"),
-    port     = assert (tonumber (os.getenv "REDIS_PORT":match "tcp://[^:]+:(%d+)")),
+    host     = assert (redis_url.host),
+    port     = assert (redis_url.port),
     database = 0,
   },
   auth0       = {

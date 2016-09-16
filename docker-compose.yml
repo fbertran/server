@@ -15,13 +15,12 @@ services:
       driver: "json-file"
     environment:
       COSY_PREFIX: /usr/local
-      COSY_HOST: localhost:8080
       COSY_BRANCH: ${COSY_BRANCH}
+      REDIS_PORT: "tcp://redis:6379"
       POSTGRES_PORT: "tcp://postgres:5432"
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ""
       POSTGRES_DATABASE: postgres
-      REDIS_PORT: "tcp://redis:6379"
       AUTH0_DOMAIN: ${AUTH0_DOMAIN}
       AUTH0_ID: ${AUTH0_ID}
       AUTH0_SECRET: ${AUTH0_SECRET}

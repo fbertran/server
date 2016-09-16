@@ -2,6 +2,8 @@ local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Quote      = require "cosy.server.quote"
+local Url        = require "socket.url"
+
 local app        = Lapis.Application ()
 
 require "cosy.server.before"   (app)
@@ -38,8 +40,11 @@ app:match ("/", respond_to {
       json   = {
         authentified = self.authentified,
         server = {
-          hostname = Config.hostname,
-          port     = Config.port,
+          url = Url.build {
+            scheme = "http",
+            host   = Config.host,
+            port   = Config.port,
+          }
         },
         auth = {
           domain    = Config.auth0.domain,
