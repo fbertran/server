@@ -4,8 +4,6 @@ services:
     image: postgres
   redis:
     image: redis:3.0.7 # because of bug in qless
-    ports:
-      - "6379"
   api:
     build: .
     ports:
