@@ -1,12 +1,11 @@
-local respond_to  = require "lapis.application".respond_to
-local Config      = require "lapis.config".get ()
-local Model       = require "cosy.server.model"
-local Decorators  = require "cosy.server.decorators"
-local Http        = require "cosy.server.http"
-local Token       = require "cosy.server.token"
-local Docker      = require "cosy.server.docker"
-local Et          = require "etlua"
-local Mime        = require "mime"
+local Config     = require "lapis.config".get ()
+local respond_to = require "lapis.application".respond_to
+local Model      = require "cosy.server.model"
+local Decorators = require "cosy.server.decorators"
+local Http       = require "cosy.server.http"
+local Hashid     = require "cosy.server.hashid"
+local Et         = require "etlua"
+local Qless      = require "resty.qless"
 
 return function (app)
 
@@ -45,88 +44,41 @@ return function (app)
       if status ~= 204 then
         return { status = status }
       end
-      local url     = "https://cloud.docker.com"
-      local api     = url .. "/api/app/v1"
-      local headers = {
-        ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
+      local qless = Qless.new {
+        host = Config.redis.host,
+        port = Config.redis.port,
+        db   = Config.redis.database,
       }
-      -- Create service:
-      local data = {
-        resource = self.json.resource,
-        token    = Token (Et.render ("/projects/<%- project %>", {
-          project  = self.project.id,
-        }), {}, math.huge),
-      }
-      local arguments = {}
-      for key, value in pairs (data) do
-        arguments [#arguments+1] = Et.render ("--<%- key %>=<%- value %>", {
-          key   = key,
-          value = value,
-        })
-      end
-      local service, service_status = Http.json {
-        url     = api .. "/service/",
-        method  = "POST",
-        headers = headers,
-        body    = {
-          image        = self.json.image,
-          run_command  = table.concat (arguments, " "),
-          autorestart  = "OFF",
-          autodestroy  = "ALWAYS",
-          autoredeploy = false,
-          tags         = { Config.branch },
-        },
-      }
-      if service_status == 400 then
-        return { status = service_status }
-      elseif service_status ~= 201 then
-        return { status = 503 }
-      end
-      -- Start service:
-      local execution_url = url .. service.resource_uri
-      local _, started_status = Http.json {
-        url     = execution_url .. "start/",
-        method  = "POST",
-        headers = headers,
-        timeout = 10, -- seconds
-      }
-      if started_status ~= 202 then
-        Docker.delete (execution_url)
-        return { status = 503 }
-      end
-      do
-        local running, running_status
-        while true do
-          running, running_status = Http.json {
-            url     = execution_url,
-            method  = "GET",
-            headers = headers,
-          }
-          if running_status == 200 and running.state:lower () ~= "starting" then
-            break
-          elseif _G.ngx and _G.ngx.sleep then
-            _G.ngx.sleep (1)
-          else
-            os.execute "sleep 1"
-          end
-        end
-        if running.state:lower () ~= "running" then
-          Docker.delete (execution_url)
-          execution_url = nil
-        end
-      end
+      local queue     = qless.queues ["executions"]
       local execution = Model.executions:create {
         project_id  = self.project.id,
         resource    = self.json.resource,
         image       = self.json.image,
-        docker_url  = execution_url,
         name        = self.json.name,
         description = self.json.description,
       }
-      return {
-        status = 201,
-        json   = execution,
+      execution:update {
+        url = Et.render ("/projects/<%- project %>/executions/<%- execution %>", {
+          project   = Hashid.encode (self.project.id),
+          execution = Hashid.encode (execution.id),
+        }),
       }
+      queue:put ("cosy.server.jobs.execution", {
+        execution = execution.id,
+      }, {
+        jid = execution.url,
+      })
+      for _ = 1, 30 do
+        execution:refresh ()
+        if execution.docker_url then
+          return {
+            status = 201,
+            json   = execution,
+          }
+        end
+        _G.ngx.sleep (1)
+      end
+      return { status = 503 }
     end,
     DELETE  = Decorators.exists {}
            .. function ()

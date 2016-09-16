@@ -28,7 +28,7 @@ end
 
 Test.environment.use ()
 
-describe ("route /projects/:project/executions/", function ()
+describe ("#resty route /projects/:project/executions/", function ()
 
   local server_url, docker_url
   local headers = {
@@ -49,8 +49,12 @@ describe ("route /projects/:project/executions/", function ()
       body    = {
         name     = id,
         services = {
-          { name  = "database",
+          { name  = "postgres",
             image = "postgres",
+            tags  = { Config.branch },
+          },
+          { name  = "redis",
+            image = "redis:3.0.7",
             tags  = { Config.branch },
           },
           { name  = "api",
@@ -62,14 +66,14 @@ describe ("route /projects/:project/executions/", function ()
               "8080",
             },
             links = {
-              "database",
+              "postgres",
+              "redis",
             },
             environment = {
-              RESOLVERS         = "127.0.0.11",
               COSY_PREFIX       = "/usr/local",
-              COSY_HOST         = "api:8080",
               COSY_BRANCH       = branch,
-              POSTGRES_HOST     = "database",
+              REDIS_PORT        = "tcp://redis:6379",
+              POSTGRES_PORT     = "tcp://postgres:5432",
               POSTGRES_USER     = "postgres",
               POSTGRES_PASSWORD = "",
               POSTGRES_DATABASE = "postgres",
@@ -170,11 +174,12 @@ describe ("route /projects/:project/executions/", function ()
   local app, request
 
   setup (function ()
+    Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
   end)
 
-  local project, project_url, resource_url, route, naouna
+  local project, project_url, project_token, resource_url, route, naouna
 
   setup (function ()
     local token = Test.make_token (Test.identities.rahan)
@@ -186,7 +191,8 @@ describe ("route /projects/:project/executions/", function ()
       },
     }
     assert.are.same (status, 201)
-    project_url = server_url .. "/projects/" .. result.id
+    project_url    = server_url .. result.url
+    project_token  = Test.make_token (result.url)
     result, status = Http.json {
       url     = project_url .. "/resources/",
       method  = "POST",
@@ -195,11 +201,7 @@ describe ("route /projects/:project/executions/", function ()
       },
     }
     assert.are.same (status, 201)
-    resource_url = project_url .. "/resources/" .. result.id
-  end)
-
-  setup (function ()
-    Test.clean_db ()
+    resource_url = server_url .. result.url
   end)
 
   setup (function ()
@@ -210,7 +212,7 @@ describe ("route /projects/:project/executions/", function ()
     })
     assert.are.same (status, 200)
     assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.id
+    naouna = result.authentified.url:match "/users/(.*)"
   end)
 
   describe ("accessed as", function ()
@@ -227,7 +229,7 @@ describe ("route /projects/:project/executions/", function ()
         })
         assert.are.same (status, 201)
         assert.is.not_nil (result.id)
-        project = "/projects/" .. result.id
+        project = result.url
         status, result = request (app, project .. "/executions/", {
           method  = "POST",
           headers = {
@@ -240,7 +242,7 @@ describe ("route /projects/:project/executions/", function ()
         })
         assert.are.same (status, 201)
         assert.is.not_nil (result.id)
-        route  = project .. "/executions/" .. result.id
+        route  = result.url
         status = request (app, project, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -305,7 +307,7 @@ describe ("route /projects/:project/executions/", function ()
         })
         assert.are.same (status, 201)
         assert.is.not_nil (result.id)
-        project = "/projects/" .. result.id
+        project = result.url
         status, result = request (app, project .. "/executions/", {
           method  = "POST",
           headers = {
@@ -318,7 +320,7 @@ describe ("route /projects/:project/executions/", function ()
         })
         assert.are.same (status, 201)
         assert.is.not_nil (result.id)
-        route = project .. "/executions/" .. result.id
+        route = result.url
       end)
 
       teardown (function ()
@@ -871,15 +873,14 @@ describe ("route /projects/:project/executions/", function ()
 
         for _, method in ipairs { "HEAD", "OPTIONS" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, project, {
               method  = "GET",
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 200)
             status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 204)
           end)
@@ -887,10 +888,9 @@ describe ("route /projects/:project/executions/", function ()
 
         for _, method in ipairs { "GET" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 200)
           end)
@@ -898,10 +898,9 @@ describe ("route /projects/:project/executions/", function ()
 
         for _, method in ipairs { "PATCH" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 204)
           end)
@@ -909,10 +908,9 @@ describe ("route /projects/:project/executions/", function ()
 
         -- for _, method in ipairs { "DELETE" } do
         --   it ("answers to " .. method, function ()
-        --     local token  = Test.make_token (project)
         --     local status = request (app, route, {
         --       method  = method,
-        --       headers = { Authorization = "Bearer " .. token},
+        --       headers = { Authorization = "Bearer " .. project_token},
         --     })
         --     assert.are.same (status, 204)
         --   end)
@@ -920,10 +918,9 @@ describe ("route /projects/:project/executions/", function ()
 
         for _, method in ipairs { "POST", "PUT" } do
           it ("answers to " .. method, function ()
-            local token  = Test.make_token (project)
             local status = request (app, route, {
               method  = method,
-              headers = { Authorization = "Bearer " .. token},
+              headers = { Authorization = "Bearer " .. project_token},
             })
             assert.are.same (status, 405)
           end)

@@ -1,10 +1,8 @@
-local Config      = require "lapis.config".get ()
-local Database    = require "lapis.db"
-local respond_to  = require "lapis.application".respond_to
-local Decorators  = require "cosy.server.decorators"
-local Http        = require "cosy.server.http"
-local Docker      = require "cosy.server.docker"
-local Mime        = require "mime"
+local Config     = require "lapis.config".get ()
+local respond_to = require "lapis.application".respond_to
+local Decorators = require "cosy.server.decorators"
+local Qless      = require "resty.qless"
+local Job        = require "cosy.server.jobs.execution"
 
 return function (app)
 
@@ -22,32 +20,6 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
-      if self.execution.docker_url then
-        local headers = {
-          ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
-          ["Accept"       ] = "application/json",
-          ["Content-type" ] = "application/json",
-        }
-        local result, status = Http.json {
-          url     = self.execution.docker_url,
-          method  = "GET",
-          headers = headers,
-        }
-        if status ~= 200 and status ~= 404 then
-          return { status = 503 }
-        end
-        if status == 404 then
-          self.execution:update ({
-            docker_url = Database.NULL,
-          }, { timestamp = false })
-        elseif status == 200 then
-          if result.state:lower () == "exited" then
-            self.execution:update ({
-              docker_url = Database.NULL,
-            }, { timestamp = false })
-          end
-        end
-      end
       return {
         status = 200,
         json   = self.execution,
@@ -65,13 +37,17 @@ return function (app)
     DELETE  = Decorators.exists {}
            .. Decorators.can_write
            .. function (self)
-      if self.execution.docker_url then
-        Docker.delete (self.execution.docker_url)
-        self.execution:update {
-          docker_url = Database.NULL,
-        }
+      local qless = Qless.new {
+        host = Config.redis.host,
+        port = Config.redis.port,
+        db   = Config.redis.database,
+      }
+      local job = qless.jobs:get (self.execution.url)
+      if job then
+       job:cancel ()
+       Job.cleanup (job)
+       job:cancel ()
       end
-      self.execution:delete ()
       return { status = 204 }
     end,
     POST    = Decorators.exists {}
