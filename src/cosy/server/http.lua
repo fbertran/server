@@ -10,8 +10,9 @@ if _G.ngx then
   function M.json (options)
     assert (type (options) == "table")
     options.ssl_verify = false
-    options.method = options.method or "GET"
-    options.body   = options.body   and Util.to_json (options.body)
+    options.method  = options.method or "GET"
+    options.body    = options.body   and Util.to_json (options.body)
+    options.headers = options.headers or {}
     options.headers ["Content-type"] = options.body and "application/json"
     options.headers ["Accept"      ] = "application/json"
     local client = Http.new ()
