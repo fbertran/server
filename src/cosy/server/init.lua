@@ -2,6 +2,7 @@ local Lapis      = require "lapis"
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Quote      = require "cosy.server.quote"
+local Model      = require "cosy.server.model"
 local Url        = require "socket.url"
 
 local app        = Lapis.Application ()
@@ -35,6 +36,11 @@ app:match ("/", respond_to {
     return { status = 204 }
   end,
   GET     = function (self)
+    local users     = Model.identities:count [[ type = 'user' ]]
+    local projects  = Model.projects  :count ()
+    local resources = Model.resources :count ()
+    local editors   = Model.resources :count [[ editor_url IS NOT NULL ]]
+    local dockers   = Model.resources :count [[ docker_url IS NOT NULL ]]
     return {
       status = 200,
       json   = {
@@ -49,6 +55,13 @@ app:match ("/", respond_to {
         auth = {
           domain    = Config.auth0.domain,
           client_id = Config.auth0.client_id,
+        },
+        stats = {
+          users     = users,
+          projects  = projects,
+          resources = resources,
+          editors   = editors,
+          dockers   = dockers,
         },
       }
     }
