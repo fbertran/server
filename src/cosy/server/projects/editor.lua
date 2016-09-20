@@ -1,8 +1,9 @@
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
+local Start      = require "cosy.server.jobs.editor.start"
+local Stop       = require "cosy.server.jobs.editor.stop"
 local Qless      = require "resty.qless"
-local Job        = require "cosy.server.jobs.editor"
 
 return function (app)
 
@@ -23,45 +24,31 @@ return function (app)
       if self.resource.editor_url then
         return { redirect_to = self.resource.editor_url }
       end
-      local qless = Qless.new {
-        host = Config.redis.host,
-        port = Config.redis.port,
-        db   = Config.redis.database,
-      }
-      local queue = qless.queues ["editors"]
-      queue:put ("cosy.server.jobs.editor", {
-        project  = self.project .id,
-        resource = self.resource.id,
-      }, {
-        jid = self.resource.url .. "/editor",
-      })
-      for _ = 1, 30 do
-        self.resource:refresh ()
-        if self.resource.editor_url then
-          return { redirect_to = self.resource.editor_url }
-        end
-        _G.ngx.sleep (1)
+      -- FIXME: issue #6
+      local qless = Qless.new (Config.redis)
+      local start = qless.jobs:get ("start@" .. self.resource.url .. "/editor")
+      if not start then
+        Start.create (self.resource)
       end
-      return { status = 503 }
+      return { status = 202 }
     end,
     DELETE  = Decorators.exists {}
            .. Decorators.is_authentified
            .. function (self)
+      local qless = Qless.new (Config.redis)
+      local start = qless.jobs:get ("start@" .. self.resource.url .. "/editor")
+      local stop  = qless.jobs:get ("stop@"  .. self.resource.url .. "/editor")
       if self.identity.type   ~= "project"
       or self.authentified.id ~= self.project.id then
         return { status = 403 }
+      elseif not self.resource.docker_url
+      and    not start then
+        return { status = 404 }
       end
-      local qless = Qless.new {
-        host = Config.redis.host,
-        port = Config.redis.port,
-        db   = Config.redis.database,
-      }
-      local job = qless.jobs:get (self.resource.url .. "/editor")
-      if job then
-        Job.cleanup (job)
-        job:cancel ()
+      if not stop then
+        Stop.create (self.resource)
       end
-      return { status = 204 }
+      return { status = 202 }
     end,
     PATCH   = Decorators.exists {}
            .. function ()
