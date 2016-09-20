@@ -18,11 +18,12 @@ if _G.ngx then
     local client = Http.new ()
     client:set_timeout ((options.timeout or 5) * 1000) -- milliseconds
     local result = assert (client:request_uri (options.url, options))
-    -- client:set_keepalive ()
-    result.body = result.body
-              and result.body ~= ""
-              and Util.from_json (result.body)
-               or result.body
+    if result.body then
+      local ok, json = pcall (Util.from_json, result.body)
+      if ok then
+        result.body = json
+      end
+    end
     return result.body, result.status
   end
 
@@ -46,9 +47,13 @@ else
              and Https
               or Http
     local _, status, _, _ = http.request (options)
-    result = #result ~= 0
-         and Util.from_json (table.concat (result))
-          or table.concat (result)
+    result = table.concat (result)
+    if result then
+      local ok, json = pcall (Util.from_json, result)
+      if ok then
+        result = json
+      end
+    end
     return result, status
   end
 
