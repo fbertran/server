@@ -23,8 +23,8 @@ dependencies = {
   "luasec",
   "luasocket",
   "lua-resty-http",
+  "lua-resty-qless",
   -- "hashids",         -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
-  -- "lua-resty-qless", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
 }
 
 build = {
