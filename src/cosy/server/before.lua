@@ -119,7 +119,6 @@ return function (app)
       local id = Util.unescape (self.params.tag)
       self.tag = Model.tags:find {
         id         = id,
-        user_id    = self.authentication and self.authentication.id or nil,
         project_id = self.project and self.project.id or nil,
       } or false
     end

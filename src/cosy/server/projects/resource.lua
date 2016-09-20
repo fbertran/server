@@ -4,6 +4,7 @@ local Config     = require "lapis.config".get ()
 local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
+local Hashid     = require "cosy.server.hashid"
 local Model      = require "cosy.server.model"
 local Jwt        = require "jwt"
 
@@ -30,7 +31,15 @@ return function (app)
            .. function (self)
       return {
         status = 200,
-        json   = self.resource,
+        json   = {
+          id          = Hashid.encode (self.resource.id),
+          url         = self.resource.url,
+          project     = self.resource:get_project ().url,
+          name        = self.resource.name,
+          description = self.resource.description,
+          docker      = self.resource.docker_url,
+          editor      = self.resource.editor_url,
+        },
       }
     end,
     PUT     = Decorators.exists {}

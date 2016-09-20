@@ -1,6 +1,7 @@
 local respond_to  = require "lapis.application".respond_to
 local Model       = require "cosy.server.model"
 local Decorators  = require "cosy.server.decorators"
+local Hashid      = require "cosy.server.hashid"
 
 local function is_permission (permission)
   return  permission ~= nil
@@ -30,8 +31,9 @@ return function (app)
         return {
           status = 200,
           json   = {
-            project_id = self.project.id,
-            permission = self.project.permission,
+            url        = self.project.url .. "/permissions/" .. special,
+            project    = self.project.url,
+            permission = self.project ["permission_" .. special],
           },
         }
       end,
@@ -75,11 +77,17 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_admin
            .. function (self)
+      local permission = Model.permissions:find {
+        identity_id = self.user.id,
+        project_id  = self.project.id,
+      }
       return {
         status = 200,
-        json   = Model.permissions:find {
-          identity_id = self.user.id,
-          project_id  = self.project.id,
+        json = {
+          url        = self.project.url .. "/permissions/" .. Hashid.encode (self.user.id),
+          user       = self.user.url,
+          project    = self.project.url,
+          permission = permission.permission,
         },
       }
     end,

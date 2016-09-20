@@ -1,5 +1,6 @@
-local respond_to  = require "lapis.application".respond_to
-local Decorators  = require "cosy.server.decorators"
+local respond_to = require "lapis.application".respond_to
+local Decorators = require "cosy.server.decorators"
+local Model      = require "cosy.server.model"
 
 return function (app)
 
@@ -19,12 +20,36 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_admin
            .. function (self)
+      local permissions = self.project:get_permissions () or {}
+      local granted      = {}
+      for i, permission in ipairs (permissions) do
+        local user = Model.users:find {
+          id = permission.identity_id,
+        }
+        local project = Model.projects:find {
+          id = permission.identity_id,
+        }
+        if user then
+          granted [i] = {
+            project = self.project.url,
+            who     = user.url,
+            type    = "user",
+          }
+        else
+          granted [i] = {
+            project = self.project.url,
+            who     = project.url,
+            type    = "project",
+          }
+        end
+      end
       return {
         status = 200,
         json   = {
+          url       = self.project.url .. "/permissions/",
           anonymous = self.project.permission_anonymous,
           user      = self.project.permission_user,
-          granted   = self.project:get_permissions () or {},
+          granted   = granted,
         },
       }
     end,

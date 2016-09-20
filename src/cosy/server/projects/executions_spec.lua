@@ -30,7 +30,7 @@ Test.environment.use ()
 
 describe ("#current #resty route /projects/:project/executions/", function ()
 
-  local server_url, docker_url
+  local server_url
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
     ["Accept"       ] = "application/json",
@@ -130,7 +130,6 @@ describe ("#current #resty route /projects/:project/executions/", function ()
           headers = headers,
         }
         assert (container_status == 200)
-        docker_url = resource
         for _, port in ipairs (container.container_ports) do
           local endpoint = port.endpoint_uri
           if endpoint and endpoint ~= Json.null then
@@ -144,6 +143,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                 method  = "GET",
               }
               if status == 200 then
+                print ("Stack created", server_url)
                 return
               else
                 os.execute "sleep 1"
@@ -156,27 +156,26 @@ describe ("#current #resty route /projects/:project/executions/", function ()
     assert (false)
   end)
 
-  teardown (function ()
-    local _ = docker_url
-    -- while true do
-    --   local _, deleted_status = Http.json {
-    --     url     = docker_url,
-    --     method  = "DELETE",
-    --     headers = headers,
-    --   }
-    --   if deleted_status == 202 or deleted_status == 404 then
-    --     break
-    --   else
-    --     os.execute "sleep 1"
-    --   end
-    -- end
-  end)
-
   local app, request
 
   setup (function ()
+    Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
+  end)
+
+  teardown (function ()
+    while true do
+      local status, info = request (app, "/", {
+        method = "GET",
+      })
+      assert.are.equal (status, 200)
+      print (info.stats.dockers)
+      if info.stats.dockers == 0 then
+        break
+      end
+      os.execute [[ sleep 1 ]]
+    end
   end)
 
   local project, project_token, resources, route, naouna
@@ -194,7 +193,6 @@ describe ("#current #resty route /projects/:project/executions/", function ()
       }
       assert.are.same (status, 201)
       local project_url = server_url .. result.url
-      project_token     = Test.make_token (result.url)
       local _
       _, status = Http.json {
         url     = project_url .. "/permissions/user",
@@ -301,10 +299,6 @@ describe ("#current #resty route /projects/:project/executions/", function ()
   end)
 
   before_each (function ()
-    Test.clean_db ()
-  end)
-
-  before_each (function ()
     local token = Test.make_token (Test.identities.naouna)
     local status, result = request (app, "/", {
       method  = "GET",
@@ -325,8 +319,18 @@ describe ("#current #resty route /projects/:project/executions/", function ()
     })
     assert.are.same (status, 201)
     assert.is.not_nil (result.id)
-    project = result.url
-    route   = project .. "/executions/"
+    project       = result.url
+    route         = project .. "/executions/"
+    project_token = Test.make_token (result.url)
+  end)
+
+  local execution
+
+  after_each (function ()
+    request (app, execution, {
+      method  = "DELETE",
+      headers = { ["Authorization"] = "Bearer " .. project_token },
+    })
   end)
 
   describe ("accessed as", function ()
@@ -542,13 +546,8 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                     resource = resources.readable,
                   },
                 })
-                assert.are.same (status, 201)
-                local execution = project .. "/executions/" .. result.id
-                status = request (app, execution, {
-                  method  = "DELETE",
-                  headers = { Authorization = "Bearer " .. token},
-                })
-                assert.are.same (status, 204)
+                assert.are.same (status, 202)
+                execution = result.url
               end)
             end
 
@@ -654,13 +653,8 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                     resource = resources.readable,
                   },
                 })
-                assert.are.same (status, 201)
-                local execution = project .. "/executions/" .. result.id
-                status = request (app, execution, {
-                  method  = "DELETE",
-                  headers = { Authorization = "Bearer " .. token},
-                })
-                assert.are.same (status, 204)
+                assert.are.same (status, 202)
+                execution = result.url
               end)
             end
 
@@ -815,13 +809,23 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                 resource = resources.missing,
               },
             })
-            assert.are.same (status, 404)
+            assert.are.same (status, 400)
           end)
         end
 
       end)
 
       describe ("with non readable resource", function ()
+
+        before_each (function ()
+          local token  = Test.make_token (Test.identities.rahan)
+          local status = request (app, project .. "/permissions/" .. naouna, {
+            method  = "PUT",
+            json    = { permission = "admin" },
+            headers = {["Authorization"] = "Bearer " .. token },
+          })
+          assert.are.same (status, 201)
+        end)
 
         for _, method in ipairs { "POST" } do
           it ("answers to " .. method, function ()
@@ -834,7 +838,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                 resource = resources.hidden,
               },
             })
-            assert.are.same (status, 403)
+            assert.are.same (status, 400)
           end)
         end
 

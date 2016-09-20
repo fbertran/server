@@ -22,9 +22,23 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
+      local resources = self.project:get_resources () or {}
+      local result    = {
+        url       = self.project.url .. "/resources/",
+        resources = {},
+      }
+      for i, resource in ipairs (resources) do
+        result.resources [i] = {
+          url         = resource.url,
+          name        = resource.name,
+          description = resource.description,
+          docker      = resource.docker_url,
+          editor      = resource.editor_url,
+        }
+      end
       return {
         status = 200,
-        json   = self.project:get_resources () or {},
+        json   = result,
       }
     end,
     POST    = Decorators.exists {}

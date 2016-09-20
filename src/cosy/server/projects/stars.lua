@@ -19,9 +19,20 @@ return function (app)
            .. Decorators.can_read
            .. function (self)
       local stars = self.project:get_stars () or {}
+      Model.users:include_in (stars, "user_id")
+      local result = {
+        url   = self.project.url .. "/stars",
+        stars = {},
+      }
+      for i, star in ipairs (stars) do
+        result.stars [i] = {
+          user    = star.user.url,
+          project = self.project.url,
+        }
+      end
       return {
         status = 200,
-        json   = stars,
+        json   = result,
       }
     end,
     PUT     = Decorators.exists {}

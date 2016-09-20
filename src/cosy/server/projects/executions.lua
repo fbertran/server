@@ -4,8 +4,9 @@ local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
 local Http       = require "cosy.server.http"
 local Hashid     = require "cosy.server.hashid"
-local Et         = require "etlua"
+local Start      = require "cosy.server.jobs.execution.start"
 local Qless      = require "resty.qless"
+local Et         = require "etlua"
 
 return function (app)
 
@@ -25,16 +26,31 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
+      local executions = self.project:get_executions () or {}
+      local result    = {
+        url        = self.project.url .. "/executions/",
+        executions = {},
+      }
+      for i, execution in ipairs (executions) do
+        result.executions [i] = {
+          url         = execution.url,
+          name        = execution.name,
+          description = execution.description,
+          docker      = execution.docker_url,
+        }
+      end
       return {
         status = 200,
-        json   = self.project:get_executions () or {},
+        json   = result,
       }
     end,
     POST    = Decorators.exists {}
            .. Decorators.can_write
            .. Decorators.is_user
            .. function (self)
-      local _, status = Http.json {
+      -- check if resource exists and is readable:
+      local _, result, status
+      _, status = Http.json {
         url     = self.json.resource,
         method  = "HEAD",
         headers = {
@@ -42,14 +58,52 @@ return function (app)
         }
       }
       if status ~= 204 then
-        return { status = status }
+        return {
+          status = 400,
+          json   = {
+            status = status,
+            reason = "resource",
+          },
+        }
       end
-      local qless = Qless.new {
-        host = Config.redis.host,
-        port = Config.redis.port,
-        db   = Config.redis.database,
+      -- check if image exists and is readable:
+      local image, variant = self.json.image:match "([^:]+):?(.*)"
+      result, status = Http.json {
+        url    = Et.render ("https://auth.docker.io/token?service=registry.docker.io&scope=repository:<%- image %>:pull", {
+          image = image,
+        }),
+        method = "GET",
       }
-      local queue     = qless.queues ["executions"]
+      if status ~= 200 then
+        return {
+          status = 400,
+          json   = {
+            status = status,
+            reason = "image",
+          },
+        }
+      end
+      local docker_token = assert (result.token)
+      _, status = Http.json ({
+        url     = Et.render ("https://registry-1.docker.io/v2/<%- image %>/manifests/<%- variant %>", {
+          image   = image,
+          variant = variant == "" and "latest" or variant,
+        }),
+        method  = "GET",
+        headers = {
+          ["Authorization"] = "Bearer " .. docker_token,
+        }
+      }, true)
+      if status ~= 200 then
+        return {
+          status = 400,
+          json   = {
+            status = status,
+            reason = "image",
+          },
+        }
+      end
+      -- create execution:
       local execution = Model.executions:create {
         project_id  = self.project.id,
         resource    = self.json.resource,
@@ -63,22 +117,13 @@ return function (app)
           execution = Hashid.encode (execution.id),
         }),
       }
-      queue:put ("cosy.server.jobs.execution", {
-        execution = execution.id,
-      }, {
-        jid = execution.url,
-      })
-      for _ = 1, 30 do
-        execution:refresh ()
-        if execution.docker_url then
-          return {
-            status = 201,
-            json   = execution,
-          }
-        end
-        _G.ngx.sleep (1)
+      -- FIXME: issue #6
+      local qless = Qless.new (Config.redis)
+      local start = qless.jobs:get ("start@" .. execution.url)
+      if not start then
+        Start.create (execution)
       end
-      return { status = 503 }
+      return { status = 202 }
     end,
     DELETE  = Decorators.exists {}
            .. function ()

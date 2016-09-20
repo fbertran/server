@@ -1,4 +1,5 @@
 local respond_to = require "lapis.application".respond_to
+local Util       = require "lapis.util"
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
 local Hashid     = require "cosy.server.hashid"
@@ -23,12 +24,39 @@ return function (app)
       return { status = 204 }
     end,
     GET     = function ()
-      local projects = Model.projects:select {
-        fields = "id",
-      } or {}
+      local projects = Model.projects:select () or {}
+      local result   = {
+        url      = "/projects/",
+        projects = {},
+      }
+      for i, project in ipairs (projects) do
+        local all_stars = project:get_stars () or {}
+        local stars     = {
+          count = #all_stars,
+          url   = project.url .. "/stars",
+        }
+        local all_tags  = project:get_tags  () or {}
+        local tags      = {
+          url  = project.url .. "/tags",
+          tags = {},
+        }
+        for j, tag in ipairs (all_tags) do
+          tags.tags [j] = {
+            id  = tag.id,
+            url = project.url .. "/tag/" .. Util.escape (tag.id),
+          }
+        end
+        result.projects [i] = {
+          url         = project.url,
+          name        = project.name,
+          description = project.description,
+          stars       = stars,
+          tags        = tags,
+        }
+      end
       return {
         status = 200,
-        json   = projects,
+        json   = result,
       }
     end,
     POST    = Decorators.is_authentified
@@ -63,6 +91,7 @@ return function (app)
         project_id  = project.id,
         permission  = "admin",
       }
+      project.id = Hashid.encode (project.id)
       return {
         status = 201,
         json   = project,

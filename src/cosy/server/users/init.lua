@@ -15,11 +15,24 @@ return function (app)
       return { status = 204 }
     end,
     GET     = function ()
+      local users  = Model.users:select () or {}
+      local result = {
+        url   = "/users/",
+        users = {},
+      }
+      for i, user in ipairs (users) do
+        result.users [i] = {
+          url        = user.url,
+          email      = user.email,
+          name       = user.name,
+          nickname   = user.nickname,
+          reputation = user.reputation,
+          picture    = user.picture,
+        }
+      end
       return {
         status = 200,
-        json   = Model.users:select {
-          fields = "id",
-        } or {},
+        json   = result,
       }
     end,
     POST    = function ()

@@ -1,4 +1,5 @@
 local respond_to = require "lapis.application".respond_to
+local Util       = require "lapis.util"
 local Db         = require "lapis.db"
 
 return function (app)
@@ -13,9 +14,20 @@ return function (app)
     end,
     GET     = function ()
       local tags = Db.select "id, count (1) as count from tags group by id" or {}
+      local result = {
+        url  = "/tags/",
+        tags = {},
+      }
+      for i, tag in ipairs (tags) do
+        result.tags [i] = {
+          id    = tag.id,
+          count = tag.count,
+          url   = "/tags/" .. Util.escape (tag.id),
+        }
+      end
       return {
         status = 200,
-        json   = tags,
+        json   = result,
       }
     end,
     OPTIONS = function ()

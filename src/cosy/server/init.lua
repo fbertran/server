@@ -41,6 +41,7 @@ app:match ("/", respond_to {
     local resources = Model.resources :count ()
     local editors   = Model.resources :count [[ editor_url IS NOT NULL ]]
     local dockers   = Model.resources :count [[ docker_url IS NOT NULL ]]
+                    + Model.executions:count [[ docker_url IS NOT NULL ]]
     return {
       status = 200,
       json   = {

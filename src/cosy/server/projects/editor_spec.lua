@@ -39,14 +39,13 @@ Test.environment.use ()
 
 describe ("#resty route /projects/:project/resources/:resource/editor", function ()
 
-  local app, request, created
+  local app, request
   local project, project_token, route, naouna
 
   setup (function ()
     Test.clean_db ()
     request = Test.environment.request ()
     app     = Test.environment.app ()
-    created = {}
   end)
 
   local function wsconnect (headers)
@@ -96,7 +95,6 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
   end)
 
   after_each (function ()
-    created [route] = project_token
     request (app, route, {
       method  = "DELETE",
       headers = { ["Authorization"] = "Bearer " .. project_token },

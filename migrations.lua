@@ -43,7 +43,6 @@ return {
     })
     Schema.create_table ("tags", {
       { "id"        , Schema.types.text   },
-      { "url"       , Schema.types.text { null = true } },
       { "user_id"   , Schema.types.serial },
       { "project_id", Schema.types.serial },
       { "created_at", Schema.types.time   },

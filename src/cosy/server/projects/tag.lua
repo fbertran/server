@@ -1,6 +1,7 @@
-local respond_to  = require "lapis.application".respond_to
-local Model       = require "cosy.server.model"
-local Decorators  = require "cosy.server.decorators"
+local respond_to = require "lapis.application".respond_to
+local Util       = require "lapis.util"
+local Model      = require "cosy.server.model"
+local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
@@ -18,9 +19,22 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
+      local tags = Model.tags:select ("where id = ? and project_id = ?", self.tag.id, self.project.id) or {}
+      Model.users:include_in (tags, "user_id")
+      local result = {
+        url  = self.project.url .. "/tags/" .. Util.escape (self.tag.id),
+        tags = {},
+      }
+      for i, tag in ipairs (tags) do
+        result.tags [i] = {
+          id      = self.tag.id,
+          user    = tag.user.url,
+          project = self.project.url,
+        }
+      end
       return {
         status = 200,
-        json   = self.tag,
+        json   = result,
       }
     end,
     PUT     = Decorators.exists { tag = true }

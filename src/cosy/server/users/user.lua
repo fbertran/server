@@ -3,6 +3,7 @@ local Config     = require "lapis.config".get ()
 local Util       = require "lapis.util"
 local Decorators = require "cosy.server.decorators"
 local Http       = require "cosy.server.http"
+local Hashid     = require "cosy.server.hashid"
 
 return function (app)
 
@@ -35,9 +36,18 @@ return function (app)
           }
         end
       end
+      local result = {
+        id         = Hashid.encode (self.user.id),
+        url        = self.user.url,
+        email      = self.user.email,
+        name       = self.user.name,
+        nickname   = self.user.nickname,
+        reputation = self.user.reputation,
+        picture    = self.user.picture,
+      }
       return {
         status = 200,
-        json   = self.user,
+        json   = result,
       }
     end,
     PATCH   = Decorators.exists {}

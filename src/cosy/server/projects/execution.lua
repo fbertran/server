@@ -1,8 +1,9 @@
 local Config     = require "lapis.config".get ()
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
+local Hashid     = require "cosy.server.hashid"
+local Stop       = require "cosy.server.jobs.editor.stop"
 local Qless      = require "resty.qless"
-local Job        = require "cosy.server.jobs.execution"
 
 return function (app)
 
@@ -22,7 +23,14 @@ return function (app)
            .. function (self)
       return {
         status = 200,
-        json   = self.execution,
+        json   = {
+          id          = Hashid.encode (self.execution.id),
+          url         = self.execution.url,
+          project     = self.execution:get_project ().url,
+          name        = self.execution.name,
+          description = self.execution.description,
+          docker      = self.execution.docker_url,
+        },
       }
     end,
     PATCH   = Decorators.exists {}
@@ -37,18 +45,17 @@ return function (app)
     DELETE  = Decorators.exists {}
            .. Decorators.can_write
            .. function (self)
-      local qless = Qless.new {
-        host = Config.redis.host,
-        port = Config.redis.port,
-        db   = Config.redis.database,
-      }
-      local job = qless.jobs:get (self.execution.url)
-      if job then
-       job:cancel ()
-       Job.cleanup (job)
-       job:cancel ()
+      local qless = Qless.new (Config.redis)
+      local start = qless.jobs:get ("start@" .. self.execution.url)
+      local stop  = qless.jobs:get ("stop@"  .. self.execution.url)
+      if  not self.execution.docker_url
+      and not start then
+        return { status = 404 }
       end
-      return { status = 204 }
+      if not stop then
+        Stop.create (self.execution)
+      end
+      return { status = 202 }
     end,
     POST    = Decorators.exists {}
            .. function ()
