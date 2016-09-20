@@ -6,19 +6,23 @@ local Et     = require "etlua"
 local Setenv = require "posix.stdlib".setenv
 
 if not os.getenv "API_PORT" then
-  local f1 = io.popen ("hostname", "r")
-  local hostname = f1:read "*l"
-  f1:close ()
-  local f2 = io.popen ("domainname", "r")
-  local domainname = f2:read "*l"
-  f2:close ()
-  print ("hostname", hostname)
-  print ("domainname", domainname)
+  print ("Obtaining hostname and domainname...")
+  local file     = io.popen ("hostname", "r")
+  local hostname = file:read "*l"
+  file:close ()
   Setenv ("API_PORT", Url.build {
     scheme = "tcp",
-    host   = hostname .. (domainname and "." .. domainname or ""),
+    host   = hostname,
     port   = 8080,
   })
+end
+
+if not os.getenv "NPROC" then
+  print ("Obtaining number of cores...")
+  local file  = io.popen ("nproc", "r")
+  local nproc = file:read "*l"
+  file:close ()
+  Setenv ("NPROC", nproc)
 end
 
 -- FIXME:  nginx resolver does not seem to work within docker-compose or
