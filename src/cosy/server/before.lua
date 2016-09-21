@@ -47,7 +47,7 @@ return function (app)
       return
     end
     self.identity = Model.identities:find {
-      identifier = self.token_data.sub
+      identifier = self.token_data.sub,
     }
     if self.identity then
       if self.identity.type == "user" then

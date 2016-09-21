@@ -19,8 +19,7 @@ describe ("route /projects/:project/tags", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    project = result.url
+    project = result.path
     route   = project .. "/tags"
   end)
 

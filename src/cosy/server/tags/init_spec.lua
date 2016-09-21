@@ -11,8 +11,6 @@ describe ("route /tags", function ()
     app     = Test.environment.app ()
   end)
 
-  local projects = {}
-
   before_each (function ()
     for key, id in pairs (Test.identities) do
       local token  = Test.make_token (id)
@@ -21,9 +19,7 @@ describe ("route /tags", function ()
         headers = { Authorization = "Bearer " .. token},
       })
       assert.are.same (status, 201)
-      assert.is.not_nil (result.id)
-      local project = result.url
-      projects [key] = result.id
+      local project = result.path
       status = request (app, project .. "/tags/" .. key, {
         method  = "PUT",
         headers = { Authorization = "Bearer " .. token},
@@ -58,7 +54,7 @@ describe ("route /tags", function ()
         for _ in pairs (Test.identities) do
           count = count + 1
         end
-        assert.are.equal (#result, count+1)
+        assert.are.equal (#result.tags, count+1)
       end)
     end
 
@@ -98,7 +94,7 @@ describe ("route /tags", function ()
         for _ in pairs (Test.identities) do
           count = count + 1
         end
-        assert.are.equal (#result, count+1)
+        assert.are.equal (#result.tags, count+1)
       end)
     end
 

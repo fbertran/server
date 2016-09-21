@@ -28,7 +28,7 @@ end
 
 Test.environment.use ()
 
-describe ("#current #resty route /projects/:project/executions/", function ()
+describe ("#resty route /projects/:project/executions/", function ()
 
   local server_url
   local headers = {
@@ -192,7 +192,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
         },
       }
       assert.are.same (status, 201)
-      local project_url = server_url .. result.url
+      local project_url = server_url .. result.path
       local _
       _, status = Http.json {
         url     = project_url .. "/permissions/user",
@@ -216,7 +216,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
         },
       }
       assert.are.same (status, 201)
-      resources.readable = server_url .. result.url
+      resources.readable = server_url .. result.path
     end
     do -- missing resource
       local result, status = Http.json {
@@ -227,7 +227,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
         },
       }
       assert.are.same (status, 201)
-      local project_url = server_url .. result.url
+      local project_url = server_url .. result.path
       local _
       _, status = Http.json {
         url     = project_url .. "/permissions/user",
@@ -251,7 +251,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
         },
       }
       assert.are.same (status, 201)
-      resources.missing = server_url .. result.url
+      resources.missing = server_url .. result.path
       _, status = Http.json {
         url     = resources.missing,
         method  = "DELETE",
@@ -270,7 +270,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
         },
       }
       assert.are.same (status, 201)
-      local project_url = server_url .. result.url
+      local project_url = server_url .. result.path
       local _
       _, status = Http.json {
         url     = project_url .. "/permissions/user",
@@ -294,7 +294,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
         },
       }
       assert.are.same (status, 201)
-      resources.hidden = server_url .. result.url
+      resources.hidden = server_url .. result.path
     end
   end)
 
@@ -305,8 +305,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -318,10 +317,9 @@ describe ("#current #resty route /projects/:project/executions/", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    project       = result.url
+    project       = result.path
     route         = project .. "/executions/"
-    project_token = Test.make_token (result.url)
+    project_token = Test.make_token (result.path)
   end)
 
   local execution
@@ -547,7 +545,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                   },
                 })
                 assert.are.same (status, 202)
-                execution = result.url
+                execution = result.path
               end)
             end
 
@@ -654,7 +652,7 @@ describe ("#current #resty route /projects/:project/executions/", function ()
                   },
                 })
                 assert.are.same (status, 202)
-                execution = result.url
+                execution = result.path
               end)
             end
 

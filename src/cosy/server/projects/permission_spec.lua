@@ -19,8 +19,7 @@ describe ("route /projects/:project/permissions/anonymous", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -32,8 +31,7 @@ describe ("route /projects/:project/permissions/anonymous", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    project = result.url
+    project = result.path
     route   = project .. "/permissions/anonymous"
   end)
 
@@ -422,8 +420,7 @@ describe ("route /projects/:project/permissions/user", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -435,8 +432,7 @@ describe ("route /projects/:project/permissions/user", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    project = result.url
+    project = result.path
     route   = project .. "/permissions/user"
   end)
 
@@ -824,8 +820,7 @@ describe ("route /projects/:project/permissions/:user", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    crao = result.authentified.url:match "/users/(.*)"
+    crao = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -835,8 +830,7 @@ describe ("route /projects/:project/permissions/:user", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    rahan = result.authentified.url:match "/users/(.*)"
+    rahan = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -846,8 +840,7 @@ describe ("route /projects/:project/permissions/:user", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -859,8 +852,7 @@ describe ("route /projects/:project/permissions/:user", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    project = result.url
+    project = result.path
     route   = project .. "/permissions/" .. crao
   end)
 

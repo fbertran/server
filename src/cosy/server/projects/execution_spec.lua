@@ -191,8 +191,8 @@ describe ("#resty route /projects/:project/executions/", function ()
       },
     }
     assert.are.same (status, 201)
-    project_url    = server_url .. result.url
-    project_token  = Test.make_token (result.url)
+    project_url    = server_url .. result.path
+    project_token  = Test.make_token (result.path)
     result, status = Http.json {
       url     = project_url .. "/resources/",
       method  = "POST",
@@ -201,7 +201,7 @@ describe ("#resty route /projects/:project/executions/", function ()
       },
     }
     assert.are.same (status, 201)
-    resource_url = server_url .. result.url
+    resource_url = server_url .. result.path
   end)
 
   setup (function ()
@@ -211,8 +211,7 @@ describe ("#resty route /projects/:project/executions/", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   describe ("accessed as", function ()
@@ -228,8 +227,7 @@ describe ("#resty route /projects/:project/executions/", function ()
           },
         })
         assert.are.same (status, 201)
-        assert.is.not_nil (result.id)
-        project = result.url
+        project = result.path
         status, result = request (app, project .. "/executions/", {
           method  = "POST",
           headers = {
@@ -241,8 +239,7 @@ describe ("#resty route /projects/:project/executions/", function ()
           },
         })
         assert.are.same (status, 201)
-        assert.is.not_nil (result.id)
-        route  = result.url
+        route  = result.path
         status = request (app, project, {
           method  = "DELETE",
           headers = { Authorization = "Bearer " .. token},
@@ -306,8 +303,7 @@ describe ("#resty route /projects/:project/executions/", function ()
           },
         })
         assert.are.same (status, 201)
-        assert.is.not_nil (result.id)
-        project = result.url
+        project = result.path
         status, result = request (app, project .. "/executions/", {
           method  = "POST",
           headers = {
@@ -319,8 +315,7 @@ describe ("#resty route /projects/:project/executions/", function ()
           },
         })
         assert.are.same (status, 201)
-        assert.is.not_nil (result.id)
-        route = result.url
+        route = result.path
       end)
 
       teardown (function ()

@@ -19,8 +19,7 @@ describe ("route /projects/:project/resources/:resource", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -32,8 +31,7 @@ describe ("route /projects/:project/resources/:resource", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    project = result.url
+    project = result.path
     status, result = request (app, project .. "/resources", {
       method  = "POST",
       headers = {
@@ -41,8 +39,7 @@ describe ("route /projects/:project/resources/:resource", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    route   = result.url
+    route   = result.path
   end)
 
   describe ("accessed as", function ()

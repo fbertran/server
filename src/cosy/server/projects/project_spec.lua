@@ -19,8 +19,7 @@ describe ("route /projects/:project", function ()
       headers = { Authorization = "Bearer " .. token },
     })
     assert.are.same (status, 200)
-    assert.is.not_nil (result.authentified.id)
-    naouna = result.authentified.url:match "/users/(.*)"
+    naouna = result.authentified.path:match "/users/(.*)"
   end)
 
   before_each (function ()
@@ -32,8 +31,7 @@ describe ("route /projects/:project", function ()
       },
     })
     assert.are.same (status, 201)
-    assert.is.not_nil (result.id)
-    route = result.url
+    route = result.path
   end)
 
   describe ("accessed as", function ()

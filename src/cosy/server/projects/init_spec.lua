@@ -92,12 +92,11 @@ describe ("route /projects", function ()
         for _, method in ipairs { "POST" } do
           it ("answers to " .. method, function ()
             local token  = Test.make_token (Test.identities.rahan)
-            local status, result = request (app, "/projects", {
+            local status = request (app, "/projects", {
               method  = method,
               headers = { Authorization = "Bearer " .. token},
             })
             assert.are.same (status, 201)
-            assert.is.not_nil (result.id)
           end)
         end
 
@@ -144,7 +143,7 @@ describe ("route /projects", function ()
         })
         assert.are.same (status, 201)
         local project = result
-        token = Test.make_token (project.url)
+        token = Test.make_token (project.path)
         status = request (app, "/projects", {
           method  = method,
           headers = { Authorization = "Bearer " .. token},
