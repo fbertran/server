@@ -98,7 +98,7 @@ return function (app)
             method  = "DELETE",
             url     = Url.build {
               scheme = "http",
-              host   = Config.host,
+              host   = "127.0.0.1",
               port   = Config.port,
               path   = resource.path,
             },
@@ -113,7 +113,7 @@ return function (app)
             method  = "DELETE",
             url     = Url.build {
               scheme = "http",
-              host   = Config.host,
+              host   = "127.0.0.1",
               port   = Config.port,
               path   = execution.path,
             },
