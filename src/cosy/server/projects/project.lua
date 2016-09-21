@@ -28,10 +28,11 @@ return function (app)
       local stars     = {
         count = #all_stars,
         path  = self.project.path .. "/stars",
+        stars = {},
       }
       Model.users:include_in (all_stars, "user_id")
       for i, star in ipairs (all_stars) do
-        stars [i] = {
+        stars.stars [i] = {
           user    = star.user.path,
           project = self.project.path,
         }
@@ -39,10 +40,11 @@ return function (app)
       local all_tags = Model.tags:select ("where project_id = ?", self.project.id) or {}
       local tags     = {
         path = self.project.path .. "/tags",
+        tags = {},
       }
       Model.users:include_in (all_tags, "user_id")
       for i, tag in ipairs (all_tags) do
-        tags [i] = {
+        tags.tags [i] = {
           id      = tag.id,
           user    = tag.user.path,
           project = self.project.path,
@@ -50,10 +52,11 @@ return function (app)
         }
       end
       local resources = {
-        path = self.project.path .. "/resources/",
+        path      = self.project.path .. "/resources/",
+        resources = {},
       }
       for i, resource in ipairs (self.project:get_resources ()) do
-        resources [i] = {
+        resources.resources [i] = {
           path        = resource.path,
           name        = resource.name,
           description = resource.description,
