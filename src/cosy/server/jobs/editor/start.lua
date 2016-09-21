@@ -24,13 +24,13 @@ end
 function Start.create (resource)
   local qless = Qless.new (Config.redis)
   local queue = qless.queues ["editors"]
-  local stop  = qless.jobs:get ("stop@" .. resource.url .. "/editor")
+  local stop  = qless.jobs:get ("stop@" .. resource.path .. "/editor")
   queue:put ("cosy.server.jobs.editor.start", {
     resource = resource.id,
   }, {
-    jid     = "start@" .. resource.url .. "/editor",
+    jid     = "start@" .. resource.path .. "/editor",
     depends = stop
-          and "stop@"  .. resource.url .. "/editor",
+          and "stop@"  .. resource.path .. "/editor",
   })
 end
 
@@ -44,8 +44,8 @@ function Start.perform (job)
   queue:put ("cosy.server.jobs.editor.stop", {
     resource = resource.id,
   }, {
-    jid     = "stop@"  .. resource.url .. "/editor",
-    depends = "start@" .. resource.url .. "/editor",
+    jid     = "stop@"  .. resource.path .. "/editor",
+    depends = "start@" .. resource.path .. "/editor",
   })
   local ok, err = pcall (function ()
     local url     = "https://cloud.docker.com"
@@ -59,7 +59,7 @@ function Start.perform (job)
       timeout  = Config.editor.timeout,
       project  = Hashid.encode (resource.project_id),
       resource = Hashid.encode (resource.id),
-      token    = Token (project.url, {}, math.huge),
+      token    = Token (project.path, {}, math.huge),
     }
     -- FIXME
     -- data.api = Et.render ("http://<%- host %>:<%- port %>", {

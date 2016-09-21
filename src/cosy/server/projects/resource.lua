@@ -33,8 +33,8 @@ return function (app)
         status = 200,
         json   = {
           id          = Hashid.encode (self.resource.id),
-          url         = self.resource.url,
-          project     = self.resource:get_project ().url,
+          path        = self.resource.path,
+          project     = self.resource:get_project ().path,
           name        = self.resource.name,
           description = self.resource.description,
           docker      = self.resource.docker_url,

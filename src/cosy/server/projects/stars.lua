@@ -21,13 +21,13 @@ return function (app)
       local stars = self.project:get_stars () or {}
       Model.users:include_in (stars, "user_id")
       local result = {
-        url   = self.project.url .. "/stars",
+        path  = self.project.path .. "/stars",
         stars = {},
       }
       for i, star in ipairs (stars) do
         result.stars [i] = {
-          user    = star.user.url,
-          project = self.project.url,
+          user    = star.user.path,
+          project = self.project.path,
         }
       end
       return {

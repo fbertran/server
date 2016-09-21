@@ -10,14 +10,14 @@ local Stop = {}
 function Stop.create (resource)
   local qless = Qless.new (Config.redis)
   local queue = qless.queues ["editors"]
-  local start = qless.jobs:get ("start@" .. resource.url .. "/editor")
+  local start = qless.jobs:get ("start@" .. resource.path .. "/editor")
   if start then
     start:cancel ()
   end
   queue:put ("cosy.server.jobs.editor.stop", {
     resource = resource.id,
   }, {
-    jid = "stop@" .. resource.url .. "/editor",
+    jid = "stop@" .. resource.path .. "/editor",
   })
 end
 

@@ -15,7 +15,7 @@ return {
   function ()
     Schema.create_table ("users", {
       { "id"        , Schema.types.serial  { primary_key = true } },
-      { "url"       , Schema.types.text    { null = true } },
+      { "path"      , Schema.types.text    { null = true } },
       { "email"     , Schema.types.text    { null = true } },
       { "name"      , Schema.types.text    { null = true } },
       { "picture"   , Schema.types.text    { null = true } },
@@ -32,7 +32,7 @@ return {
     ]]
     Schema.create_table ("projects", {
       { "id"                  , Schema.types.serial { primary_key = true } },
-      { "url"                 , Schema.types.text   { null = true } },
+      { "path"                , Schema.types.text   { null = true } },
       { "name"                , Schema.types.text   { null = true } },
       { "description"         , Schema.types.text   { null = true } },
       { "permission_anonymous", [[ permission NOT NULL ]] },
@@ -76,7 +76,7 @@ return {
   function ()
     Schema.create_table ("resources", {
       { "id"           , Schema.types.serial { primary_key = true } },
-      { "url"          , Schema.types.text { null = true } },
+      { "path"         , Schema.types.text { null = true } },
       { "project_id"   , Schema.types.serial },
       { "name"         , Schema.types.text { null = true } },
       { "description"  , Schema.types.text { null = true } },
@@ -89,7 +89,7 @@ return {
     })
     Schema.create_table ("histories", {
       { "id"         , Schema.types.serial },
-      { "url"        , Schema.types.text { null = true } },
+      { "path"       , Schema.types.text { null = true } },
       { "user_id"    , Schema.types.serial },
       { "resource_id", Schema.types.serial },
       { "data"       , Schema.types.text   },
@@ -110,7 +110,7 @@ return {
   function ()
     Schema.create_table ("executions", {
       { "id"           , Schema.types.serial { primary_key = true } },
-      { "url"          , Schema.types.text { null = true } },
+      { "path"         , Schema.types.text { null = true } },
       { "project_id"   , Schema.types.serial },
       { "resource"     , Schema.types.text   },
       { "image"        , Schema.types.text   },

@@ -8,7 +8,7 @@ return function (app)
     local resource = Model.resources:find {
       id = self.alias.resource_id,
     }
-    return { redirect_to = resource.url }
+    return { redirect_to = resource.path }
   end
 
   app:match ("/projects/:project/resources/:resource/aliases/:alias", respond_to {

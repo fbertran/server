@@ -22,14 +22,14 @@ return function (app)
       local tags = Model.tags:select ("where id = ? and project_id = ?", self.tag.id, self.project.id) or {}
       Model.users:include_in (tags, "user_id")
       local result = {
-        url  = self.project.url .. "/tags/" .. Util.escape (self.tag.id),
+        path = self.project.path .. "/tags/" .. Util.escape (self.tag.id),
         tags = {},
       }
       for i, tag in ipairs (tags) do
         result.tags [i] = {
           id      = self.tag.id,
-          user    = tag.user.url,
-          project = self.project.url,
+          user    = tag.user.path,
+          project = self.project.path,
         }
       end
       return {

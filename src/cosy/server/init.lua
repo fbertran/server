@@ -45,7 +45,15 @@ app:match ("/", respond_to {
     return {
       status = 200,
       json   = {
-        authentified = self.authentified,
+        path = "/",
+        authentified = {
+          path       = self.authentified.path,
+          nickname   = self.authentified.nickname,
+          name       = self.authentified.name,
+          email      = self.authentified.email,
+          picture    = self.authentified.picture,
+          reputation = self.authentified.reputation,
+        },
         server = {
           url = Url.build {
             scheme = "http",

@@ -15,14 +15,14 @@ return function (app)
     GET     = function ()
       local tags = Db.select "id, count (1) as count from tags group by id" or {}
       local result = {
-        url  = "/tags/",
+        path = "/tags/",
         tags = {},
       }
       for i, tag in ipairs (tags) do
         result.tags [i] = {
           id    = tag.id,
           count = tag.count,
-          url   = "/tags/" .. Util.escape (tag.id),
+          path  = "/tags/" .. Util.escape (tag.id),
         }
       end
       return {

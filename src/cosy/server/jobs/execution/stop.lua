@@ -10,14 +10,14 @@ local Stop = {}
 function Stop.create (execution)
   local qless = Qless.new (Config.redis)
   local queue = qless.queues ["executions"]
-  local start = qless.jobs:get ("start@" .. execution.url)
+  local start = qless.jobs:get ("start@" .. execution.path)
   if start then
     start:cancel ()
   end
   queue:put ("cosy.server.jobs.execution.stop", {
     execution = execution.id,
   }, {
-    jid = "stop@" .. execution.url,
+    jid = "stop@" .. execution.path,
   })
 end
 

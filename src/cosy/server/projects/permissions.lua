@@ -31,14 +31,14 @@ return function (app)
         }
         if user then
           granted [i] = {
-            project = self.project.url,
-            who     = user.url,
+            project = self.project.path,
+            who     = user.path,
             type    = "user",
           }
         else
           granted [i] = {
-            project = self.project.url,
-            who     = project.url,
+            project = self.project.path,
+            who     = project.path,
             type    = "project",
           }
         end
@@ -46,7 +46,7 @@ return function (app)
       return {
         status = 200,
         json   = {
-          url       = self.project.url .. "/permissions/",
+          path      = self.project.path .. "/permissions/",
           anonymous = self.project.permission_anonymous,
           user      = self.project.permission_user,
           granted   = granted,

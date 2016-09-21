@@ -31,8 +31,8 @@ return function (app)
         return {
           status = 200,
           json   = {
-            url        = self.project.url .. "/permissions/" .. special,
-            project    = self.project.url,
+            path       = self.project.path .. "/permissions/" .. special,
+            project    = self.project.path,
             permission = self.project ["permission_" .. special],
           },
         }
@@ -84,9 +84,9 @@ return function (app)
       return {
         status = 200,
         json = {
-          url        = self.project.url .. "/permissions/" .. Hashid.encode (self.user.id),
-          user       = self.user.url,
-          project    = self.project.url,
+          path       = self.project.path .. "/permissions/" .. Hashid.encode (self.user.id),
+          user       = self.user.path,
+          project    = self.project.path,
           permission = permission.permission,
         },
       }

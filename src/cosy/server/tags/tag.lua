@@ -25,14 +25,14 @@ return function (app)
       Model.users   :include_in (tags, "user_id"   )
       Model.projects:include_in (tags, "project_id")
       local result = {
-        url  = "/tags/" .. Util.escape (self.tag.id),
+        path = "/tags/" .. Util.escape (self.tag.id),
         tags = {},
       }
       for i, tag in ipairs (tags) do
         result.tags [i] = {
           id      = tag.id,
-          user    = tag.user.url,
-          project = tag.project.url,
+          user    = tag.user.path,
+          project = tag.project.path,
         }
       end
       return {

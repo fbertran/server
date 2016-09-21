@@ -24,12 +24,12 @@ return function (app)
            .. function (self)
       local resources = self.project:get_resources () or {}
       local result    = {
-        url       = self.project.url .. "/resources/",
+        path      = self.project.path .. "/resources/",
         resources = {},
       }
       for i, resource in ipairs (resources) do
         result.resources [i] = {
-          url         = resource.url,
+          path        = resource.path,
           name        = resource.name,
           description = resource.description,
           docker      = resource.docker_url,
@@ -51,7 +51,7 @@ return function (app)
         data        = self.json.data or [[ return function () end ]],
       }
       resource:update {
-        url = Et.render ("/projects/<%- project %>/resources/<%- resource %>", {
+        path = Et.render ("/projects/<%- project %>/resources/<%- resource %>", {
           project  = Hashid.encode (self.project.id),
           resource = Hashid.encode (resource.id),
         }),

@@ -26,28 +26,28 @@ return function (app)
     GET     = function ()
       local projects = Model.projects:select () or {}
       local result   = {
-        url      = "/projects/",
+        path     = "/projects/",
         projects = {},
       }
       for i, project in ipairs (projects) do
         local all_stars = project:get_stars () or {}
         local stars     = {
           count = #all_stars,
-          url   = project.url .. "/stars",
+          path  = project.path .. "/stars",
         }
         local all_tags  = project:get_tags  () or {}
         local tags      = {
-          url  = project.url .. "/tags",
+          path = project.path .. "/tags",
           tags = {},
         }
         for j, tag in ipairs (all_tags) do
           tags.tags [j] = {
-            id  = tag.id,
-            url = project.url .. "/tag/" .. Util.escape (tag.id),
+            id   = tag.id,
+            path = project.path .. "/tag/" .. Util.escape (tag.id),
           }
         end
         result.projects [i] = {
-          url         = project.url,
+          path        = project.path,
           name        = project.name,
           description = project.description,
           stars       = stars,
@@ -75,7 +75,7 @@ return function (app)
       }
       local project = Model.projects:create {
         id          = identity.id,
-        url         = identity.identifier,
+        path        = identity.identifier,
         name        = self.json.name,
         description = self.json.description,
         permission_anonymous = "read",

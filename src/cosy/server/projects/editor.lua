@@ -26,7 +26,7 @@ return function (app)
       end
       -- FIXME: issue #6
       local qless = Qless.new (Config.redis)
-      local start = qless.jobs:get ("start@" .. self.resource.url .. "/editor")
+      local start = qless.jobs:get ("start@" .. self.resource.path .. "/editor")
       if not start then
         Start.create (self.resource)
       end
@@ -36,8 +36,8 @@ return function (app)
            .. Decorators.is_authentified
            .. function (self)
       local qless = Qless.new (Config.redis)
-      local start = qless.jobs:get ("start@" .. self.resource.url .. "/editor")
-      local stop  = qless.jobs:get ("stop@"  .. self.resource.url .. "/editor")
+      local start = qless.jobs:get ("start@" .. self.resource.path .. "/editor")
+      local stop  = qless.jobs:get ("stop@"  .. self.resource.path .. "/editor")
       if self.identity.type   ~= "project"
       or self.authentified.id ~= self.project.id then
         return { status = 403 }

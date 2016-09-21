@@ -22,8 +22,8 @@ return function (app)
            .. function (self)
       if self.authentified and self.authentified.id == self.user.id then
         local info, status = Http.json {
-          url      = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token_data.sub),
-          headers  = {
+          url     = Config.auth0.domain .. "/api/v2/users/" .. Util.escape (self.token_data.sub),
+          headers = {
             Authorization = "Bearer " .. Config.auth0.api_token,
           },
         }
@@ -38,7 +38,7 @@ return function (app)
       end
       local result = {
         id         = Hashid.encode (self.user.id),
-        url        = self.user.url,
+        path       = self.user.path,
         email      = self.user.email,
         name       = self.user.name,
         nickname   = self.user.nickname,

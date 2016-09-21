@@ -11,13 +11,13 @@ local Start = {}
 function Start.create (execution)
   local qless = Qless.new (Config.redis)
   local queue = qless.queues ["executions"]
-  local stop  = qless.jobs:get ("stop@" .. execution.url)
+  local stop  = qless.jobs:get ("stop@" .. execution.path)
   queue:put ("cosy.server.jobs.execution.start", {
     execution = execution.id,
   }, {
-    jid     = "start@" .. execution.url,
+    jid     = "start@" .. execution.path,
     depends = stop
-          and "stop@"  .. execution.url,
+          and "stop@"  .. execution.path,
   })
 end
 
@@ -35,7 +35,7 @@ function Start.perform (job)
     -- Create service:
     local data = {
       resource = execution.resource,
-      token    = Token (project.url, {}, math.huge),
+      token    = Token (project.path, {}, math.huge),
     }
     local arguments = {}
     for key, value in pairs (data) do

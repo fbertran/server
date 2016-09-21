@@ -17,12 +17,12 @@ return function (app)
     GET     = function ()
       local users  = Model.users:select () or {}
       local result = {
-        url   = "/users/",
+        path  = "/users/",
         users = {},
       }
       for i, user in ipairs (users) do
         result.users [i] = {
-          url        = user.url,
+          path       = user.path,
           email      = user.email,
           name       = user.name,
           nickname   = user.nickname,

@@ -27,34 +27,34 @@ return function (app)
       local all_stars = Model.stars:select ("where project_id = ?", self.project.id) or {}
       local stars     = {
         count = #all_stars,
-        url   = self.project.url .. "/stars",
+        path  = self.project.path .. "/stars",
       }
       Model.users:include_in (all_stars, "user_id")
       for i, star in ipairs (all_stars) do
         stars [i] = {
-          user    = star.user.url,
-          project = self.project.url,
+          user    = star.user.path,
+          project = self.project.path,
         }
       end
       local all_tags = Model.tags:select ("where project_id = ?", self.project.id) or {}
       local tags     = {
-        url = self.project.url .. "/tags",
+        path = self.project.path .. "/tags",
       }
       Model.users:include_in (all_tags, "user_id")
       for i, tag in ipairs (all_tags) do
         tags [i] = {
           id      = tag.id,
-          user    = tag.user.url,
-          project = self.project.url,
-          url     = self.project.url .. "/tags/" .. Util.escape (tag.id),
+          user    = tag.user.path,
+          project = self.project.path,
+          path    = self.project.path .. "/tags/" .. Util.escape (tag.id),
         }
       end
       local resources = {
-        url = self.project.url .. "/resources/",
+        path = self.project.path .. "/resources/",
       }
       for i, resource in ipairs (self.project:get_resources ()) do
         resources [i] = {
-          url         = resource.url,
+          path        = resource.path,
           name        = resource.name,
           description = resource.description,
           docker      = resource.docker_url,
@@ -65,7 +65,7 @@ return function (app)
         status = 200,
         json   = {
           id          = Hashid.encode (self.project.id),
-          url         = self.project.url,
+          path        = self.project.path,
           name        = self.project.name,
           description = self.project.description,
           resources   = resources,
@@ -88,17 +88,17 @@ return function (app)
     DELETE  = Decorators.exists {}
            .. Decorators.can_admin
            .. function (self)
-      local token = Token (self.project.url, {}, math.huge)
+      local token = Token (self.project.path, {}, math.huge)
       if Config._name ~= "test" then
         for _, resource in ipairs (self.project:get_resources ()) do
           local _, status = Http.json {
+            method  = "DELETE",
             url     = Url.build {
               scheme = "http",
               host   = Config.host,
               port   = Config.port,
-              path   = resource.url,
+              path   = resource.path,
             },
-            method  = "DELETE",
             headers = {
               Authorization = "Bearer " .. token,
             },
@@ -107,13 +107,13 @@ return function (app)
         end
         for _, execution in ipairs (self.project:get_executions ()) do
           local _, status = Http.json {
+            method  = "DELETE",
             url     = Url.build {
               scheme = "http",
               host   = Config.host,
               port   = Config.port,
-              path   = execution.url,
+              path   = execution.path,
             },
-            method  = "DELETE",
             headers = {
               Authorization = "Bearer " .. token,
             },

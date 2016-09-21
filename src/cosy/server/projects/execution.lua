@@ -25,8 +25,8 @@ return function (app)
         status = 200,
         json   = {
           id          = Hashid.encode (self.execution.id),
-          url         = self.execution.url,
-          project     = self.execution:get_project ().url,
+          path        = self.execution.path,
+          project     = self.execution:get_project ().path,
           name        = self.execution.name,
           description = self.execution.description,
           docker      = self.execution.docker_url,
@@ -46,8 +46,8 @@ return function (app)
            .. Decorators.can_write
            .. function (self)
       local qless = Qless.new (Config.redis)
-      local start = qless.jobs:get ("start@" .. self.execution.url)
-      local stop  = qless.jobs:get ("stop@"  .. self.execution.url)
+      local start = qless.jobs:get ("start@" .. self.execution.path)
+      local stop  = qless.jobs:get ("stop@"  .. self.execution.path)
       if  not self.execution.docker_url
       and not start then
         return { status = 404 }

@@ -22,13 +22,13 @@ return function (app)
            .. function (self)
       local aliases = Model.aliases:select ("where resource_id = ?", self.resource.id) or {}
       local result  = {
-        url     = self.resource.url .. "/aliases/",
+        path    = self.resource.path .. "/aliases/",
         aliases = {},
       }
       for i, alias in ipairs (aliases) do
         result.aliases [i] = {
           id       = alias.id,
-          resource = self.resource.url,
+          resource = self.resource.path,
         }
       end
       return {

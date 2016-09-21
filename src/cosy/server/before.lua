@@ -85,7 +85,7 @@ return function (app)
       }
       self.authentified = Model.users:create {
         id       = self.identity.id,
-        url      = Et.render ("/users/<%- user %>", {
+        path     = Et.render ("/users/<%- user %>", {
           user = Hashid.encode (self.identity.id),
         }),
         email    = info.email,

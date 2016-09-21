@@ -28,12 +28,12 @@ return function (app)
            .. function (self)
       local executions = self.project:get_executions () or {}
       local result    = {
-        url        = self.project.url .. "/executions/",
+        path       = self.project.path .. "/executions/",
         executions = {},
       }
       for i, execution in ipairs (executions) do
         result.executions [i] = {
-          url         = execution.url,
+          path        = execution.path,
           name        = execution.name,
           description = execution.description,
           docker      = execution.docker_url,
@@ -112,14 +112,14 @@ return function (app)
         description = self.json.description,
       }
       execution:update {
-        url = Et.render ("/projects/<%- project %>/executions/<%- execution %>", {
+        path = Et.render ("/projects/<%- project %>/executions/<%- execution %>", {
           project   = Hashid.encode (self.project.id),
           execution = Hashid.encode (execution.id),
         }),
       }
       -- FIXME: issue #6
       local qless = Qless.new (Config.redis)
-      local start = qless.jobs:get ("start@" .. execution.url)
+      local start = qless.jobs:get ("start@" .. execution.path)
       if not start then
         Start.create (execution)
       end
