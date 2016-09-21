@@ -58,7 +58,10 @@ return function (app)
       }
       return {
         status = 201,
-        json   = resource,
+        json   = {
+          id   = Hashid (resource.id),
+          path = resource.path,
+        },
       }
     end,
     DELETE  = Decorators.exists {}

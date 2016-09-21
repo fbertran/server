@@ -91,10 +91,12 @@ return function (app)
         project_id  = project.id,
         permission  = "admin",
       }
-      project.id = Hashid.encode (project.id)
       return {
         status = 201,
-        json   = project,
+        json   = {
+          id   = Hashid.encode (project.id),
+          path = project.path,
+        },
       }
     end,
     DELETE  = function ()
