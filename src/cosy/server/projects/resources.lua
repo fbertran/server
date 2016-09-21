@@ -59,7 +59,7 @@ return function (app)
       return {
         status = 201,
         json   = {
-          id   = Hashid (resource.id),
+          id   = Hashid.encode (resource.id),
           path = resource.path,
         },
       }
