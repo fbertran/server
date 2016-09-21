@@ -12,6 +12,7 @@ api:
   logging:
     driver: "json-file"
   environment:
+    NPROC: 2
     COSY_PREFIX: /usr/local
     COSY_BRANCH: ${COSY_BRANCH}
     REDIS_PORT: "tcp://redis:6379"
