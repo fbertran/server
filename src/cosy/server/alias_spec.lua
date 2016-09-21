@@ -39,14 +39,14 @@ describe ("route /aliases/:alias", function ()
         },
       })
       assert.are.same (status, 201)
-      status, result = request (app, result.url .. "/resources", {
+      status, result = request (app, result.path .. "/resources", {
         method  = "POST",
         headers = {
           Authorization = "Bearer " .. token,
         },
       })
       assert.are.same (status, 201)
-      resource = result.url
+      resource = result.path
       status = request (app, resource .. "/aliases/" .. alias, {
         method  = "PUT",
         headers = {
