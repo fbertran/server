@@ -31,15 +31,17 @@ return function (app)
         }
         if user then
           granted [i] = {
-            project = self.project.path,
-            who     = user.path,
-            type    = "user",
+            project    = self.project.path,
+            who        = user.path,
+            type       = "user",
+            permission = permission.permission,
           }
         else
           granted [i] = {
-            project = self.project.path,
-            who     = project.path,
-            type    = "project",
+            project    = self.project.path,
+            who        = project.path,
+            type       = "project",
+            permission = permission.permission,
           }
         end
       end
