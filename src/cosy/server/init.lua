@@ -46,7 +46,7 @@ app:match ("/", respond_to {
       status = 200,
       json   = {
         path = "/",
-        authentified = {
+        authentified = self.authentified and {
           path       = self.authentified.path,
           nickname   = self.authentified.nickname,
           name       = self.authentified.name,
