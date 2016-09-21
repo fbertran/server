@@ -21,7 +21,7 @@ describe ("route /users/:user", function ()
       },
     })
     assert.are.same (status, 200)
-    route = result.authentified.url
+    route = result.authentified.path
   end)
 
   describe ("accessed as", function ()
