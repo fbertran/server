@@ -6,7 +6,7 @@ local Et     = require "etlua"
 local Setenv = require "posix.stdlib".setenv
 
 if not os.getenv "API_PORT" then
-  print ("Obtaining hostname and domainname...")
+  print ("Obtaining hostname...")
   local file     = io.popen ("hostname", "r")
   local hostname = file:read "*l"
   file:close ()
