@@ -30,7 +30,9 @@ Test.environment.use ()
 
 describe ("#resty route /projects/:project/executions/", function ()
 
-  local server_url
+  local app, request
+  local docker_url, server_url
+
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
     ["Accept"       ] = "application/json",
@@ -130,6 +132,7 @@ describe ("#resty route /projects/:project/executions/", function ()
           headers = headers,
         }
         assert (container_status == 200)
+        docker_url = resource
         for _, port in ipairs (container.container_ports) do
           local endpoint = port.endpoint_uri
           if endpoint and endpoint ~= Json.null then
@@ -143,7 +146,6 @@ describe ("#resty route /projects/:project/executions/", function ()
                 method  = "GET",
               }
               if status == 200 then
-                print ("Stack created", server_url)
                 return
               else
                 os.execute "sleep 1"
@@ -156,7 +158,20 @@ describe ("#resty route /projects/:project/executions/", function ()
     assert (false)
   end)
 
-  local app, request
+  teardown (function ()
+    while true do
+      local _, deleted_status = Http.json {
+        url     = docker_url,
+        method  = "DELETE",
+        headers = headers,
+      }
+      if deleted_status == 202 or deleted_status == 404 then
+        break
+      else
+        os.execute "sleep 1"
+      end
+    end
+  end)
 
   setup (function ()
     Test.clean_db ()
@@ -170,7 +185,6 @@ describe ("#resty route /projects/:project/executions/", function ()
         method = "GET",
       })
       assert.are.equal (status, 200)
-      print (info.stats.dockers)
       if info.stats.dockers == 0 then
         break
       end
@@ -325,10 +339,12 @@ describe ("#resty route /projects/:project/executions/", function ()
   local execution
 
   after_each (function ()
-    request (app, execution, {
-      method  = "DELETE",
-      headers = { ["Authorization"] = "Bearer " .. project_token },
-    })
+    if execution then
+      request (app, execution, {
+        method  = "DELETE",
+        headers = { ["Authorization"] = "Bearer " .. project_token },
+      })
+    end
   end)
 
   describe ("accessed as", function ()

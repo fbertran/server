@@ -123,7 +123,13 @@ return function (app)
       if not start then
         Start.create (execution)
       end
-      return { status = 202 }
+      return {
+        status = 202,
+        json   = {
+          id   = Hashid.encode (execution.id),
+          path = execution.path,
+        }
+      }
     end,
     DELETE  = Decorators.exists {}
            .. function ()

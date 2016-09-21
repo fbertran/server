@@ -5,6 +5,7 @@ local Hashids = require "hashids"
 local Json    = require "cjson"
 local Test    = require "cosy.server.test"
 local Http    = require "cosy.server.http"
+local Hashid  = require "cosy.server.hashid"
 
 local Config = {
   auth0       = {
@@ -30,7 +31,9 @@ Test.environment.use ()
 
 describe ("#resty route /projects/:project/executions/", function ()
 
+  local app, request
   local server_url, docker_url
+
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
     ["Accept"       ] = "application/json",
@@ -171,8 +174,6 @@ describe ("#resty route /projects/:project/executions/", function ()
     end
   end)
 
-  local app, request
-
   setup (function ()
     Test.clean_db ()
     request = Test.environment.request ()
@@ -192,7 +193,6 @@ describe ("#resty route /projects/:project/executions/", function ()
     }
     assert.are.same (status, 201)
     project_url    = server_url .. result.path
-    project_token  = Test.make_token (result.path)
     result, status = Http.json {
       url     = project_url .. "/resources/",
       method  = "POST",
@@ -214,37 +214,64 @@ describe ("#resty route /projects/:project/executions/", function ()
     naouna = result.authentified.path:match "/users/(.*)"
   end)
 
+  local execution
+
+  setup (function ()
+    local token = Test.make_token (Test.identities.rahan)
+    local status, result = request (app, "/projects", {
+      method  = "POST",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+    })
+    assert.are.same (status, 201)
+    project        = result.path
+    project_token  = Test.make_token (result.path)
+    status, result = request (app, project .. "/executions/", {
+      method  = "POST",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+      json    = {
+        image    = "sylvainlasnier/echo",
+        resource = resource_url,
+      },
+    })
+    assert.are.same (status, 202)
+    route     = result.path
+    execution = result.path
+  end)
+
+  teardown (function ()
+    request (app, execution, {
+      method  = "DELETE",
+      headers = { ["Authorization"] = "Bearer " .. project_token },
+    })
+  end)
+
+  teardown (function ()
+    while true do
+      local status, info = request (app, "/", {
+        method = "GET",
+      })
+      assert.are.equal (status, 200)
+      if info.stats.dockers == 0 then
+        break
+      end
+      os.execute [[ sleep 1 ]]
+    end
+  end)
+
   describe ("accessed as", function ()
 
     describe ("a non-existing resource", function ()
 
-      setup (function ()
-        local token = Test.make_token (Test.identities.rahan)
-        local status, result = request (app, "/projects", {
-          method  = "POST",
-          headers = {
-            Authorization = "Bearer " .. token,
-          },
-        })
-        assert.are.same (status, 201)
-        project = result.path
-        status, result = request (app, project .. "/executions/", {
-          method  = "POST",
-          headers = {
-            Authorization = "Bearer " .. token,
-          },
-          json    = {
-            image    = "sylvainlasnier/echo",
-            resource = resource_url,
-          },
-        })
-        assert.are.same (status, 201)
-        route  = result.path
-        status = request (app, project, {
-          method  = "DELETE",
-          headers = { Authorization = "Bearer " .. token},
-        })
-        assert.are.same (status, 204)
+      before_each (function ()
+        route = route:gsub ("/[^/]+$", "/" .. Hashid.encode (0))
+      end)
+
+      after_each (function ()
+        route = execution
       end)
 
       describe ("without authentication", function ()
@@ -294,45 +321,12 @@ describe ("#resty route /projects/:project/executions/", function ()
 
     describe ("an existing resource", function ()
 
-      setup (function ()
-        local token = Test.make_token (Test.identities.rahan)
-        local status, result = request (app, "/projects", {
-          method  = "POST",
-          headers = {
-            Authorization = "Bearer " .. token,
-          },
-        })
-        assert.are.same (status, 201)
-        project = result.path
-        status, result = request (app, project .. "/executions/", {
-          method  = "POST",
-          headers = {
-            Authorization = "Bearer " .. token,
-          },
-          json    = {
-            image    = "sylvainlasnier/echo",
-            resource = resource_url,
-          },
-        })
-        assert.are.same (status, 201)
-        route = result.path
-      end)
-
-      teardown (function ()
-        local token  = Test.make_token (Test.identities.rahan)
-        local status = request (app, route, {
-          method  = "DELETE",
-          headers = { Authorization = "Bearer " .. token},
-        })
-        assert.are.same (status, 204)
-      end)
-
       describe ("without authentication", function ()
 
         for _, permission in ipairs { "admin", "write", "read" } do
           describe ("with default " .. permission .. " permission", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/anonymous", {
                 method  = "PUT",
@@ -342,7 +336,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 202)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/anonymous", {
                 method  = "PUT",
@@ -393,7 +387,7 @@ describe ("#resty route /projects/:project/executions/", function ()
 
         describe ("with default none permission", function ()
 
-          setup (function ()
+          before_each (function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/anonymous", {
               method  = "PUT",
@@ -403,7 +397,7 @@ describe ("#resty route /projects/:project/executions/", function ()
             assert.are.same (status, 202)
           end)
 
-          teardown (function ()
+          after_each (function ()
             local token  = Test.make_token (Test.identities.rahan)
             local status = request (app, project .. "/permissions/anonymous", {
               method  = "PUT",
@@ -449,7 +443,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         for _, permission in ipairs { "admin", "write" } do
           describe ("with " .. permission .. " authentication", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "PUT",
@@ -459,7 +453,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 201)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "DELETE",
@@ -529,7 +523,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         for _, permission in ipairs { "read" } do
           describe ("with " .. permission .. " authentication", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "PUT",
@@ -539,7 +533,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 201)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "DELETE",
@@ -598,7 +592,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         for _, permission in ipairs { "none" } do
           describe ("with " .. permission .. " authentication", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "PUT",
@@ -608,7 +602,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 201)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/" .. naouna, {
                 method  = "DELETE",
@@ -648,7 +642,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         for _, permission in ipairs { "admin", "write" } do
           describe ("with default " .. permission .. " permission", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
@@ -658,7 +652,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 202)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
@@ -730,7 +724,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         for _, permission in ipairs { "read" } do
           describe ("with default " .. permission .. " permission", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
@@ -740,7 +734,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 202)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
@@ -801,7 +795,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         for _, permission in ipairs { "none" } do
           describe ("with default " .. permission .. " permission", function ()
 
-            setup (function ()
+            before_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
@@ -811,7 +805,7 @@ describe ("#resty route /projects/:project/executions/", function ()
               assert.are.same (status, 202)
             end)
 
-            teardown (function ()
+            after_each (function ()
               local token  = Test.make_token (Test.identities.rahan)
               local status = request (app, project .. "/permissions/user", {
                 method  = "PUT",
