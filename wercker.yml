@@ -50,10 +50,10 @@ build:
     - script:
         name: "export to coveralls"
         code: |
-          # branch=$(git rev-parse --abbrev-ref HEAD)
-          # luacov-coveralls \
-          #   --repo-token "${COVERALLS_TOKEN}" \
-          #   --exclude share --exclude busted --exclude _spec \
-          #   --include cosy \
-          #   --root src/ \
-          #   --service-name "${branch}"
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          luacov-coveralls \
+            --repo-token "${COVERALLS_TOKEN}" \
+            --exclude share --exclude busted --exclude _spec \
+            --include cosy \
+            --root src/ \
+            --service-name "${branch}"
