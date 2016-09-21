@@ -38,7 +38,8 @@ build:
     - script:
         name: "test"
         code: |
-          busted --no-coverage src/
+          busted --no-coverage --exclude-tags=resty src/
+          busted --no-coverage         --tags=resty src/
     - script:
         name: "coverage"
         code: |
