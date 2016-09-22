@@ -49,6 +49,26 @@ build:
           RUN_COVERAGE=true busted --exclude-tags=resty src/
           luacov
           ./colorize.lua
+    - script:
+        name: "upload to luarocks"
+        code: |
+          if [ "${WERCKER_GIT_BRANCH}" = "master" ]; then
+            tag=$(git describe --tags --abbrev=0 || echo "0.0")
+            count=$(git rev-list --count HEAD ^"${tag}" || git rev-list --count HEAD)
+          else
+            tag="${WERCKER_GIT_BRANCH}"
+            count=$(git rev-list --count HEAD ^"${tag}" || git rev-list --count HEAD)
+          fi
+          cd rockspec || exit 1
+          sed -e "s/master-1/${tag}-${count}/" \
+              -e "s/master/${tag}/" \
+            "cosy-server-master-1.rockspec" \
+            > "cosy-server-${tag}-${count}.rockspec"
+          luarocks upload \
+            --force \
+            --api-key="${LUAROCKS_TOKEN}" \
+            "cosy-server-${tag}-${count}.rockspec"
+          cd ..
   after-steps:
     - script:
         name: "export to coveralls"
