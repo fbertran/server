@@ -64,7 +64,8 @@ build:
               -e "s/master/${tag}/" \
             "cosy-server-master-1.rockspec" \
             > "cosy-server-${tag}-${count}.rockspec"
-          luarocks upload \
+          luarocks install luarocks
+          /usr/local/bin/luarocks upload \
             --force \
             --api-key="${LUAROCKS_TOKEN}" \
             "cosy-server-${tag}-${count}.rockspec"
