@@ -121,7 +121,7 @@ return function (app)
               Authorization = "Bearer " .. token,
             },
           }
-          assert (status == 204)
+          assert (status == 202)
         end
       end
       self.project:get_identity ():delete ()
