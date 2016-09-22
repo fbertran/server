@@ -36,10 +36,13 @@ build:
         code: |
           luacheck src/
     - script:
-        name: "test"
+        name: "test routes"
         code: |
           busted --no-coverage --exclude-tags=resty src/
-          busted --no-coverage         --tags=resty src/
+    - script:
+        name: "test server"
+        code: |
+          busted --no-coverage --tags=resty src/
     - script:
         name: "coverage"
         code: |
