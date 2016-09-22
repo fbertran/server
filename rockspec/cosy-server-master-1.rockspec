@@ -38,6 +38,7 @@ build = {
     ["cosy.server.before"              ] = "src/cosy/server/before.lua",
     ["cosy.server.hashid"              ] = "src/cosy/server/hashid.lua",
     ["cosy.server.http"                ] = "src/cosy/server/http.lua",
+    ["cosy.server.instance"            ] = "src/cosy/server/instance.lua",
     ["cosy.server.quote"               ] = "src/cosy/server/quote.lua",
     ["cosy.server.users"               ] = "src/cosy/server/users/init.lua",
     ["cosy.server.users.user"          ] = "src/cosy/server/users/user.lua",
