@@ -5,8 +5,11 @@ local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
 local Hashid     = require "cosy.server.hashid"
+local Http       = require "cosy.server.http"
 local Model      = require "cosy.server.model"
 local Jwt        = require "jwt"
+local Token      = require "cosy.server.token"
+local Url        = require "socket.url"
 
 return function (app)
 
@@ -104,6 +107,22 @@ return function (app)
     DELETE  = Decorators.exists {}
            .. Decorators.can_write
            .. function (self)
+      local token = Token (self.project.path, {}, math.huge)
+      pcall (function ()
+        local _, status = Http.json {
+          method  = "DELETE",
+          url     = Url.build {
+            scheme = "http",
+            host   = "127.0.0.1",
+            port   = Config.port,
+            path   = self.resource.path .. "/editor",
+          },
+          headers = {
+            Authorization = "Bearer " .. token,
+          },
+        }
+        assert (status == 202)
+      end)
       self.resource:delete ()
       return { status = 204 }
     end,

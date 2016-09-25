@@ -104,6 +104,10 @@ result.tags = Model:extend ("tags", {
   },
 })
 
+result.services = Model:extend ("services", {
+  timestamp = true,
+})
+
 result.resources = Model:extend ("resources", {
   timestamp   = true,
   relations   = {
@@ -112,6 +116,9 @@ result.resources = Model:extend ("resources", {
     },
     { "history",
       has_many = "history",
+    },
+    { "service",
+      belongs_to = "services",
     },
   },
 })
@@ -146,6 +153,9 @@ result.executions = Model:extend ("executions", {
   relations   = {
     { "project",
       belongs_to = "projects",
+    },
+    { "service",
+      belongs_to = "services",
     },
   },
 })

@@ -31,7 +31,7 @@ describe ("#resty route /projects/:project/executions/", function ()
         method = "GET",
       })
       assert.are.equal (status, 200)
-      if info.stats.dockers == 0 then
+      if info.stats.services == 0 then
         break
       end
       os.execute [[ sleep 1 ]]

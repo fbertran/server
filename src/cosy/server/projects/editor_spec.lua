@@ -51,7 +51,7 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
   local function wsconnect (headers)
     for _ = 1, 30 do
       local client = Websocket.client.sync { timeout = 5 }
-      if client:connect (headers ["Location"], "cosy") then
+      if client:connect (headers.location, "cosy") then
         return
       end
       os.execute [[ sleep 1 ]]
@@ -92,10 +92,18 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
   end)
 
   after_each (function ()
-    request (app, route, {
+    print (route, request (app, route, {
       method  = "DELETE",
       headers = { ["Authorization"] = "Bearer " .. project_token },
+    }))
+  end)
+
+  before_each (function ()
+    local status, info = request (app, "/", {
+      method = "GET",
     })
+    assert.are.equal (status, 200)
+    print ("services:", info.stats.services)
   end)
 
   teardown (function ()
@@ -104,7 +112,8 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
         method = "GET",
       })
       assert.are.equal (status, 200)
-      if info.stats.dockers == 0 then
+      print (info.stats.services)
+      if info.stats.services == 0 then
         break
       end
       os.execute [[ sleep 1 ]]
@@ -114,6 +123,7 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
   describe ("with project authentication and existing editor", function ()
 
     before_each (function ()
+      print ("instantiate editor", route)
       local status = request (app, route, {
         method  = "GET",
         headers = { Authorization = "Bearer " .. project_token},
@@ -132,13 +142,15 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
     end
 
     for _, method in ipairs { "GET" } do
-      it ("answers to " .. method, function ()
+      it ("#editor answers to " .. method, function ()
         local status, headers, _
         repeat
+          print ("accessing", route)
           status, _, headers = request (app, route, {
             method  = method,
             headers = { Authorization = "Bearer " .. project_token},
           })
+          print (status)
           assert.is_truthy (status == 202 or status == 302)
           if status ~= 302 then
             os.execute [[ sleep 1 ]]
@@ -149,7 +161,7 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
     end
 
     for _, method in ipairs { "PATCH", "POST", "PUT" } do
-      it ("answers to " .. method, function ()
+      it ("#editor answers to " .. method, function ()
         local status = request (app, route, {
           method  = method,
           headers = { Authorization = "Bearer " .. project_token},

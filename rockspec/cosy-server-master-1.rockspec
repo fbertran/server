@@ -62,6 +62,7 @@ build = {
     ["cosy.server.decorators"          ] = "src/cosy/server/decorators.lua",
     ["cosy.server.model"               ] = "src/cosy/server/model.lua",
     ["cosy.server.token"               ] = "src/cosy/server/token.lua",
+    ["cosy.server.jobs.editor.check"   ] = "src/cosy/server/jobs/editor/check.lua",
     ["cosy.server.jobs.editor.start"   ] = "src/cosy/server/jobs/editor/start.lua",
     ["cosy.server.jobs.editor.stop"    ] = "src/cosy/server/jobs/editor/stop.lua",
     ["cosy.server.jobs.execution.start"] = "src/cosy/server/jobs/execution/start.lua",

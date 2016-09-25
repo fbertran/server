@@ -92,7 +92,7 @@ return function (app)
            .. Decorators.can_admin
            .. function (self)
       local token = Token (self.project.path, {}, math.huge)
-      if Config._name ~= "test" then
+      pcall (function ()
         for _, resource in ipairs (self.project:get_resources ()) do
           local _, status = Http.json {
             method  = "DELETE",
@@ -123,7 +123,7 @@ return function (app)
           }
           assert (status == 202)
         end
-      end
+      end)
       self.project:get_identity ():delete ()
       return {
         status = 204,

@@ -15,12 +15,11 @@ require "cosy.server.alias"    (app)
 
 app.layout = false
 
-app.handle_error = function (_, err)
+app.handle_error = function (_, error, trace)
+  print (error)
+  print (trace)
   return {
     status = 500,
-    json   = {
-      error = err,
-    },
   }
 end
 
@@ -36,12 +35,12 @@ app:match ("/", respond_to {
     return { status = 204 }
   end,
   GET     = function (self)
-    local users     = Model.identities:count [[ type = 'user' ]]
-    local projects  = Model.projects  :count ()
-    local resources = Model.resources :count ()
-    local editors   = Model.resources :count [[ editor_url IS NOT NULL ]]
-    local dockers   = Model.resources :count [[ docker_url IS NOT NULL ]]
-                    + Model.executions:count [[ docker_url IS NOT NULL ]]
+    local users      = Model.identities:count [[ type = 'user' ]]
+    local projects   = Model.projects  :count ()
+    local resources  = Model.resources :count ()
+    local editors    = Model.resources :count [[ service_id IS NOT NULL ]]
+    local executions = Model.executions:count [[ service_id IS NOT NULL ]]
+    local services   = Model.services  :count ()
     return {
       status = 200,
       json   = {
@@ -66,11 +65,12 @@ app:match ("/", respond_to {
           client_id = Config.auth0.client_id,
         },
         stats = {
-          users     = users,
-          projects  = projects,
-          resources = resources,
-          editors   = editors,
-          dockers   = dockers,
+          users      = users,
+          projects   = projects,
+          resources  = resources,
+          editors    = editors,
+          executions = executions,
+          services   = services,
         },
       }
     }

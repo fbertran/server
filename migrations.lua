@@ -14,7 +14,7 @@ return {
   end,
   function ()
     Schema.create_table ("users", {
-      { "id"        , Schema.types.serial  { primary_key = true } },
+      { "id"        , Schema.types.foreign_key { primary_key = true } },
       { "path"      , Schema.types.text    { null = true } },
       { "email"     , Schema.types.text    { null = true } },
       { "name"      , Schema.types.text    { null = true } },
@@ -31,7 +31,7 @@ return {
       CREATE TYPE permission AS ENUM ('none', 'read', 'write', 'admin')
     ]]
     Schema.create_table ("projects", {
-      { "id"                  , Schema.types.serial { primary_key = true } },
+      { "id"                  , Schema.types.foreign_key { primary_key = true } },
       { "path"                , Schema.types.text   { null = true } },
       { "name"                , Schema.types.text   { null = true } },
       { "description"         , Schema.types.text   { null = true } },
@@ -43,8 +43,8 @@ return {
     })
     Schema.create_table ("tags", {
       { "id"        , Schema.types.text   },
-      { "user_id"   , Schema.types.serial },
-      { "project_id", Schema.types.serial },
+      { "user_id"   , Schema.types.foreign_key },
+      { "project_id", Schema.types.foreign_key },
       { "created_at", Schema.types.time   },
       { "updated_at", Schema.types.time   },
       [[ PRIMARY KEY ("id", "user_id", "project_id") ]],
@@ -52,8 +52,8 @@ return {
       [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
     })
     Schema.create_table ("stars", {
-      { "user_id"   , Schema.types.serial },
-      { "project_id", Schema.types.serial },
+      { "user_id"   , Schema.types.foreign_key },
+      { "project_id", Schema.types.foreign_key },
       { "created_at", Schema.types.time   },
       { "updated_at", Schema.types.time   },
       [[ PRIMARY KEY ("user_id", "project_id") ]],
@@ -63,8 +63,8 @@ return {
   end,
   function ()
     Schema.create_table ("permissions", {
-      { "identity_id", Schema.types.serial  },
-      { "project_id" , Schema.types.serial  },
+      { "identity_id", Schema.types.foreign_key  },
+      { "project_id" , Schema.types.foreign_key  },
       { "permission" , [[ permission NOT NULL ]] },
       { "created_at" , Schema.types.time    },
       { "updated_at" , Schema.types.time    },
@@ -74,24 +74,34 @@ return {
     })
   end,
   function ()
+    Schema.create_table ("services", {
+      { "id"        , Schema.types.serial { primary_key = true } },
+      { "path"      , Schema.types.text                 },
+      { "docker_url", Schema.types.text { null = true } },
+      { "editor_url", Schema.types.text { null = true } },
+      { "created_at", Schema.types.time                 },
+      { "updated_at", Schema.types.time                 },
+    })
+  end,
+  function ()
     Schema.create_table ("resources", {
       { "id"           , Schema.types.serial { primary_key = true } },
-      { "path"         , Schema.types.text { null = true } },
-      { "project_id"   , Schema.types.serial },
-      { "name"         , Schema.types.text { null = true } },
-      { "description"  , Schema.types.text { null = true } },
-      { "docker_url"   , Schema.types.text { null = true } },
-      { "editor_url"   , Schema.types.text { null = true } },
+      { "path"         , Schema.types.text   { null = true } },
+      { "project_id"   , Schema.types.foreign_key },
+      { "name"         , Schema.types.text   { null = true } },
+      { "description"  , Schema.types.text   { null = true } },
+      { "service_id"   , Schema.types.foreign_key { null = true, default = Database.NULL } },
       { "data"         , Schema.types.text   },
       { "created_at"   , Schema.types.time   },
       { "updated_at"   , Schema.types.time   },
-      [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE ]],
+      [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE  ]],
+      [[ FOREIGN KEY ("service_id") REFERENCES "services" ("id") ON DELETE SET NULL ]],
     })
     Schema.create_table ("histories", {
       { "id"         , Schema.types.serial },
       { "path"       , Schema.types.text { null = true } },
-      { "user_id"    , Schema.types.serial },
-      { "resource_id", Schema.types.serial },
+      { "user_id"    , Schema.types.foreign_key },
+      { "resource_id", Schema.types.foreign_key },
       { "data"       , Schema.types.text   },
       { "created_at" , Schema.types.time   },
       { "updated_at" , Schema.types.time   },
@@ -101,7 +111,7 @@ return {
     })
     Schema.create_table ("aliases", {
       { "id"         , Schema.types.text   { primary_key = true } },
-      { "resource_id", Schema.types.serial },
+      { "resource_id", Schema.types.foreign_key },
       { "created_at" , Schema.types.time   },
       { "updated_at" , Schema.types.time   },
       [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ]],
@@ -110,16 +120,17 @@ return {
   function ()
     Schema.create_table ("executions", {
       { "id"           , Schema.types.serial { primary_key = true } },
-      { "path"         , Schema.types.text { null = true } },
-      { "project_id"   , Schema.types.serial },
+      { "path"         , Schema.types.text   { null = true } },
+      { "project_id"   , Schema.types.foreign_key },
       { "resource"     , Schema.types.text   },
       { "image"        , Schema.types.text   },
-      { "name"         , Schema.types.text { null = true } },
-      { "description"  , Schema.types.text { null = true } },
-      { "docker_url"   , Schema.types.text { null = true } },
+      { "name"         , Schema.types.text   { null = true } },
+      { "description"  , Schema.types.text   { null = true } },
+      { "service_id"   , Schema.types.foreign_key { null = true, default = Database.NULL } },
       { "created_at"   , Schema.types.time   },
       { "updated_at"   , Schema.types.time   },
-      [[ FOREIGN KEY ("project_id" ) REFERENCES "projects"  ("id") ON DELETE CASCADE ]],
+      [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE  ]],
+      [[ FOREIGN KEY ("service_id") REFERENCES "services" ("id") ON DELETE SET NULL ]],
     })
   end,
 }

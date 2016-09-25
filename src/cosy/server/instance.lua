@@ -165,7 +165,6 @@ function Instance.find_endpoint (instance)
   end
 end
 
-
 function Instance.delete (instance)
   while true do
     local _, deleted_status = Http.json {

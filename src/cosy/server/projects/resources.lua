@@ -1,4 +1,5 @@
 local respond_to = require "lapis.application".respond_to
+local Database   = require "lapis.db"
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
 local Hashid     = require "cosy.server.hashid"
@@ -49,6 +50,7 @@ return function (app)
         name        = self.json.name,
         description = self.json.description,
         data        = self.json.data or [[ return function () end ]],
+        service_id  = Database.NULL,
       }
       resource:update {
         path = Et.render ("/projects/<%- project %>/resources/<%- resource %>", {

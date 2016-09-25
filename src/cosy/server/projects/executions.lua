@@ -1,4 +1,5 @@
 local Config     = require "lapis.config".get ()
+local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
@@ -110,6 +111,7 @@ return function (app)
         image       = self.json.image,
         name        = self.json.name,
         description = self.json.description,
+        service_id  = Database.NULL,
       }
       execution:update {
         path = Et.render ("/projects/<%- project %>/executions/<%- execution %>", {
