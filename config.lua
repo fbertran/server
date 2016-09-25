@@ -48,7 +48,7 @@ local common = {
     api_key  = assert (os.getenv "DOCKER_SECRET"),
   },
   editor      = {
-    timeout = 60,
+    timeout = 10 * 60, -- 10 minutes
   },
 }
 
