@@ -211,11 +211,10 @@ describe ("route /", function ()
         if Test.environment.nginx then
           return -- FIXME: should not filter dependeding on environment
         end
-        local status, result = request (app, "/error", {
+        local status = request (app, "/error", {
           method  = method,
         })
         assert.are.same (status, 500)
-        assert.is_truthy (result.error)
       end)
     end
 

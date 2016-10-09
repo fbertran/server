@@ -4,7 +4,6 @@ local respond_to = require "lapis.application".respond_to
 local Quote      = require "cosy.server.quote"
 local Model      = require "cosy.server.model"
 local Url        = require "socket.url"
-
 local app        = Lapis.Application ()
 
 require "cosy.server.before"   (app)
@@ -91,25 +90,25 @@ app:match ("/", respond_to {
 
 app:match ("/error", respond_to {
   HEAD    = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
   OPTIONS = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
   GET     = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
   DELETE  = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
   PATCH   = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
   POST    = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
   PUT     = function ()
-    error { quote = Quote () }
+    error (Quote ())
   end,
 })
 
