@@ -1,12 +1,10 @@
-local Config     = require "lapis.config".get ()
 local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Model      = require "cosy.server.model"
 local Decorators = require "cosy.server.decorators"
 local Http       = require "cosy.server.http"
 local Hashid     = require "cosy.server.hashid"
-local Start      = require "cosy.server.jobs.execution.start"
-local Qless      = require "resty.qless"
+local Job        = require "cosy.server.jobs.execution"
 local Et         = require "etlua"
 
 return function (app)
@@ -119,12 +117,7 @@ return function (app)
           execution = Hashid.encode (execution.id),
         }),
       }
-      -- FIXME: issue #6
-      local qless = Qless.new (Config.redis)
-      local start = qless.jobs:get ("start@" .. execution.path)
-      if not start then
-        Start.create (execution)
-      end
+      Job.start (execution)
       return {
         status = 202,
         json   = {

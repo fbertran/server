@@ -1,7 +1,6 @@
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
-local Start      = require "cosy.server.jobs.editor.start"
-local Stop       = require "cosy.server.jobs.editor.stop"
+local Job        = require "cosy.server.jobs.editor"
 
 return function (app)
 
@@ -21,10 +20,10 @@ return function (app)
            .. function (self)
       local service = self.resource:get_service ()
       if service and service.editor_url then
-        print ("get service ", tostring (service.id), " with ", tostring (service.editor_url))
         return { redirect_to = service.editor_url }
+      elseif not service then
+        Job.start (self.resource)
       end
-      Start.create (self.resource)
       return { status = 202 }
     end,
     DELETE  = Decorators.exists {}
@@ -34,7 +33,7 @@ return function (app)
       or self.authentified.id ~= self.project.id then
         return { status = 403 }
       end
-      Stop.create (self.resource)
+      Job.stop (self.resource)
       return { status = 202 }
     end,
     PATCH   = Decorators.exists {}

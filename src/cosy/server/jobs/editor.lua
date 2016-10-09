@@ -1,17 +1,17 @@
+local Database  = require "lapis.db"
 local Config    = require "lapis.config".get ()
 local Websocket = require "resty.websocket.client"
+local Lock      = require "resty.lock"
+local Qless     = require "resty.qless"
 local Model     = require "cosy.server.model"
 local Token     = require "cosy.server.token"
 local Http      = require "cosy.server.http"
 local Hashid    = require "cosy.server.hashid"
-local Check     = require "cosy.server.jobs.editor.check"
-local Stop      = require "cosy.server.jobs.editor.stop"
-local Qless     = require "resty.qless"
-local Redis     = require "resty.redis"
+local Clean     = require "cosy.server.jobs.clean"
 local Et        = require "etlua"
 local Mime      = require "mime"
 
-local Start   = {}
+local Editor = {}
 
 local function test (editor)
   local client = Websocket:new {
@@ -24,31 +24,56 @@ local function test (editor)
   return ok, err
 end
 
-function Start.create (resource)
-  local key   = "editor:start@" .. resource.path
-  local redis = Redis:new ()
-  assert (redis:connect (Config.redis.host, Config.redis.port))
-  if redis:setnx (key, "...") == 0 then
-    return -- already starting
+function Editor.start (resource)
+  Clean.create ()
+  local lock = Lock:new ("locks", {
+    timeout = 1,    -- seconds
+    step    = 0.01, -- seconds
+  })
+  assert (lock:lock (resource.path))
+  resource:refresh "service_id"
+  if not resource.service_id then
+    local service = Model.services:create {
+      path = resource.path,
+    }
+    resource:update ({
+      service_id = service.id,
+    }, { timestamp = false })
+    local qless = Qless.new (Config.redis)
+    local queue = qless.queues ["cosy"]
+    local jid   = queue:put ("cosy.server.jobs.editor", {
+      path     = resource.path,
+      resource = resource.id,
+      service  = service.id,
+    })
+    service:update {
+      qless_job = jid,
+    }
   end
-  local service = Model.services:create {
-    path = resource.path,
-  }
-  resource:update ({
-    service_id = service.id,
-  }, { timestamp = false })
-  local qless = Qless.new (Config.redis)
-  local queue = qless.queues ["editors"]
-  redis:set (key, queue:put ("cosy.server.jobs.editor.start", {
-    id   = service.id,
-    path = service.path,
-  }, {
-    jid = "editor@" .. tostring (service.id),
-  }))
-  redis:close ()
+  assert (lock:unlock ())
 end
 
-local function perform (resource, options)
+function Editor.stop (resource)
+  local lock = Lock:new ("locks", {
+    timeout = 1,    -- seconds
+    step    = 0.01, -- seconds
+  })
+  assert (lock:lock (resource.path))
+  resource:refresh "service_id"
+  if resource.service_id then
+    local service = resource:get_service ()
+    local qless   = Qless.new (Config.redis)
+    local queue   = qless.queues ["cosy"]
+    queue:put ("cosy.server.jobs.stop", {
+      collection = "resources",
+      path       = resource.path,
+      service    = resource.service_id,
+    }, { depends = { service.qless_job } })
+  end
+  assert (lock:unlock ())
+end
+
+local function perform (resource)
   local project  = resource:get_project ()
   local url     = "https://cloud.docker.com"
   local api     = url .. "/api/app/v1"
@@ -99,9 +124,11 @@ local function perform (resource, options)
   if service_status ~= 201 then
     return
   end
-  -- Start service:
+  -- Editor service:
   service = url .. service.resource_uri
-  options.docker_url = service
+  resource:get_service ():update {
+    docker_url = service,
+  }
   local _, started_status = Http.json {
     url     = service .. "start/",
     method  = "POST",
@@ -145,34 +172,33 @@ local function perform (resource, options)
     _G.ngx.sleep (1)
     local connected = test (endpoint)
     if connected then
-      options.editor_url = endpoint
+      resource:get_service ():update {
+        editor_url = endpoint,
+      }
       return true
     end
   end
   resource.endpoint = endpoint
 end
 
-function Start.perform (job)
-  local redis = Redis:new ()
-  assert (redis:connect (Config.redis.host, Config.redis.port))
-  local resource = Model.resources:find {
-    service_id = job.data.id,
-  }
-  local service  = resource:get_service ()
-  local ok       = perform (resource, job.data)
-  local key      = "editor:start@" .. resource.path
-  service:update ({
-    docker_url = job.data.docker_url,
-    editor_url = job.data.editor_url,
+function Editor.perform (job)
+  local resource
+  local service = assert (Model.services:find {
+    id = job.data.service,
   })
-  if ok then
-    Check.create (job.data)
-  else
-    Stop.create (resource)
+  if not pcall (function ()
+    resource = assert (Model.resources:find {
+      id = job.data.resource,
+    })
+    assert (resource.service_id == service.id)
+    assert (perform (resource))
+  end) then
+    if resource and resource.service_id == service.id then
+      resource:update ({
+        service_id = Database.NULL,
+      }, { timestamp = false })
+    end
   end
-  redis:del (key)
-  redis:close ()
-  return true
 end
 
-return Start
+return Editor

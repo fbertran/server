@@ -50,6 +50,9 @@ local common = {
   editor      = {
     timeout = 10 * 60, -- 10 minutes
   },
+  clean       = {
+    delay = 15,
+  },
 }
 
 Config ({ "test", "development", "production" }, common)

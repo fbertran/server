@@ -79,6 +79,7 @@ return {
       { "path"      , Schema.types.text                 },
       { "docker_url", Schema.types.text { null = true } },
       { "editor_url", Schema.types.text { null = true } },
+      { "qless_job" , Schema.types.text { null = true } },
       { "created_at", Schema.types.time                 },
       { "updated_at", Schema.types.time                 },
     })

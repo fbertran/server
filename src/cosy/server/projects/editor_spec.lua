@@ -50,8 +50,9 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
 
   local function wsconnect (headers)
     for _ = 1, 30 do
-      local client = Websocket.client.sync { timeout = 5 }
-      if client:connect (headers.location, "cosy") then
+      local client    = Websocket.client.sync { timeout = 5 }
+      local connected = client:connect (headers.location, "cosy")
+      if connected then
         return
       end
       os.execute [[ sleep 1 ]]
@@ -92,18 +93,10 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
   end)
 
   after_each (function ()
-    print (route, request (app, route, {
+    request (app, route, {
       method  = "DELETE",
       headers = { ["Authorization"] = "Bearer " .. project_token },
-    }))
-  end)
-
-  before_each (function ()
-    local status, info = request (app, "/", {
-      method = "GET",
     })
-    assert.are.equal (status, 200)
-    print ("services:", info.stats.services)
   end)
 
   teardown (function ()
@@ -112,7 +105,6 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
         method = "GET",
       })
       assert.are.equal (status, 200)
-      print (info.stats.services)
       if info.stats.services == 0 then
         break
       end
@@ -123,7 +115,6 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
   describe ("with project authentication and existing editor", function ()
 
     before_each (function ()
-      print ("instantiate editor", route)
       local status = request (app, route, {
         method  = "GET",
         headers = { Authorization = "Bearer " .. project_token},
@@ -142,18 +133,16 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
     end
 
     for _, method in ipairs { "GET" } do
-      it ("#editor answers to " .. method, function ()
+      it ("answers to " .. method, function ()
         local status, headers, _
         repeat
-          print ("accessing", route)
           status, _, headers = request (app, route, {
             method  = method,
             headers = { Authorization = "Bearer " .. project_token},
           })
-          print (status)
           assert.is_truthy (status == 202 or status == 302)
           if status ~= 302 then
-            os.execute [[ sleep 1 ]]
+            os.execute [[ sleep 10 ]]
           end
         until status == 302
         wsconnect (headers)
@@ -161,7 +150,7 @@ describe ("#resty route /projects/:project/resources/:resource/editor", function
     end
 
     for _, method in ipairs { "PATCH", "POST", "PUT" } do
-      it ("#editor answers to " .. method, function ()
+      it ("answers to " .. method, function ()
         local status = request (app, route, {
           method  = method,
           headers = { Authorization = "Bearer " .. project_token},
