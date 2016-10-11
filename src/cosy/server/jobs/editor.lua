@@ -1,12 +1,12 @@
 local Database  = require "lapis.db"
 local Config    = require "lapis.config".get ()
 local Websocket = require "resty.websocket.client"
-local Lock      = require "resty.lock"
 local Qless     = require "resty.qless"
 local Model     = require "cosy.server.model"
 local Token     = require "cosy.server.token"
 local Http      = require "cosy.server.http"
 local Hashid    = require "cosy.server.hashid"
+local Lock      = require "cosy.server.lock"
 local Clean     = require "cosy.server.jobs.clean"
 local Et        = require "etlua"
 local Mime      = require "mime"
@@ -26,10 +26,7 @@ end
 
 function Editor.start (resource)
   Clean.create ()
-  local lock = Lock:new ("locks", {
-    timeout = 1,    -- seconds
-    step    = 0.01, -- seconds
-  })
+  local lock = Lock:new (Config.redis)
   assert (lock:lock (resource.path))
   resource:refresh "service_id"
   if not resource.service_id then
@@ -50,14 +47,11 @@ function Editor.start (resource)
       qless_job = jid,
     }
   end
-  assert (lock:unlock ())
+  assert (lock:unlock (resource.path))
 end
 
 function Editor.stop (resource)
-  local lock = Lock:new ("locks", {
-    timeout = 1,    -- seconds
-    step    = 0.01, -- seconds
-  })
+  local lock = Lock:new (Config.redis)
   assert (lock:lock (resource.path))
   resource:refresh "service_id"
   if resource.service_id then
@@ -70,7 +64,7 @@ function Editor.stop (resource)
       service    = resource.service_id,
     }, { depends = { service.qless_job } })
   end
-  assert (lock:unlock ())
+  assert (lock:unlock (resource.path))
 end
 
 local function perform (resource)

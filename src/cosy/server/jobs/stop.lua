@@ -1,14 +1,12 @@
+local Config   = require "lapis.config".get ()
 local Database = require "lapis.db"
 local Model    = require "cosy.server.model"
-local Lock     = require "resty.lock"
+local Lock     = require "cosy.server.lock"
 
 local Stop = {}
 
 function Stop.perform (job)
-  local lock = Lock:new ("locks", {
-    timeout = 1,    -- seconds
-    step    = 0.01, -- seconds
-  })
+  local lock = Lock:new (Config.redis)
   while not lock:lock (job.data.path) do
     _G.ngx.sleep (0.1)
   end
@@ -20,7 +18,7 @@ function Stop.perform (job)
       service_id = Database.NULL,
     }, { timestamp = false })
   end
-  assert (lock:unlock ())
+  assert (lock:unlock (job.data.path))
 end
 
 return Stop

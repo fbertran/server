@@ -32,10 +32,6 @@ local common = {
     host     = assert (redis_url.host),
     port     = assert (redis_url.port),
     database = 0,
-    connect_timeout    = 100,
-    read_timeout       = 5000,
-    keepalive_timeout  = 60 * 60,
-    keepalive_poolsize = 50,
   },
   auth0       = {
     domain        = assert (os.getenv "AUTH0_DOMAIN"),

@@ -1,10 +1,10 @@
 local Database = require "lapis.db"
 local Config   = require "lapis.config".get ()
-local Lock     = require "resty.lock"
 local Qless    = require "resty.qless"
 local Model    = require "cosy.server.model"
 local Token    = require "cosy.server.token"
 local Http     = require "cosy.server.http"
+local Lock     = require "cosy.server.lock"
 local Clean    = require "cosy.server.jobs.clean"
 local Et       = require "etlua"
 local Mime     = require "mime"
@@ -13,10 +13,7 @@ local Execution = {}
 
 function Execution.start (execution)
   Clean.create ()
-  local lock = Lock:new ("locks", {
-    timeout = 1,    -- seconds
-    step    = 0.01, -- seconds
-  })
+  local lock = Lock:new (Config.redis)
   assert (lock:lock (execution.path))
   execution:refresh "service_id"
   if not execution.service_id then
@@ -37,14 +34,11 @@ function Execution.start (execution)
       qless_job = jid,
     }
   end
-  assert (lock:unlock ())
+  assert (lock:unlock (execution.path))
 end
 
 function Execution.stop (execution)
-  local lock = Lock:new ("locks", {
-    timeout = 1,    -- seconds
-    step    = 0.01, -- seconds
-  })
+  local lock = Lock:new (Config.redis)
   assert (lock:lock (execution.path))
   execution:refresh "service_id"
   if execution.service_id then
@@ -57,7 +51,7 @@ function Execution.stop (execution)
       service    = execution.service_id,
     }, { depends = { service.qless_job } })
   end
-  assert (lock:unlock ())
+  assert (lock:unlock (execution.path))
 end
 
 local function perform (execution)
