@@ -40,6 +40,7 @@ build = {
     ["cosy.server.hashid"              ] = "src/cosy/server/hashid.lua",
     ["cosy.server.http"                ] = "src/cosy/server/http.lua",
     ["cosy.server.instance"            ] = "src/cosy/server/instance.lua",
+    ["cosy.server.lock"                ] = "src/cosy/server/lock.lua",
     ["cosy.server.quote"               ] = "src/cosy/server/quote.lua",
     ["cosy.server.users"               ] = "src/cosy/server/users/init.lua",
     ["cosy.server.users.user"          ] = "src/cosy/server/users/user.lua",
