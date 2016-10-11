@@ -2,7 +2,7 @@ cache			= false
 codes 		= false
 color 		= true
 formatter = "default"
-std 			= "min"
+std 			= "luajit"
 files ["**/*_spec.lua"] = {
 	std = "+busted",
 }
