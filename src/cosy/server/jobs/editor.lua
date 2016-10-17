@@ -1,6 +1,5 @@
 local Database  = require "lapis.db"
 local Config    = require "lapis.config".get ()
-local Websocket = require "resty.websocket.client"
 local Qless     = require "resty.qless"
 local Model     = require "cosy.server.model"
 local Token     = require "cosy.server.token"
@@ -12,17 +11,6 @@ local Et        = require "etlua"
 local Mime      = require "mime"
 
 local Editor = {}
-
-local function test (editor)
-  local client = Websocket:new {
-    timeout = 500, -- ms
-  }
-  local ok, err = client:connect (editor)
-  if ok then
-    client:close ()
-  end
-  return ok, err
-end
 
 function Editor.start (resource)
   Clean.create ()
@@ -82,11 +70,10 @@ local function perform (resource)
     resource = Hashid.encode (resource.id),
     token    = Token (project.path, {}, math.huge),
   }
-  -- FIXME
-  -- data.api = Et.render ("http://<%- host %>:<%- port %>", {
-  --   host = Config.host,
-  --   port = Config.port,
-  -- })
+  data.api = Et.render ("http://<%- host %>:<%- port %>", {
+    host = Config.host,
+    port = Config.port,
+  })
   local arguments = {}
   for key, value in pairs (data) do
     arguments [#arguments+1] = Et.render ("--<%- key %>=<%- value %>", {
@@ -162,17 +149,10 @@ local function perform (resource)
   end
   -- Connect to editor:
   local endpoint = info.container_ports [1].endpoint_uri:gsub ("^http", "ws")
-  for _ = 1, 30 do
-    _G.ngx.sleep (1)
-    local connected = test (endpoint)
-    if connected then
-      resource:get_service ():update {
-        editor_url = endpoint,
-      }
-      return true
-    end
-  end
-  resource.endpoint = endpoint
+  resource:get_service ():update {
+    editor_url = endpoint,
+  }
+  return true
 end
 
 function Editor.perform (job)
@@ -187,10 +167,16 @@ function Editor.perform (job)
     assert (resource.service_id == service.id)
     assert (perform (resource))
   end) then
-    if resource and resource.service_id == service.id then
-      resource:update ({
-        service_id = Database.NULL,
-      }, { timestamp = false })
+    if resource then
+      local lock = Lock:new (Config.redis)
+      assert (lock:lock (resource.path))
+      resource:refresh ()
+      if resource.service_id == service.id then
+        resource:update ({
+          service_id = Database.NULL,
+        }, { timestamp = false })
+      end
+      assert (lock:unlock (resource.path))
     end
   end
 end

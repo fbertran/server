@@ -25,7 +25,7 @@ function Execution.start (execution)
     }, { timestamp = false })
     local qless = Qless.new (Config.redis)
     local queue = qless.queues ["cosy"]
-    local jid   = queue:put ("cosy.server.jobs.editor", {
+    local jid   = queue:put ("cosy.server.jobs.execution", {
       path      = execution.path,
       execution = execution.id,
       service   = service.id,
@@ -146,10 +146,16 @@ function Execution.perform (job)
     assert (execution.service_id == service.id)
     assert (perform (execution))
   end) then
-    if execution and execution.service_id == service.id then
-      execution:update ({
-        service_id = Database.NULL,
-      }, { timestamp = false })
+    if execution then
+      local lock = Lock:new (Config.redis)
+      assert (lock:lock (execution.path))
+      execution:refresh ()
+      if execution.service_id == service.id then
+        execution:update ({
+          service_id = Database.NULL,
+        }, { timestamp = false })
+      end
+      assert (lock:unlock (execution.path))
     end
   end
 end
