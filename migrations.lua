@@ -100,7 +100,6 @@ return {
     })
     Schema.create_table ("histories", {
       { "id"         , Schema.types.serial },
-      { "path"       , Schema.types.text { null = true } },
       { "user_id"    , Schema.types.foreign_key },
       { "resource_id", Schema.types.foreign_key },
       { "data"       , Schema.types.text   },

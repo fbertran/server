@@ -98,54 +98,54 @@ return function (app)
 
   local function fetch_params (self)
     if self.params.user then
-      local id = Hashid.decode (Util.unescape (self.params.user))
-      if not tonumber (id) then
+      self.params.user = Hashid.decode (Util.unescape (self.params.user))
+      if not tonumber (self.params.user) then
         return { status = 400 }
       end
       self.user = Model.users:find {
-        id = id
+        id = self.params.user,
       } or false
     end
     if self.params.project then
-      local id = Hashid.decode (Util.unescape (self.params.project))
-      if not tonumber (id) then
+      self.params.project = Hashid.decode (Util.unescape (self.params.project))
+      if not tonumber (self.params.project) then
         return { status = 400 }
       end
       self.project = Model.projects:find {
-        id = id,
+        id = self.params.project,
       } or false
     end
     if self.params.tag then
-      local id = Util.unescape (self.params.tag)
+      self.params.tag = Util.unescape (self.params.tag)
       self.tag = Model.tags:find {
-        id         = id,
+        id         = self.params.tag,
         project_id = self.project and self.project.id or nil,
       } or false
     end
     if self.params.resource then
-      local id = Hashid.decode (Util.unescape (self.params.resource))
-      if not tonumber (id) then
+      self.params.resource = Hashid.decode (Util.unescape (self.params.resource))
+      if not tonumber (self.params.resource) then
         return { status = 400 }
       end
       self.resource = Model.resources:find {
-        id         = id,
+        id         = self.params.resource,
         project_id = self.project and self.project.id or nil,
       } or false
     end
     if self.params.execution then
-      local id = Hashid.decode (Util.unescape (self.params.execution))
-      if not tonumber (id) then
+      self.params.execution = Hashid.decode (Util.unescape (self.params.execution))
+      if not tonumber (self.params.execution) then
         return { status = 400 }
       end
       self.execution = Model.executions:find {
-        id         = id,
+        id         = self.params.execution,
         project_id = self.project and self.project.id or nil,
       } or false
     end
     if self.params.alias then
-      local id = Util.unescape (self.params.alias)
+      self.params.alias = Util.unescape (self.params.alias)
       self.alias = Model.aliases:find {
-        id = id,
+        id = self.params.alias,
       } or false
     end
   end

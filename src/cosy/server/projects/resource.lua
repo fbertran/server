@@ -32,6 +32,16 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
+      local histories = Model.histories:select ([[ where resource_id = ? order by created_at ]], self.resource.id)
+      local history = {}
+      for _, h in ipairs (histories) do
+        history [#history+1] = {
+          id       = Hashid.encode (h.id),
+          data     = h.data,
+          resource = h:get_resource ().path,
+          user     = h:get_user     ().path,
+        }
+      end
       return {
         status = 200,
         json   = {
@@ -40,67 +50,58 @@ return function (app)
           project     = self.resource:get_project ().path,
           name        = self.resource.name,
           description = self.resource.description,
+          data        = self.resource.data,
+          history     = history,
           docker      = self.resource.docker_url,
           editor      = self.resource.editor_url,
         },
       }
     end,
-    PUT     = Decorators.exists {}
+    PATCH   = Decorators.exists {
+                patches = true,
+                data    = true,
+              }
            .. Decorators.can_write
            .. function (self)
-      self.resource:update {
-        name        = self.params.name,
-        description = self.params.description,
-        history     = self.params.history,
-        data        = self.params.data,
-      }
-      return { status = 204 }
-    end,
-    PATCH   = Decorators.exists {}
-           .. Decorators.can_write
-           .. function (self)
-      if self.params.patches then
-        assert (self.params.data)
-        local header = self.req.headers ["COSY_EDITOR"]
-        if not header then
+      if self.json.patches then
+        assert (self.json.data)
+        if self.identity.type   ~= "project"
+        or self.authentified.id ~= self.project.id then
           return { status = 403 }
         end
-        local token = header:match "Bearer%s+(.+)"
-        if not token then
-          return { status = 401 }
-        end
-        local jwt = Jwt.decode (token, {
-          keys = {
-            public = Config.auth0.client_secret
+        for _, patch in ipairs (self.json.patches) do
+          local jwt = Jwt.decode (patch.token, {
+            keys = {
+              public = Config.auth0.client_secret
+            }
+          })
+          if not jwt then
+            return { status = 400 }
+          end
+          local identity = Model.identities:find {
+            identifier = jwt.sub
           }
-        })
-        if not jwt then
-          return { status = 401 }
-        end
-        local identity = Model.identities:find {
-          identifier = jwt.sub
-        }
-        if not identity
-        or identity.type ~= "project"
-        or identity.id ~= self.project.id then
-          return { status = 401 }
+          if not identity then
+            return { status = 400 }
+          end
+          patch.user_id = identity.id
         end
         Database.query [[BEGIN]]
-        for _, patch in ipairs (self.params.patches) do
+        for _, patch in ipairs (self.json.patches) do
           Model.histories:create {
-            user_id     = self.authentified.id,
+            data        = patch.data,
+            user_id     = patch.user_id,
             resource_id = self.resource.id,
-            data        = patch,
           }
         end
         self.resource:update {
-          data = self.params.data,
+          data = self.json.data,
         }
         assert (Database.query [[COMMIT]])
       end
       self.resource:update {
-        name        = self.params.name,
-        description = self.params.description,
+        name        = self.json.name,
+        description = self.json.description,
       }
       return { status = 204 }
     end,
@@ -125,6 +126,10 @@ return function (app)
       end)
       self.resource:delete ()
       return { status = 204 }
+    end,
+    PUT     = Decorators.exists {}
+           .. function ()
+      return { status = 405 }
     end,
     POST    = Decorators.exists {}
            .. function ()

@@ -81,8 +81,8 @@ return function (app)
            .. Decorators.can_write
            .. function (self)
       self.project:update {
-        name        = self.params.name,
-        description = self.params.description,
+        name        = self.json.name,
+        description = self.json.description,
       }
       return {
         status = 204,

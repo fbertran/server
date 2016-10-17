@@ -61,7 +61,7 @@ return function (app)
            .. Decorators.is_authentified
            .. function (self)
       local tag = Model.tags:find {
-        id         = self.params.tag,
+        id         = self.tag.id,
         user_id    = self.authentified.id,
         project_id = self.project.id,
       }
