@@ -133,6 +133,8 @@ else
 
   local Lock = {}
 
+  Lock.__index = Lock
+
   function Lock.new ()
     return setmetatable ({}, Lock)
   end
@@ -146,5 +148,7 @@ else
     assert (getmetatable (lock) == Lock)
     return true
   end
+
+  return Lock
 
 end
