@@ -1,11 +1,11 @@
 local Cjson      = require "cjson"
 Cjson.encode_empty_table = function () end -- Fix for Jwt
 local Config     = require "lapis.config".get ()
-local Database   = require "lapis.db"
 local respond_to = require "lapis.application".respond_to
 local Decorators = require "cosy.server.decorators"
 local Hashid     = require "cosy.server.hashid"
 local Http       = require "cosy.server.http"
+local Lock       = require "cosy.server.lock"
 local Model      = require "cosy.server.model"
 local Jwt        = require "jwt"
 local Token      = require "cosy.server.token"
@@ -63,41 +63,33 @@ return function (app)
               }
            .. Decorators.can_write
            .. function (self)
-      if self.json.patches then
-        assert (self.json.data)
-        if self.identity.type   ~= "project"
-        or self.authentified.id ~= self.project.id then
+      if self.json.patches or self.json.data then
+        if not self.json.data
+        or not self.json.editor
+        or type (self.json.patches) ~= "table" then
+          return { status = 400 }
+        end
+        local jwt = Jwt.decode (self.json.editor, {
+          keys = {
+            public = Config.auth0.client_secret
+          }
+        })
+        if not jwt or jwt.sub ~= self.project.path then
           return { status = 403 }
         end
-        for _, patch in ipairs (self.json.patches) do
-          local jwt = Jwt.decode (patch.token, {
-            keys = {
-              public = Config.auth0.client_secret
-            }
-          })
-          if not jwt then
-            return { status = 400 }
-          end
-          local identity = Model.identities:find {
-            identifier = jwt.sub
-          }
-          if not identity then
-            return { status = 400 }
-          end
-          patch.user_id = identity.id
-        end
-        Database.query [[BEGIN]]
+        local lock = Lock:new (Config.redis)
+        assert (lock:lock (self.resource.path))
         for _, patch in ipairs (self.json.patches) do
           Model.histories:create {
-            data        = patch.data,
-            user_id     = patch.user_id,
+            data        = patch,
+            user_id     = self.authentified.id,
             resource_id = self.resource.id,
           }
         end
         self.resource:update {
           data = self.json.data,
         }
-        assert (Database.query [[COMMIT]])
+        assert (lock:unlock (self.resource.path))
       end
       self.resource:update {
         name        = self.json.name,

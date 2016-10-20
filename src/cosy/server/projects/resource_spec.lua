@@ -266,13 +266,12 @@ describe ("route /projects/:project/resources/:resource", function ()
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                   json    = {
+                    editor  = project_token,
                     data    = [[ return function () end ]],
-                    patches = {
-                      { data = "patched", token = token },
-                    },
+                    patches = { [[ return function () end ]] },
                   }
                 })
-                assert.are.same (status, 403)
+                assert.are.same (status, 204)
               end)
             end
 
@@ -441,13 +440,12 @@ describe ("route /projects/:project/resources/:resource", function ()
                   method  = method,
                   headers = { Authorization = "Bearer " .. token},
                   json    = {
+                    editor  = project_token,
                     data    = [[ return function () end ]],
-                    patches = {
-                      { data = "patched", token = token },
-                    },
+                    patches = { [[ return function () end ]] },
                   }
                 })
-                assert.are.same (status, 403)
+                assert.are.same (status, 204)
               end)
             end
 
@@ -603,16 +601,15 @@ describe ("route /projects/:project/resources/:resource", function ()
 
     for _, method in ipairs { "PATCH" } do
       it ("answers to " .. method, function ()
-        local token  = Test.make_token (Test.identities.rahan)
+        local token = Test.make_token (Test.identities.rahan)
         local status, body
         status = request (app, route, {
           method  = method,
-          headers = { Authorization = "Bearer " .. project_token},
+          headers = { Authorization = "Bearer " .. token},
           json    = {
+            editor  = project_token,
             data    = [[ return function () end ]],
-            patches = {
-              { data = "patched", token = token },
-            },
+            patches = { [[ return function () return true end ]] },
           }
         })
         assert.are.same (status, 204)
@@ -623,7 +620,7 @@ describe ("route /projects/:project/resources/:resource", function ()
         assert.are.equal (status, 200)
         assert.are.equal (body.data, [[ return function () end ]])
         assert.are.equal (#body.history, 1)
-        assert.are.equal (body.history [1].data, "patched")
+        assert.are.equal (body.history [1].data, [[ return function () return true end ]])
       end)
     end
 
@@ -633,27 +630,8 @@ describe ("route /projects/:project/resources/:resource", function ()
           method  = method,
           headers = { Authorization = "Bearer " .. project_token},
           json    = {
-            data    = [[ return function () end ]],
-            patches = {
-              { data = "patched", token = "invalid" },
-            },
-          }
-        })
-        assert.are.same (status, 400)
-      end)
-    end
-
-    for _, method in ipairs { "PATCH" } do
-      it ("answers to " .. method, function ()
-        local token  = Test.make_false_token (Test.identities.rahan)
-        local status = request (app, route, {
-          method  = method,
-          headers = { Authorization = "Bearer " .. project_token},
-          json    = {
-            data    = [[ return function () end ]],
-            patches = {
-              { data = "patched", token = token },
-            },
+            editor  = project_token,
+            patches = { [[ return function () end ]] },
           }
         })
         assert.are.same (status, 400)
