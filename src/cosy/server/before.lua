@@ -97,6 +97,15 @@ return function (app)
   end
 
   local function fetch_params (self)
+    if self.params.id then
+      self.params.id = Hashid.decode (Util.unescape (self.params.id))
+      if not tonumber (self.params.id) then
+        return { status = 400 }
+      end
+      self.id = Model.identities:find {
+        id = self.params.id,
+      } or false
+    end
     if self.params.user then
       self.params.user = Hashid.decode (Util.unescape (self.params.user))
       if not tonumber (self.params.user) then

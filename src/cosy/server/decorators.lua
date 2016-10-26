@@ -34,10 +34,14 @@ end
 function Decorators.exists (except)
   return function (f)
     return function (self)
+      local missing = {}
       for name in pairs (self.params) do
         if not self [name] and not except [name] then
-          return { status = 404 }
+          missing [#missing+1] = name
         end
+      end
+      if #missing > 0 then
+        return { status = 404, json = missing }
       end
       return f (self)
     end

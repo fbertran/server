@@ -63,7 +63,7 @@ return function (app)
     })
   end
 
-  app:match ("/projects/:project/permissions/:user", respond_to {
+  app:match ("/projects/:project/permissions/:id", respond_to {
     HEAD    = Decorators.exists {}
            .. Decorators.can_admin
            .. function ()
@@ -78,27 +78,27 @@ return function (app)
            .. Decorators.can_admin
            .. function (self)
       local permission = Model.permissions:find {
-        identity_id = self.user.id,
+        identity_id = self.id.id,
         project_id  = self.project.id,
       }
       return {
         status = 200,
         json = {
-          path       = self.project.path .. "/permissions/" .. Hashid.encode (self.user.id),
-          user       = self.user.path,
+          path       = self.project.path .. "/permissions/" .. Hashid.encode (self.id.id),
+          identity   = Hashid.encode (self.id.id),
           project    = self.project.path,
           permission = permission.permission,
         },
       }
     end,
-    PUT     = Decorators.exists { "user" }
+    PUT     = Decorators.exists {}
            .. Decorators.can_admin
            .. function (self)
       if not is_permission (self.json.permission) then
         return { status = 400 }
       end
       local permission = Model.permissions:find {
-        identity_id = self.user.id,
+        identity_id = self.id.id,
         project_id  = self.project.id,
       }
       if permission then
@@ -108,7 +108,7 @@ return function (app)
         return { status = 202 }
       else
         Model.permissions:create {
-          identity_id = self.user.id,
+          identity_id = self.id.id,
           project_id  = self.project.id,
           permission  = self.json.permission,
         }
@@ -119,14 +119,14 @@ return function (app)
            .. Decorators.can_admin
            .. function (self)
       local permission = Model.permissions:find {
-        identity_id = self.user.id,
+        identity_id = self.id.id,
         project_id  = self.project.id,
       }
       if not permission then
        return { status = 404 }
       end
       if permission.permission == "admin" then
-        local count = Model.permissions:count ([[ project_id = ? and permission = 'admin' and identity_id != ? and identity_id != ? ]], self.project.id, self.project.id, self.user.id)
+        local count = Model.permissions:count ([[ project_id = ? and permission = 'admin' and identity_id != ? and identity_id != ? ]], self.project.id, self.project.id, self.id.id)
         if count == 0 then
           return { status = 409 }
         end
