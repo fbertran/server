@@ -4,7 +4,7 @@ local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
-  require "cosy.server.projects.aliases.alias" (app)
+  require "cosy.server.projects.resources.aliases.alias" (app)
 
   app:match ("/projects/:project/resources/:resource/aliases(/)", respond_to {
     HEAD    = Decorators.exists {}

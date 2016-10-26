@@ -50,6 +50,26 @@ describe ("route /projects/:project/resources/:resource/aliases/", function ()
     assert.are.same (status, 201)
   end)
 
+  it ("when already existing", function ()
+    local token = Test.make_token (Test.identities.rahan)
+    local status, result = request (app, project .. "/resources", {
+      method  = "POST",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+    })
+    assert.are.same (status, 201)
+    resource = result.path
+    route    = resource .. "/aliases/alias"
+    status = request (app, resource .. "/aliases/alias", {
+      method  = "PUT",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+    })
+    assert.are.same (status, 409)
+  end)
+
   describe ("accessed as", function ()
 
     describe ("a non-existing resource", function ()

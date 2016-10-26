@@ -37,13 +37,18 @@ return function (app)
            .. Decorators.can_write
            .. function (self)
       if self.alias then
-        return { status = 202 }
+        if self.alias.resource_id == self.resource.id then
+          return { status = 202 }
+        else
+          return { status = 409 }
+        end
+      else
+        Model.aliases:create {
+          id          = self.params.alias,
+          resource_id = self.resource.id,
+        }
+        return { status = 201 }
       end
-      Model.aliases:create {
-        id          = self.params.alias,
-        resource_id = self.resource.id,
-      }
-      return { status = 201 }
     end,
     PATCH   = Decorators.exists {}
            .. function ()

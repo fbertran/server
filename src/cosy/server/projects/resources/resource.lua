@@ -13,6 +13,7 @@ local Url        = require "socket.url"
 
 return function (app)
 
+  require "cosy.server.projects.resources.aliases" (app)
   if _G.ngx then
     require "cosy.server.projects.resources.editor"     (app)
     require "cosy.server.projects.resources.executions" (app)

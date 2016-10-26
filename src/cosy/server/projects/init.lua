@@ -7,7 +7,6 @@ local Et         = require "etlua"
 
 return function (app)
 
-  require "cosy.server.projects.aliases"     (app)
   require "cosy.server.projects.project"     (app)
   require "cosy.server.projects.permissions" (app)
   require "cosy.server.projects.resources"   (app)
