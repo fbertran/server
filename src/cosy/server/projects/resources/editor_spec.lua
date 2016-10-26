@@ -1,4 +1,4 @@
-local Test      = require "cosy.server.test"
+local Test = require "cosy.server.test"
 -- local Websocket = require "websocket"
 
 -- FIXME: `lua-websockets` does not ship this file in luarocks,

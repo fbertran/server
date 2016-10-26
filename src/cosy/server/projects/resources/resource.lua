@@ -13,9 +13,9 @@ local Url        = require "socket.url"
 
 return function (app)
 
-  require "cosy.server.projects.aliases" (app)
   if _G.ngx then
-    require "cosy.server.projects.editor"  (app)
+    require "cosy.server.projects.resources.editor"     (app)
+    require "cosy.server.projects.resources.executions" (app)
   end
 
   app:match ("/projects/:project/resources/:resource", respond_to {
@@ -101,6 +101,23 @@ return function (app)
            .. Decorators.can_write
            .. function (self)
       local token = Token (self.project.path, {}, math.huge)
+      pcall (function ()
+        for _, execution in ipairs (self.resource:get_executions ()) do
+          local _, status = Http.json {
+            method  = "DELETE",
+            url     = Url.build {
+              scheme = "http",
+              host   = "127.0.0.1",
+              port   = Config.port,
+              path   = execution.path,
+            },
+            headers = {
+              Authorization = "Bearer " .. token,
+            },
+          }
+          assert (status == 202)
+        end
+      end)
       pcall (function ()
         local _, status = Http.json {
           method  = "DELETE",

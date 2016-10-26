@@ -1,13 +1,12 @@
 local respond_to = require "lapis.application".respond_to
-local Util       = require "lapis.util"
-local Decorators = require "cosy.server.decorators"
 local Model      = require "cosy.server.model"
+local Decorators = require "cosy.server.decorators"
 
 return function (app)
 
-  require "cosy.server.projects.tag" (app)
+  require "cosy.server.projects.aliases.alias" (app)
 
-  app:match ("/projects/:project/tags(/)", respond_to {
+  app:match ("/projects/:project/resources/:resource/aliases(/)", respond_to {
     HEAD    = Decorators.exists {}
            .. Decorators.can_read
            .. function ()
@@ -21,18 +20,15 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
-      local tags = self.project:get_tags () or {}
-      Model.users:include_in (tags, "user_id"   )
-      local result = {
-        path = self.project.path .. "/tags/",
-        tags = {},
+      local aliases = Model.aliases:select ("where resource_id = ?", self.resource.id) or {}
+      local result  = {
+        path    = self.resource.path .. "/aliases/",
+        aliases = {},
       }
-      for i, tag in ipairs (tags) do
-        result.tags [i] = {
-          id      = tag.id,
-          user    = tag.user.path,
-          project = self.project.path,
-          path    = self.project.path .. "/tags/" .. Util.escape (tag.id),
+      for i, alias in ipairs (aliases) do
+        result.aliases [i] = {
+          id       = alias.id,
+          resource = self.resource.path,
         }
       end
       return {
@@ -40,16 +36,15 @@ return function (app)
         json   = result,
       }
     end,
+    POST    = Decorators.exists {}
+           .. function ()
+      return { status = 405 }
+    end,
     DELETE  = Decorators.exists {}
-           .. Decorators.can_read
            .. function ()
       return { status = 405 }
     end,
     PATCH   = Decorators.exists {}
-           .. function ()
-      return { status = 405 }
-    end,
-    POST    = Decorators.exists {}
            .. function ()
       return { status = 405 }
     end,

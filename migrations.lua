@@ -120,17 +120,16 @@ return {
   function ()
     Schema.create_table ("executions", {
       { "id"           , Schema.types.serial { primary_key = true } },
-      { "path"         , Schema.types.text   { null = true } },
-      { "project_id"   , Schema.types.foreign_key },
-      { "resource"     , Schema.types.text   },
+      { "resource_id"  , Schema.types.foreign_key },
       { "image"        , Schema.types.text   },
+      { "path"         , Schema.types.text   { null = true } },
       { "name"         , Schema.types.text   { null = true } },
       { "description"  , Schema.types.text   { null = true } },
       { "service_id"   , Schema.types.foreign_key { null = true, default = Database.NULL } },
       { "created_at"   , Schema.types.time   },
       { "updated_at"   , Schema.types.time   },
-      [[ FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE  ]],
-      [[ FOREIGN KEY ("service_id") REFERENCES "services" ("id") ON DELETE SET NULL ]],
+      [[ FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE  ]],
+      [[ FOREIGN KEY ("service_id" ) REFERENCES "services"  ("id") ON DELETE SET NULL ]],
     })
   end,
 }

@@ -4,7 +4,7 @@ local Model      = require "cosy.server.model"
 
 return function (app)
 
-  require "cosy.server.projects.permission" (app)
+  require "cosy.server.projects.permissions.permission" (app)
 
   app:match ("/projects/:project/permissions(/)", respond_to {
     HEAD    = Decorators.exists {}

@@ -1,20 +1,12 @@
 local assert   = require "luassert"
 local Test     = require "cosy.server.test"
-local Http     = require "cosy.server.http"
 local Hashid   = require "cosy.server.hashid"
-local Instance = require "cosy.server.instance"
 
 Test.environment.use ()
 
-describe ("#resty route /projects/:project/executions/", function ()
+describe ("#resty route /projects/:project/resources/:resource/executions/:execution", function ()
 
   local app, request
-  local instance, server_url
-
-  setup (function ()
-    instance   = Instance.create ()
-    server_url = instance.server
-  end)
 
   setup (function ()
     Test.clean_db ()
@@ -22,29 +14,7 @@ describe ("#resty route /projects/:project/executions/", function ()
     app     = Test.environment.app ()
   end)
 
-  local project, project_url, project_token, resource_url, route, naouna
-
-  setup (function ()
-    local token = Test.make_token (Test.identities.rahan)
-    local result, status = Http.json {
-      url     = server_url .. "/projects/",
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    }
-    assert.are.same (status, 201)
-    project_url    = server_url .. result.path
-    result, status = Http.json {
-      url     = project_url .. "/resources/",
-      method  = "POST",
-      headers = {
-        Authorization = "Bearer " .. token,
-      },
-    }
-    assert.are.same (status, 201)
-    resource_url = server_url .. result.path
-  end)
+  local project, resource, execution, route, naouna, project_token
 
   setup (function ()
     local token = Test.make_token (Test.identities.naouna)
@@ -56,32 +26,37 @@ describe ("#resty route /projects/:project/executions/", function ()
     naouna = result.authentified.path:match "/users/(.*)"
   end)
 
-  local execution
-
   setup (function ()
     local token = Test.make_token (Test.identities.rahan)
-    local status, result = request (app, "/projects", {
+    local status, result = request (app, "/projects/", {
       method  = "POST",
       headers = {
         Authorization = "Bearer " .. token,
       },
     })
     assert.are.same (status, 201)
-    project        = result.path
-    project_token  = Test.make_token (result.path)
-    status, result = request (app, project .. "/executions/", {
+    project = result.path
+    status, result = request (app, project .. "/resources/", {
+      method  = "POST",
+      headers = {
+        Authorization = "Bearer " .. token,
+      },
+    })
+    assert.are.same (status, 201)
+    resource = result.path
+    status, result = request (app, resource .. "/executions/", {
       method  = "POST",
       headers = {
         Authorization = "Bearer " .. token,
       },
       json    = {
-        image    = "sylvainlasnier/echo",
-        resource = resource_url,
+        image = "sylvainlasnier/echo",
       },
     })
     assert.are.same (status, 202)
     route     = result.path
     execution = result.path
+    project_token = Test.make_token (project)
   end)
 
   teardown (function ()
@@ -102,10 +77,6 @@ describe ("#resty route /projects/:project/executions/", function ()
       end
       os.execute [[ sleep 1 ]]
     end
-  end)
-
-  teardown (function ()
-    instance:delete ()
   end)
 
   describe ("accessed as", function ()

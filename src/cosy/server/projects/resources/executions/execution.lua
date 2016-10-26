@@ -5,7 +5,7 @@ local Job        = require "cosy.server.jobs.execution"
 
 return function (app)
 
-  app:match ("/projects/:project/executions/:execution", respond_to {
+  app:match ("/projects/:project/resources/:resource/executions/:execution", respond_to {
     HEAD    = Decorators.exists {}
            .. Decorators.can_read
            .. function ()
@@ -24,7 +24,8 @@ return function (app)
         json   = {
           id          = Hashid.encode (self.execution.id),
           path        = self.execution.path,
-          project     = self.execution:get_project ().path,
+          project     = self.project.path,
+          resource    = self.resource.path,
           name        = self.execution.name,
           description = self.execution.description,
           docker      = self.execution.docker_url,

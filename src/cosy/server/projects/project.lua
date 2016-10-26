@@ -108,21 +108,6 @@ return function (app)
           }
           assert (status == 204)
         end
-        for _, execution in ipairs (self.project:get_executions ()) do
-          local _, status = Http.json {
-            method  = "DELETE",
-            url     = Url.build {
-              scheme = "http",
-              host   = "127.0.0.1",
-              port   = Config.port,
-              path   = execution.path,
-            },
-            headers = {
-              Authorization = "Bearer " .. token,
-            },
-          }
-          assert (status == 202)
-        end
       end)
       self.project:get_identity ():delete ()
       return {

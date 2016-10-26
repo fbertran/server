@@ -7,7 +7,7 @@ local Et         = require "etlua"
 
 return function (app)
 
-  require "cosy.server.projects.resource" (app)
+  require "cosy.server.projects.resources.resource" (app)
 
   app:match ("/projects/:project/resources(/)", respond_to {
     HEAD    = Decorators.exists {}

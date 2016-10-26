@@ -17,6 +17,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
+  "hashids",         -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
   "jwt",
   "lapis",
   "layeredata",
@@ -25,49 +26,62 @@ dependencies = {
   "luasocket",
   "lua-resty-http",
   "lua-resty-qless",
-  -- "hashids",         -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
 }
+
+local sources = {
+  "src/cosy/server/alias.lua",
+  "src/cosy/server/before.lua",
+  "src/cosy/server/bin.lua",
+  "src/cosy/server/decorators.lua",
+  "src/cosy/server/hashid.lua",
+  "src/cosy/server/http.lua",
+  "src/cosy/server/init.lua",
+  "src/cosy/server/instance.lua",
+  "src/cosy/server/jobs/clean.lua",
+  "src/cosy/server/jobs/editor.lua",
+  "src/cosy/server/jobs/execution.lua",
+  "src/cosy/server/jobs/stop.lua",
+  "src/cosy/server/lock.lua",
+  "src/cosy/server/model.lua",
+  "src/cosy/server/projects/aliases/alias.lua",
+  "src/cosy/server/projects/aliases/init.lua",
+  "src/cosy/server/projects/init.lua",
+  "src/cosy/server/projects/permissions/permission.lua",
+  "src/cosy/server/projects/permissions/init.lua",
+  "src/cosy/server/projects/project.lua",
+  "src/cosy/server/projects/resources/editor.lua",
+  "src/cosy/server/projects/resources/executions/execution.lua",
+  "src/cosy/server/projects/resources/executions/init.lua",
+  "src/cosy/server/projects/resources/init.lua",
+  "src/cosy/server/projects/resources/resource.lua",
+  "src/cosy/server/projects/stars/init.lua",
+  "src/cosy/server/projects/tags/init.lua",
+  "src/cosy/server/projects/tags/tag.lua",
+  "src/cosy/server/quote.lua",
+  "src/cosy/server/tags/init.lua",
+  "src/cosy/server/tags/tag.lua",
+  "src/cosy/server/test.lua",
+  "src/cosy/server/token.lua",
+  "src/cosy/server/users/init.lua",
+  "src/cosy/server/users/user.lua",
+}
+local modules = {
+  ["config"    ] = "config.lua",
+  ["migrations"] = "migrations.lua",
+  ["models"    ] = "models.lua",
+}
+for i = 1, #sources do
+  local source = sources [i]
+  local module = source:gsub ("%.lua$", ""):gsub ("^src/", ""):gsub ("/", ".")
+  if module:match "%.init$" then
+    module = module:sub (1, #module-5)
+  end
+  modules [module] = source
+end
 
 build = {
   type    = "builtin",
-  modules = {
-    ["config"                          ] = "config.lua",
-    ["migrations"                      ] = "migrations.lua",
-    ["models"                          ] = "models.lua",
-    ["cosy.server"                     ] = "src/cosy/server/init.lua",
-    ["cosy.server.alias"               ] = "src/cosy/server/alias.lua",
-    ["cosy.server.before"              ] = "src/cosy/server/before.lua",
-    ["cosy.server.hashid"              ] = "src/cosy/server/hashid.lua",
-    ["cosy.server.http"                ] = "src/cosy/server/http.lua",
-    ["cosy.server.instance"            ] = "src/cosy/server/instance.lua",
-    ["cosy.server.lock"                ] = "src/cosy/server/lock.lua",
-    ["cosy.server.quote"               ] = "src/cosy/server/quote.lua",
-    ["cosy.server.users"               ] = "src/cosy/server/users/init.lua",
-    ["cosy.server.users.user"          ] = "src/cosy/server/users/user.lua",
-    ["cosy.server.projects"            ] = "src/cosy/server/projects/init.lua",
-    ["cosy.server.projects.alias"      ] = "src/cosy/server/projects/alias.lua",
-    ["cosy.server.projects.aliases"    ] = "src/cosy/server/projects/aliases.lua",
-    ["cosy.server.projects.editor"     ] = "src/cosy/server/projects/editor.lua",
-    ["cosy.server.projects.execution"  ] = "src/cosy/server/projects/execution.lua",
-    ["cosy.server.projects.executions" ] = "src/cosy/server/projects/executions.lua",
-    ["cosy.server.projects.project"    ] = "src/cosy/server/projects/project.lua",
-    ["cosy.server.projects.permission" ] = "src/cosy/server/projects/permission.lua",
-    ["cosy.server.projects.permissions"] = "src/cosy/server/projects/permissions.lua",
-    ["cosy.server.projects.resource"   ] = "src/cosy/server/projects/resource.lua",
-    ["cosy.server.projects.resources"  ] = "src/cosy/server/projects/resources.lua",
-    ["cosy.server.projects.stars"      ] = "src/cosy/server/projects/stars.lua",
-    ["cosy.server.projects.tag"        ] = "src/cosy/server/projects/tag.lua",
-    ["cosy.server.projects.tags"       ] = "src/cosy/server/projects/tags.lua",
-    ["cosy.server.tags"                ] = "src/cosy/server/tags/init.lua",
-    ["cosy.server.tags.tag"            ] = "src/cosy/server/tags/tag.lua",
-    ["cosy.server.decorators"          ] = "src/cosy/server/decorators.lua",
-    ["cosy.server.model"               ] = "src/cosy/server/model.lua",
-    ["cosy.server.token"               ] = "src/cosy/server/token.lua",
-    ["cosy.server.jobs.clean"          ] = "src/cosy/server/jobs/clean.lua",
-    ["cosy.server.jobs.editor"         ] = "src/cosy/server/jobs/editor.lua",
-    ["cosy.server.jobs.execution"      ] = "src/cosy/server/jobs/execution.lua",
-    ["cosy.server.jobs.stop"           ] = "src/cosy/server/jobs/stop.lua",
-  },
+  modules = modules,
   install = {
     bin = {
       ["cosy-server"] = "src/cosy/server/bin.lua",

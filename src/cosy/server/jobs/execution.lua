@@ -55,15 +55,16 @@ function Execution.stop (execution)
 end
 
 local function perform (execution)
-  local project = execution:get_project ()
-  local url     = "https://cloud.docker.com"
-  local api     = url .. "/api/app/v1"
-  local headers = {
+  local resource = execution:get_resource ()
+  local project  = resource:get_project ()
+  local url      = "https://cloud.docker.com"
+  local api      = url .. "/api/app/v1"
+  local headers  = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
   }
   -- Create service:
   local data = {
-    resource = execution.resource,
+    resource = resource.path,
     token    = Token (project.path, {}, math.huge),
   }
   local arguments = {}

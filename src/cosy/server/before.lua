@@ -138,8 +138,8 @@ return function (app)
         return { status = 400 }
       end
       self.execution = Model.executions:find {
-        id         = self.params.execution,
-        project_id = self.project and self.project.id or nil,
+        id          = self.params.execution,
+        resource_id = self.resource and self.resource.id or nil,
       } or false
     end
     if self.params.alias then

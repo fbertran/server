@@ -9,9 +9,9 @@ local Et         = require "etlua"
 
 return function (app)
 
-  require "cosy.server.projects.execution" (app)
+  require "cosy.server.projects.resources.executions.execution" (app)
 
-  app:match ("/projects/:project/executions(/)", respond_to {
+  app:match ("/projects/:project/resources/:resource/executions(/)", respond_to {
     HEAD    = Decorators.exists {}
            .. Decorators.can_read
            .. function ()
@@ -25,9 +25,9 @@ return function (app)
     GET     = Decorators.exists {}
            .. Decorators.can_read
            .. function (self)
-      local executions = self.project:get_executions () or {}
+      local executions = self.resource:get_executions () or {}
       local result    = {
-        path       = self.project.path .. "/executions/",
+        path       = self.resource.path .. "/executions/",
         executions = {},
       }
       for i, execution in ipairs (executions) do
@@ -47,27 +47,9 @@ return function (app)
            .. Decorators.can_write
            .. Decorators.is_user
            .. function (self)
-      -- check if resource exists and is readable:
-      local _, result, status
-      _, status = Http.json {
-        url     = self.json.resource,
-        method  = "HEAD",
-        headers = {
-          ["Authorization"] = "Bearer " .. self.token,
-        }
-      }
-      if status ~= 204 then
-        return {
-          status = 400,
-          json   = {
-            status = status,
-            reason = "resource",
-          },
-        }
-      end
       -- check if image exists and is readable:
       local image, variant = self.json.image:match "([^:]+):?(.*)"
-      result, status = Http.json {
+      local result, status = Http.json {
         url    = Et.render ("https://auth.docker.io/token?service=registry.docker.io&scope=repository:<%- image %>:pull", {
           image = image,
         }),
@@ -82,6 +64,7 @@ return function (app)
           },
         }
       end
+      local _
       local docker_token = assert (result.token)
       _, status = Http.json ({
         url     = Et.render ("https://registry-1.docker.io/v2/<%- image %>/manifests/<%- variant %>", {
@@ -104,16 +87,16 @@ return function (app)
       end
       -- create execution:
       local execution = Model.executions:create {
-        project_id  = self.project.id,
-        resource    = self.json.resource,
+        resource_id = self.resource.id,
         image       = self.json.image,
         name        = self.json.name,
         description = self.json.description,
         service_id  = Database.NULL,
       }
       execution:update {
-        path = Et.render ("/projects/<%- project %>/executions/<%- execution %>", {
+        path = Et.render ("/projects/<%- project %>/resources/<%- resource %>/executions/<%- execution %>", {
           project   = Hashid.encode (self.project.id),
+          resource  = Hashid.encode (self.resource.id),
           execution = Hashid.encode (execution.id),
         }),
       }
