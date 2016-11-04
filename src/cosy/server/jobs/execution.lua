@@ -140,24 +140,24 @@ function Execution.perform (job)
   local service = assert (Model.services:find {
     id = job.data.service,
   })
-  if not pcall (function ()
+  if not xpcall (function ()
     execution = assert (Model.executions:find {
       id = job.data.execution,
     })
     assert (execution.service_id == service.id)
     assert (perform (execution))
-  end) then
-    if execution then
-      local lock = Lock:new (Config.redis)
-      assert (lock:lock (execution.path))
-      execution:refresh ()
-      if execution.service_id == service.id then
-        execution:update ({
-          service_id = Database.NULL,
-        }, { timestamp = false })
-      end
-      assert (lock:unlock (execution.path))
+  end, function (err)
+    print (err, debug.traceback ())
+  end) and execution then
+    local lock = Lock:new (Config.redis)
+    assert (lock:lock (execution.path))
+    execution:refresh ()
+    if execution.service_id == service.id then
+      execution:update ({
+        service_id = Database.NULL,
+      }, { timestamp = false })
     end
+    assert (lock:unlock (execution.path))
   end
 end
 

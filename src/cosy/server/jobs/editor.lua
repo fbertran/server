@@ -1,14 +1,13 @@
-local Database  = require "lapis.db"
-local Config    = require "lapis.config".get ()
-local Qless     = require "resty.qless"
-local Model     = require "cosy.server.model"
-local Token     = require "cosy.server.token"
-local Http      = require "cosy.server.http"
-local Hashid    = require "cosy.server.hashid"
-local Lock      = require "cosy.server.lock"
-local Clean     = require "cosy.server.jobs.clean"
-local Et        = require "etlua"
-local Mime      = require "mime"
+local Database = require "lapis.db"
+local Config   = require "lapis.config".get ()
+local Qless    = require "resty.qless"
+local Model    = require "cosy.server.model"
+local Token    = require "cosy.server.token"
+local Http     = require "cosy.server.http"
+local Lock     = require "cosy.server.lock"
+local Clean    = require "cosy.server.jobs.clean"
+local Et       = require "etlua"
+local Mime     = require "mime"
 
 local Editor = {}
 
@@ -30,6 +29,11 @@ function Editor.start (resource)
       path     = resource.path,
       resource = resource.id,
       service  = service.id,
+      url      = Et.render ("<%- scheme %>://<%- host %>:<%- port %>" .. resource.path, {
+        scheme = _G.ngx.var.scheme,
+        host   = Config.host,
+        port   = Config.port,
+      }),
     })
     service:update {
       qless_job = jid,
@@ -55,7 +59,7 @@ function Editor.stop (resource)
   assert (lock:unlock (resource.path))
 end
 
-local function perform (resource)
+local function perform (resource, job)
   local project  = resource:get_project ()
   local url     = "https://cloud.docker.com"
   local api     = url .. "/api/app/v1"
@@ -64,16 +68,9 @@ local function perform (resource)
   }
   -- Create service:
   local data = {
-    port     = 8080,
-    timeout  = Config.editor.timeout,
-    project  = Hashid.encode (resource.project_id),
-    resource = Hashid.encode (resource.id),
     token    = Token (project.path, {}, math.huge),
+    resource = job.data.url,
   }
-  data.api = Et.render ("http://<%- host %>:<%- port %>", {
-    host = Config.host,
-    port = Config.port,
-  })
   local arguments = {}
   for key, value in pairs (data) do
     arguments [#arguments+1] = Et.render ("--<%- key %>=<%- value %>", {
@@ -160,24 +157,24 @@ function Editor.perform (job)
   local service = assert (Model.services:find {
     id = job.data.service,
   })
-  if not pcall (function ()
+  if not xpcall (function ()
     resource = assert (Model.resources:find {
       id = job.data.resource,
     })
     assert (resource.service_id == service.id)
-    assert (perform (resource))
-  end) then
-    if resource then
-      local lock = Lock:new (Config.redis)
-      assert (lock:lock (resource.path))
-      resource:refresh ()
-      if resource.service_id == service.id then
-        resource:update ({
-          service_id = Database.NULL,
-        }, { timestamp = false })
-      end
-      assert (lock:unlock (resource.path))
+    assert (perform (resource, job))
+  end, function (err)
+    print (err, debug.traceback ())
+  end) and resource then
+    local lock = Lock:new (Config.redis)
+    assert (lock:lock (resource.path))
+    resource:refresh ()
+    if resource.service_id == service.id then
+      resource:update ({
+        service_id = Database.NULL,
+      }, { timestamp = false })
     end
+    assert (lock:unlock (resource.path))
   end
 end
 
