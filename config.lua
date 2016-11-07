@@ -6,11 +6,17 @@ if not branch or branch == "master" then
   branch = "latest"
 end
 
+local server_url
+if os.getenv "DOCKERCLOUD_CONTAINER_FQDN" then
+  server_url = "https://" .. os.getenv "DOCKERCLOUD_CONTAINER_FQDN"
+else
+  server_url = "http://localhost:8080"
+end
 local postgres_url = assert (Url.parse (os.getenv "POSTGRES_PORT"))
 local redis_url    = assert (Url.parse (os.getenv "REDIS_PORT"   ))
 
 local common = {
-  url         = assert (os.getenv "API_PORT"),
+  url         = assert (server_url),
   host        = "localhost",
   port        = 8080,
   num_workers = assert (tonumber (os.getenv "NPROC")),
