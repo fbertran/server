@@ -64,8 +64,12 @@ function Instance.create ()
               branch = branch,
             }),
             tags  = { Config.branch },
-            ports = {
-              "8080",
+            container_ports = {
+              { protocol   = "tcp",
+                inner_port = 8080,
+                outer_port = 80,
+                published  = true,
+              },
             },
             links = {
               "postgres",

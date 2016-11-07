@@ -29,11 +29,7 @@ function Editor.start (resource)
       path     = resource.path,
       resource = resource.id,
       service  = service.id,
-      url      = Et.render ("<%- scheme %>://<%- host %>:<%- port %>" .. resource.path, {
-        scheme = _G.ngx.var.scheme,
-        host   = Config.host,
-        port   = Config.port,
-      }),
+      url      = Config.url .. resource.path
     })
     service:update {
       qless_job = jid,
@@ -94,6 +90,7 @@ local function perform (resource, job)
       container_ports = {
         { protocol   = "tcp",
           inner_port = 8080,
+          outer_port = 80,
           published  = true,
         },
       },

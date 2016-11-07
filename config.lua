@@ -6,13 +6,13 @@ if not branch or branch == "master" then
   branch = "latest"
 end
 
-local server_url   = assert (Url.parse (os.getenv "API_PORT"     ))
 local postgres_url = assert (Url.parse (os.getenv "POSTGRES_PORT"))
 local redis_url    = assert (Url.parse (os.getenv "REDIS_PORT"   ))
 
 local common = {
-  host        = assert (server_url.host),
-  port        = assert (server_url.port),
+  url         = assert (os.getenv "API_PORT"),
+  host        = "localhost",
+  port        = 8080,
   num_workers = assert (tonumber (os.getenv "NPROC")),
   code_cache  = "on",
   hashid      = {

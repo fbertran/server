@@ -6,14 +6,22 @@ local Et     = require "etlua"
 local Setenv = require "posix.stdlib".setenv
 
 if not os.getenv "API_PORT" then
-  print ("Obtaining hostname...")
-  local file     = io.popen ("hostname", "r")
-  local hostname = file:read "*l"
-  file:close ()
+  local hostname, domainname
+  do
+    print ("Obtaining hostname...")
+    local file = io.popen ("hostname", "r")
+    hostname   = file:read "*l"
+    file:close ()
+  end
+  do
+    print ("Obtaining domainname...")
+    local file = io.popen ("domainname", "r")
+    domainname = file:read "*l"
+    file:close ()
+  end
   Setenv ("API_PORT", Url.build {
-    scheme = "tcp",
-    host   = hostname,
-    port   = 8080,
+    scheme = "https",
+    host   = hostname .. (domainname and "." .. domainname or ""),
   })
 end
 
