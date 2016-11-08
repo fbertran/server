@@ -76,6 +76,7 @@ function Instance.create ()
               "redis",
             },
             environment = {
+              NPROC             = Config.num_workers,
               COSY_PREFIX       = "/usr/local",
               COSY_BRANCH       = branch,
               REDIS_PORT        = "tcp://redis:6379",
