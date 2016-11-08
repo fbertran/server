@@ -7,8 +7,8 @@ if not branch or branch == "master" then
 end
 
 local server_url
-if os.getenv "DOCKERCLOUD_CONTAINER_FQDN" then
-  server_url = "https://" .. os.getenv "DOCKERCLOUD_CONTAINER_FQDN"
+if os.getenv "DOCKERCLOUD_SERVICE_FQDN" then
+  server_url = "https://" .. os.getenv "DOCKERCLOUD_SERVICE_FQDN"
 else
   server_url = "http://localhost:8080"
 end
