@@ -29,7 +29,7 @@ function Clean.perform ()
           ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
         },
       }
-      if status >= 200 and status < 300 then
+      if (status >= 200 and status < 300) or status == 404 then
         service:delete ()
       end
     end
