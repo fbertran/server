@@ -100,7 +100,6 @@ local function perform (execution)
     timeout = 10, -- seconds
   }
   assert (started_status == 202, started_status)
-  local container
   do
     local result, status
     while true do
@@ -110,20 +109,12 @@ local function perform (execution)
         headers = headers,
       }
       if status == 200 and result.state:lower () ~= "starting" then
-        container = result.containers and url .. result.containers [1]
-        break
+        return
       else
         _G.ngx.sleep (1)
       end
     end
-    assert (container and result.state:lower () == "running")
   end
-  local _, container_status = Http.json {
-    url     = container,
-    method  = "GET",
-    headers = headers,
-  }
-  assert (container_status == 200)
 end
 
 function Execution.perform (job)

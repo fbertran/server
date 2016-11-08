@@ -2,7 +2,7 @@ local assert  = require "luassert"
 local Mime    = require "mime"
 local Et      = require "etlua"
 local Hashids = require "hashids"
-local Json    = require "cjson"
+local Url     = require "socket.url"
 local Http    = require "cosy.server.http"
 
 local Config = {
@@ -64,12 +64,8 @@ function Instance.create ()
               branch = branch,
             }),
             tags  = { Config.branch },
-            container_ports = {
-              { protocol   = "tcp",
-                inner_port = 8080,
-                outer_port = 80,
-                published  = true,
-              },
+            ports = {
+              "80:8080",
             },
             links = {
               "postgres",
@@ -150,22 +146,11 @@ function Instance.find_endpoint (instance)
     }
     assert (service_status == 200)
     if service.name == "api" then
-      local container, container_status = Http.json {
-        url     = url .. service.containers [1],
-        method  = "GET",
-        headers = instance.headers,
+      instance.server = Url.build {
+        scheme = "http",
+        host   = service.public_dns,
       }
-      assert (container_status == 200)
-      for _, port in ipairs (container.container_ports) do
-        local endpoint = port.endpoint_uri
-        if endpoint and endpoint ~= Json.null then
-          if endpoint:sub (-1) == "/" then
-            endpoint = endpoint:sub (1, #endpoint-1)
-          end
-          instance.server = endpoint
-          return endpoint
-        end
-      end
+      return instance.server
     end
   end
 end

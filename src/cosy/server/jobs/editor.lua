@@ -8,6 +8,7 @@ local Lock     = require "cosy.server.lock"
 local Clean    = require "cosy.server.jobs.clean"
 local Et       = require "etlua"
 local Mime     = require "mime"
+local Url      = require "socket.url"
 
 local Editor = {}
 
@@ -109,7 +110,6 @@ local function perform (resource, job)
     timeout = 10, -- seconds
   }
   assert (started_status == 202, started_status)
-  local container
   do
     local result, status
     while true do
@@ -119,25 +119,18 @@ local function perform (resource, job)
         headers = headers,
       }
       if status == 200 and result.state:lower () ~= "starting" then
-        container = result.containers and url .. result.containers [1]
-        break
+        resource:get_service ():update {
+          editor_url = Url.build {
+            scheme = "http",
+            host   = result.public_dns,
+          }
+        }
+        return
       else
         _G.ngx.sleep (1)
       end
     end
-    assert (container and result.state:lower () == "running")
   end
-  local info, container_status = Http.json {
-    url     = container,
-    method  = "GET",
-    headers = headers,
-  }
-  assert (container_status == 200, container_status)
-  -- Connect to editor:
-  local endpoint = info.container_ports [1].endpoint_uri:gsub ("^http", "ws")
-  resource:get_service ():update {
-    editor_url = endpoint,
-  }
 end
 
 function Editor.perform (job)
