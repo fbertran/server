@@ -96,9 +96,7 @@ local function perform (resource, job)
       },
     },
   }
-  if service_status ~= 201 then
-    return
-  end
+  assert (service_status == 201, service_status)
   -- Editor service:
   service = url .. service.resource_uri
   resource:get_service ():update {
@@ -110,9 +108,7 @@ local function perform (resource, job)
     headers = headers,
     timeout = 10, -- seconds
   }
-  if started_status ~= 202 then
-    return
-  end
+  assert (started_status == 202, started_status)
   local container
   do
     local result, status
@@ -129,24 +125,19 @@ local function perform (resource, job)
         _G.ngx.sleep (1)
       end
     end
-    if not container or result.state:lower () ~= "running" then
-      return
-    end
+    assert (container and result.state:lower () == "running")
   end
   local info, container_status = Http.json {
     url     = container,
     method  = "GET",
     headers = headers,
   }
-  if container_status ~= 200 then
-    return
-  end
+  assert (container_status == 200, container_status)
   -- Connect to editor:
   local endpoint = info.container_ports [1].endpoint_uri:gsub ("^http", "ws")
   resource:get_service ():update {
     editor_url = endpoint,
   }
-  return true
 end
 
 function Editor.perform (job)
@@ -159,7 +150,7 @@ function Editor.perform (job)
       id = job.data.resource,
     })
     assert (resource.service_id == service.id)
-    assert (perform (resource, job))
+    perform (resource, job)
   end, function (err)
     print (err, debug.traceback ())
   end) and resource then

@@ -22,15 +22,17 @@ function Clean.perform ()
   ]]):gsub ("%s+", " "))
   for _, service in ipairs (services or {}) do
     if service.docker_url then
-      Http.json {
+      local _, status = Http.json {
         url     = service.docker_url,
         method  = "DELETE",
         headers = {
           ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
         },
       }
+      if status >= 200 and status < 300 then
+        service:delete ()
+      end
     end
-    service:delete ()
   end
 end
 
