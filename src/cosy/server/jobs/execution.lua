@@ -109,6 +109,9 @@ local function perform (execution)
         headers = headers,
       }
       if status == 200 and result.state:lower () ~= "starting" then
+        execution:get_service ():update {
+          launched = true,
+        }
         return
       else
         _G.ngx.sleep (1)

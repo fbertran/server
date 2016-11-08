@@ -123,7 +123,8 @@ local function perform (resource, job)
           editor_url = Url.build {
             scheme = "http",
             host   = result.public_dns,
-          }
+          },
+          launched = true,
         }
         return
       else

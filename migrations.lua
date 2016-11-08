@@ -76,6 +76,7 @@ return {
   function ()
     Schema.create_table ("services", {
       { "id"        , Schema.types.serial { primary_key = true } },
+      { "launched"  , Schema.types.boolean { default = false } },
       { "path"      , Schema.types.text                 },
       { "docker_url", Schema.types.text { null = true } },
       { "editor_url", Schema.types.text { null = true } },
