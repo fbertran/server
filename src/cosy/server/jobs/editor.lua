@@ -157,6 +157,7 @@ function Editor.perform (job)
       }, { timestamp = false })
     end
     assert (lock:unlock (resource.path))
+    error "editor failed"
   end
 end
 

@@ -143,6 +143,7 @@ function Execution.perform (job)
       }, { timestamp = false })
     end
     assert (lock:unlock (execution.path))
+    error "execution failed"
   end
 end
 
