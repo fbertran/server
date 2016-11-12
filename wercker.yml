@@ -26,8 +26,8 @@ build:
               openssl-dev
           luarocks install rockspec/lua-resty-qless-develop-0.rockspec
           luarocks install rockspec/hashids-develop-0.rockspec
-          luarocks make rockspec/cosy-server-env-master-1.rockspec
-          luarocks make rockspec/cosy-server-master-1.rockspec
+          luarocks make    rockspec/cosy-server-env-master-1.rockspec
+          luarocks make    rockspec/cosy-server-master-1.rockspec
     - script:
       name: "wait for services"
       code: |

@@ -14,7 +14,6 @@ RUN     apk add --no-cache --virtual .build-deps \
     &&  luarocks install rockspec/lua-resty-qless-develop-0.rockspec \
     &&  luarocks install rockspec/hashids-develop-0.rockspec \
     &&  luarocks make    rockspec/cosy-server-master-1.rockspec \
-    &&  cd / \
     &&  rm -rf /src/cosy/server \
     &&  apk del .build-deps
 
