@@ -13,7 +13,7 @@ Instance.__index = Instance
 
 function Instance.create (config)
   config             = config             or {}
-  config.num_workers = config.num_workers or assert (os.getenv "NPROC")
+  config.num_workers = config.num_workers or 1
   config.auth0       = config.auth0       or {
     domain        = assert (os.getenv "AUTH0_DOMAIN"),
     client_id     = assert (os.getenv "AUTH0_ID"    ),

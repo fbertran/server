@@ -4,14 +4,6 @@ local Socket = require "socket"
 local Url    = require "socket.url"
 local Setenv = require "posix.stdlib".setenv
 
-if not os.getenv "NPROC" then
-  print ("Obtaining number of cores...")
-  local file  = io.popen ("nproc", "r")
-  local nproc = file:read "*l"
-  file:close ()
-  Setenv ("NPROC", nproc)
-end
-
 -- FIXME:  nginx resolver does not seem to work within docker-compose or
 -- docker-cloud, so we convert all service hostnames to ips before
 -- launching the server.
