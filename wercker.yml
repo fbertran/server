@@ -19,7 +19,7 @@ build:
     - script:
         name: "install"
         code: |
-          apk add \
+          apk add --no-cache --virtual .build-deps \
               build-base \
               make \
               perl \
@@ -76,6 +76,10 @@ build:
             --api-key="${LUAROCKS_TOKEN}" \
             "cosy-server-${tag}-${count}.rockspec"
           cd ..
+    - script:
+        name: "clean"
+        code: |
+          apk del .build-deps
   after-steps:
     - script:
         name: "export to coveralls"
