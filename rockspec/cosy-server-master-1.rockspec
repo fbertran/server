@@ -17,7 +17,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
-  "hashids",         -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
+  "hashids", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
   "jwt",
   "lapis",
   "layeredata",
@@ -25,7 +25,7 @@ dependencies = {
   "luasec",
   "luasocket",
   "lua-resty-http",
-  "lua-resty-qless",
+  "lua-resty-qless", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
 }
 
 local sources = {

@@ -101,13 +101,13 @@ local function perform (execution)
   }
   assert (started_status == 202, started_status)
   do
-    local result, status
     while true do
-      result, status = Http.json {
+      local result, status = Http.json {
         url     = service,
         method  = "GET",
         headers = headers,
       }
+      assert (status == 200, status)
       if status == 200 and result.state:lower () ~= "starting" then
         execution:get_service ():update {
           launched = true,
@@ -145,6 +145,7 @@ function Execution.perform (job)
     assert (lock:unlock (execution.path))
     error "execution failed"
   end
+  return true
 end
 
 return Execution

@@ -1,3 +1,12 @@
+local Json = require "cjson"
+Json.encode_empty_table = Json.encode_empty_table or function () end
+
+local oldprint = print
+_G.print = function (...)
+  oldprint (...)
+  io.stdout:flush ()
+end
+
 local Jwt          = require "jwt"
 local Time         = require "socket".gettime
 local Token        = require "cosy.server.token"

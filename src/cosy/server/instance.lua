@@ -2,7 +2,7 @@ local assert  = require "luassert"
 local Mime    = require "mime"
 local Et      = require "etlua"
 local Hashids = require "hashids"
-local Url     = require "socket.url"
+local Json    = require "cjson"
 local Http    = require "cosy.server.http"
 
 local url = "https://cloud.docker.com"
@@ -65,16 +65,13 @@ function Instance.create (config)
               branch = config.branch,
             }),
             tags  = { config.branch },
-            ports = {
-              "80:8080",
-            },
+            ports = { "8080" },
             links = {
               "postgres",
               "redis",
             },
             environment = {
               NPROC             = config.num_workers,
-              COSY_PREFIX       = "/usr/local",
               COSY_BRANCH       = config.branch,
               REDIS_PORT        = "tcp://redis:6379",
               POSTGRES_PORT     = "tcp://postgres:5432",
@@ -147,11 +144,22 @@ function Instance.find_endpoint (instance)
     }
     assert (service_status == 200)
     if service.name == "api" then
-      instance.server = Url.build {
-        scheme = "http",
-        host   = service.public_dns,
+      local container, container_status = Http.json {
+        url     = url .. service.containers [1],
+        method  = "GET",
+        headers = instance.headers,
       }
-      return instance.server
+      assert (container_status == 200)
+      for _, port in ipairs (container.container_ports) do
+        local endpoint = port.endpoint_uri
+        if endpoint and endpoint ~= Json.null then
+          if endpoint:sub (-1) == "/" then
+            endpoint = endpoint:sub (1, #endpoint-1)
+          end
+          instance.server = endpoint
+          return instance.server
+        end
+      end
     end
   end
 end

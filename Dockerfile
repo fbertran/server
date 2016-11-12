@@ -1,15 +1,22 @@
-FROM erikcw/lapis
+FROM cosyverif/docker-images:openresty
 MAINTAINER Alban Linard <alban@linard.fr>
 
-ADD . /src/cosy/server
-ADD mime.types /opt/openresty/nginx/conf/mime.types
-ADD nginx.conf /opt/openresty/nginx/conf/nginx.conf
-RUN luarocks install luasec OPENSSL_LIBDIR="/lib/x86_64-linux-gnu/"
-RUN luarocks install /src/cosy/server/rockspec/lua-resty-qless-develop-0.rockspec
-RUN luarocks install https://raw.githubusercontent.com/un-def/hashids.lua/master/hashids-1.0.2-1.rockspec
-RUN cd /src/cosy/server/ && \
-    luarocks make rockspec/cosy-server-master-1.rockspec && \
-    cd /
-RUN rm -rf /src/cosy/server
+ADD .           /src/cosy/server
+ADD mime.types  /mime.types
+ADD nginx.conf  /nginx.conf
+
+RUN     apk add --no-cache --virtual .build-deps \
+            build-base \
+            make \
+            perl \
+            openssl-dev \
+    &&  cd /src/cosy/server/ \
+    &&  luarocks install rockspec/lua-resty-qless-develop-0.rockspec \
+    &&  luarocks install rockspec/hashids-develop-0.rockspec \
+    &&  luarocks make    rockspec/cosy-server-master-1.rockspec \
+    &&  cd / \
+    &&  rm -rf /src/cosy/server \
+    &&  apk del .build-deps
+
 ENTRYPOINT ["cosy-server"]
 CMD [""]

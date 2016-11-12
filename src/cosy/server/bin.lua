@@ -2,7 +2,6 @@
 
 local Socket = require "socket"
 local Url    = require "socket.url"
-local Et     = require "etlua"
 local Setenv = require "posix.stdlib".setenv
 
 if not os.getenv "NPROC" then
@@ -37,11 +36,7 @@ for _, address in ipairs { "POSTGRES_PORT", "REDIS_PORT" } do
 end
 
 print "Applying database migrations..."
-assert (os.execute (Et.render ([[ "<%- prefix %>/bin/lapis" migrate ]], {
-  prefix = os.getenv "COSY_PREFIX",
-})))
+assert (os.execute [[ lapis migrate ]])
 
 print "Starting server..."
-assert (os.execute (Et.render ([[ "<%- prefix %>/bin/lapis" server ]], {
-  prefix = os.getenv "COSY_PREFIX",
-})))
+assert (os.execute [[ lapis server ]])

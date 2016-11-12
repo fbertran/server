@@ -9,6 +9,7 @@ local Clean    = require "cosy.server.jobs.clean"
 local Et       = require "etlua"
 local Mime     = require "mime"
 local Url      = require "socket.url"
+local Json     = require "cjson"
 
 local Editor = {}
 
@@ -26,11 +27,14 @@ function Editor.start (resource)
     }, { timestamp = false })
     local qless = Qless.new (Config.redis)
     local queue = qless.queues ["cosy"]
+    local t     = Url.parse ("http://" .. _G.ngx.var.host or "http://localhost:8080")
+    t.path      = resource.path
+    t.scheme    = "http"
     local jid   = queue:put ("cosy.server.jobs.editor", {
       path     = resource.path,
       resource = resource.id,
       service  = service.id,
-      url      = Config.url .. resource.path
+      url      = Url.build (t),
     })
     service:update {
       qless_job = jid,
@@ -91,7 +95,6 @@ local function perform (resource, job)
       container_ports = {
         { protocol   = "tcp",
           inner_port = 8080,
-          outer_port = 80,
           published  = true,
         },
       },
@@ -111,22 +114,33 @@ local function perform (resource, job)
   }
   assert (started_status == 202, started_status)
   do
-    local result, status
     while true do
-      result, status = Http.json {
+      local result, status = Http.json {
         url     = service,
         method  = "GET",
         headers = headers,
       }
+      assert (status == 200, status)
       if status == 200 and result.state:lower () ~= "starting" then
-        resource:get_service ():update {
-          editor_url = Url.build {
-            scheme = "http",
-            host   = result.public_dns,
-          },
-          launched = true,
+        local container, container_status = Http.json {
+          url     = url .. result.containers [1],
+          method  = "GET",
+          headers = headers,
         }
-        return
+        assert (container_status == 200, container_status)
+        for _, port in ipairs (container.container_ports) do
+          local endpoint = port.endpoint_uri
+          if endpoint and endpoint ~= Json.null then
+            if endpoint:sub (-1) == "/" then
+              endpoint = endpoint:sub (1, #endpoint-1)
+            end
+            resource:get_service ():update {
+              editor_url = endpoint,
+              launched   = true,
+            }
+            return
+          end
+        end
       else
         _G.ngx.sleep (1)
       end
@@ -159,6 +173,7 @@ function Editor.perform (job)
     assert (lock:unlock (resource.path))
     error "editor failed"
   end
+  return true
 end
 
 return Editor

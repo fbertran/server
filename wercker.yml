@@ -1,4 +1,6 @@
-box: cosyverif/lapis-forwercker
+box:
+  id: cosyverif/docker-images:openresty
+  cmd: /bin/bash
 services:
   - id: postgres
     env:
@@ -17,16 +19,21 @@ build:
     - script:
         name: "install"
         code: |
-          luarocks install luasec OPENSSL_LIBDIR="/usr/lib/x86_64-linux-gnu/"
+          apk add --no-cache --virtual .build-deps \
+              build-base \
+              make \
+              perl \
+              openssl-dev
           luarocks install rockspec/lua-resty-qless-develop-0.rockspec
-          luarocks install https://raw.githubusercontent.com/un-def/hashids.lua/master/hashids-1.0.2-1.rockspec
+          luarocks install rockspec/hashids-develop-0.rockspec
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
+          apk del .build-deps
     - script:
       name: "wait for services"
       code: |
-        while ! nc -q 1 $REDIS_PORT_6379_TCP_ADDR    $REDIS_PORT_6379_TCP_PORT    < /dev/null; do sleep 1; done
-        while ! nc -q 1 $POSTGRES_PORT_5432_TCP_ADDR $POSTGRES_PORT_5432_TCP_PORT < /dev/null; do sleep 1; done
+        while ! nc $REDIS_PORT_6379_TCP_ADDR    $REDIS_PORT_6379_TCP_PORT    < /dev/null; do sleep 1; done
+        while ! nc $POSTGRES_PORT_5432_TCP_ADDR $POSTGRES_PORT_5432_TCP_PORT < /dev/null; do sleep 1; done
     - script:
         name: "configure"
         code: |
@@ -34,7 +41,7 @@ build:
     - script:
         name: "check"
         code: |
-          luacheck src/
+          luacheck src/ || cat src/cosy/server/test.lua
     - script:
         name: "test routes"
         code: |

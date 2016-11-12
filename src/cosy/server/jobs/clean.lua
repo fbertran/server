@@ -10,9 +10,11 @@ local Clean = {}
 function Clean.create ()
   local qless = Qless.new (Config.redis)
   local queue = qless.queues ["cosy"]
-  queue:recur ("cosy.server.jobs.clean", {}, Config.clean.delay, {
-    jid = "cosy.server.jobs.clean",
-  })
+  if not qless.jobs:get "cosy.server.jobs.clean" then
+    queue:recur ("cosy.server.jobs.clean", {}, Config.clean.delay, {
+      jid = "cosy.server.jobs.clean",
+    })
+  end
 end
 
 function Clean.perform ()
@@ -23,7 +25,7 @@ function Clean.perform ()
   ]]):gsub ("%s+", " "))
   for _, service in ipairs (services or {}) do
     if service.docker_url then
-      local _, status = Http.json {
+      local result, status = Http.json {
         url     = service.docker_url,
         method  = "DELETE",
         headers = {
