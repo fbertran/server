@@ -19,7 +19,7 @@ build:
     - script:
         name: "install"
         code: |
-          apk add --no-cache --virtual .build-deps \
+          apk add \
               build-base \
               make \
               perl \
@@ -28,7 +28,6 @@ build:
           luarocks install rockspec/hashids-develop-0.rockspec
           luarocks make rockspec/cosy-server-env-master-1.rockspec
           luarocks make rockspec/cosy-server-master-1.rockspec
-          apk del .build-deps
     - script:
       name: "wait for services"
       code: |
