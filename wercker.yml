@@ -28,6 +28,7 @@ build:
           luarocks install rockspec/hashids-develop-0.rockspec
           luarocks make    rockspec/cosy-server-env-master-1.rockspec
           luarocks make    rockspec/cosy-server-master-1.rockspec
+          apk del .build-deps
     - script:
       name: "wait for services"
       code: |
@@ -61,38 +62,30 @@ build:
           if [ "${WERCKER_GIT_BRANCH}" = "master" ]; then
             tag=$(git describe --tags --abbrev=0 || echo "0.0")
             count=$(git rev-list --count HEAD ^"${tag}" || git rev-list --count HEAD)
-          else
-            tag="${WERCKER_GIT_BRANCH}"
-            count=$(git rev-list --count HEAD ^"${tag}" || git rev-list --count HEAD)
+            cd rockspec || exit 1
+            sed -e "s/master-1/${tag}-${count}/" \
+                -e "s/master/${tag}/" \
+              "cosy-server-master-1.rockspec" \
+              > "cosy-server-${tag}-${count}.rockspec"
+            luarocks upload \
+              --force \
+              --api-key="${LUAROCKS_TOKEN}" \
+              "cosy-server-${tag}-${count}.rockspec"
+            cd ..
           fi
-          cd rockspec || exit 1
-          sed -e "s/master-1/${tag}-${count}/" \
-              -e "s/master/${tag}/" \
-            "cosy-server-master-1.rockspec" \
-            > "cosy-server-${tag}-${count}.rockspec"
-          luarocks install luarocks
-          luarocks upload \
-            --force \
-            --api-key="${LUAROCKS_TOKEN}" \
-            "cosy-server-${tag}-${count}.rockspec"
-          cd ..
-    - script:
-        name: "clean"
-        code: |
-          apk del .build-deps
   after-steps:
-      - slack-notifier:
-          url: $SLACK_URL
-          channel: developers
-          username: CosyVerif
-          branch: ${WERCKER_GIT_BRANCH}
-      - script:
-          name: "export to coveralls"
-          code: |
-            branch=$(git rev-parse --abbrev-ref HEAD)
-            luacov-coveralls \
-              --repo-token "${COVERALLS_TOKEN}" \
-              --exclude share --exclude busted --exclude _spec \
-              --include cosy \
-              --root src/ \
-              --service-name "${branch}"
+    - slack-notifier:
+        url: $SLACK_URL
+        channel: developers
+        username: CosyVerif
+        branch: ${WERCKER_GIT_BRANCH}
+    - script:
+        name: "export to coveralls"
+        code: |
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          luacov-coveralls \
+            --repo-token "${COVERALLS_TOKEN}" \
+            --exclude share --exclude busted --exclude _spec \
+            --include cosy \
+            --root src/ \
+            --service-name "${branch}"
