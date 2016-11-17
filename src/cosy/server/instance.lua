@@ -89,13 +89,12 @@ function Instance.create (config)
     assert (stack_status == 201)
     -- Start service:
     instance.docker = url .. stack.resource_uri
-    local started, started_status = Http.json {
+    local _, started_status = Http.json {
       url        = instance.docker .. "start/",
       method     = "POST",
       headers    = instance.headers,
       timeout    = 5, -- seconds
     }
-    print (started_status, Json.encode (started))
     assert (started_status == 202, started_status)
     assert (instance:find_endpoint ())
     for _ = 1, 30 do
