@@ -3,7 +3,7 @@ local Test     = require "cosy.server.test"
 
 Test.environment.use ()
 
-describe ("#resty instance", function ()
+describe ("#resty #instance", function ()
 
   it ("should work", function ()
     local instance = Instance.create ()

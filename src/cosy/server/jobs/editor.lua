@@ -63,7 +63,7 @@ end
 local function perform (resource, job)
   local project  = resource:get_project ()
   local url     = "https://cloud.docker.com"
-  local api     = url .. "/api/app/v1"
+  local api     = url .. "/api/app/v1/cosyverif"
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
   }

@@ -6,7 +6,7 @@ local Json    = require "cjson"
 local Http    = require "cosy.server.http"
 
 local url = "https://cloud.docker.com"
-local api = url .. "/api/app/v1"
+local api = url .. "/api/app/v1/cosyverif"
 
 local Instance = {}
 Instance.__index = Instance
@@ -89,12 +89,13 @@ function Instance.create (config)
     assert (stack_status == 201)
     -- Start service:
     instance.docker = url .. stack.resource_uri
-    local _, started_status = Http.json {
+    local started, started_status = Http.json {
       url        = instance.docker .. "start/",
       method     = "POST",
       headers    = instance.headers,
       timeout    = 5, -- seconds
     }
+    print (started_status, Json.encode (started))
     assert (started_status == 202, started_status)
     assert (instance:find_endpoint ())
     for _ = 1, 30 do

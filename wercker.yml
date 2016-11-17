@@ -48,7 +48,7 @@ build:
     - script:
         name: "test server"
         code: |
-          busted --no-coverage --tags=resty --output=TAP src/
+          busted --no-coverage --tags=instance --output=TAP src/
     - script:
         name: "coverage"
         code: |
@@ -82,17 +82,17 @@ build:
           apk del .build-deps
   after-steps:
       - slack-notifier:
-        url: $SLACK_URL
-        channel: developers
-        username: CosyVerif
-        branch: ${WERCKER_GIT_BRANCH}
+          url: $SLACK_URL
+          channel: developers
+          username: CosyVerif
+          branch: ${WERCKER_GIT_BRANCH}
       - script:
-        name: "export to coveralls"
-        code: |
-          branch=$(git rev-parse --abbrev-ref HEAD)
-          luacov-coveralls \
-            --repo-token "${COVERALLS_TOKEN}" \
-            --exclude share --exclude busted --exclude _spec \
-            --include cosy \
-            --root src/ \
-            --service-name "${branch}"
+          name: "export to coveralls"
+          code: |
+            branch=$(git rev-parse --abbrev-ref HEAD)
+            luacov-coveralls \
+              --repo-token "${COVERALLS_TOKEN}" \
+              --exclude share --exclude busted --exclude _spec \
+              --include cosy \
+              --root src/ \
+              --service-name "${branch}"
