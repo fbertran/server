@@ -40,19 +40,19 @@ build:
     - script:
         name: "check"
         code: |
-          luacheck src/ || cat src/cosy/server/test.lua
+          luacheck src/
     - script:
         name: "test routes"
         code: |
-          busted --no-coverage --exclude-tags=resty src/
+          busted --no-coverage --exclude-tags=resty --output=TAP src/
     - script:
         name: "test server"
         code: |
-          busted --no-coverage --tags=resty src/
+          busted --no-coverage --tags=resty --output=TAP src/
     - script:
         name: "coverage"
         code: |
-          RUN_COVERAGE=true busted --exclude-tags=resty src/
+          RUN_COVERAGE=true busted --exclude-tags=resty --output=TAP src/
           luacov
           ./colorize.lua
     - script:
