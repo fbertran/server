@@ -91,7 +91,6 @@ local function perform (resource, job)
       autorestart     = "OFF",
       autodestroy     = "ALWAYS",
       autoredeploy    = false,
-      tags            = { Config.branch },
       container_ports = {
         { protocol   = "tcp",
           inner_port = 8080,

@@ -132,26 +132,4 @@ describe ("route /projects", function ()
 
   end)
 
-  describe ("forbids POST with a project authentication", function ()
-
-    for _, method in ipairs { "POST" } do
-      it ("answers to " .. method, function ()
-        local token  = Test.make_token (Test.identities.rahan)
-        local status, result = request (app, "/projects", {
-          method  = method,
-          headers = { Authorization = "Bearer " .. token},
-        })
-        assert.are.same (status, 201)
-        local project = result
-        token = Test.make_token (project.path)
-        status = request (app, "/projects", {
-          method  = method,
-          headers = { Authorization = "Bearer " .. token},
-        })
-        assert.are.same (status, 403)
-      end)
-    end
-
-  end)
-
 end)

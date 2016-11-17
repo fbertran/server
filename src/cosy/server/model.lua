@@ -18,8 +18,8 @@ result.users = Model:extend ("users", {
   timestamp   = true,
   relations   = {
     { "identity",
-      belongs_to = "identities",
-      key        = "id",
+      has_one = "identities",
+      key     = "id",
     },
     { "executions",
       has_many = "executions",
@@ -34,8 +34,8 @@ result.projects = Model:extend ("projects", {
   timestamp   = true,
   relations   = {
     { "identity",
-      belongs_to = "identities",
-      key        = "id",
+      has_one = "identities",
+      key     = "id",
     },
     { "permissions",
       has_many = "permissions",

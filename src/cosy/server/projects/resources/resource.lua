@@ -108,7 +108,7 @@ return function (app)
             method  = "DELETE",
             url     = Url.build {
               scheme = "http",
-              host   = "127.0.0.1",
+              host   = Config.host,
               port   = Config.port,
               path   = execution.path,
             },
@@ -124,7 +124,7 @@ return function (app)
           method  = "DELETE",
           url     = Url.build {
             scheme = "http",
-            host   = "127.0.0.1",
+            host   = Config.host,
             port   = Config.port,
             path   = self.resource.path .. "/editor",
           },

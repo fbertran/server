@@ -58,25 +58,22 @@ return function (app)
     end,
     POST    = Decorators.is_authentified
            .. function (self)
-      if self.identity.type ~= "user" then
-        return { status = 403 }
-      end
-      local identity = Model.identities:create {
-        identifier = nil,
-        type       = "project",
-      }
-      identity:update {
-        identifier = Et.render ("/projects/<%- project %>", {
-          project = Hashid.encode (identity.id),
-        }),
-      }
       local project = Model.projects:create {
-        id          = identity.id,
-        path        = identity.identifier,
-        name        = self.json.name,
-        description = self.json.description,
+        path                 = "FIXME",
+        name                 = self.json.name,
+        description          = self.json.description,
         permission_anonymous = "read",
         permission_user      = "read",
+      }
+      project:update {
+        path = Et.render ("/projects/<%- project %>", {
+          project = Hashid.encode (project.id),
+        }),
+      }
+      local identity = Model.identities:create {
+        id         = project.id,
+        identifier = project.path,
+        type       = "project",
       }
       Model.permissions:create {
         identity_id = identity.id,

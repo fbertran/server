@@ -25,7 +25,7 @@ function Clean.perform ()
   ]]):gsub ("%s+", " "))
   for _, service in ipairs (services or {}) do
     if service.docker_url then
-      local result, status = Http.json {
+      local _, status = Http.json {
         url     = service.docker_url,
         method  = "DELETE",
         headers = {

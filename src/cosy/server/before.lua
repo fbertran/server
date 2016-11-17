@@ -79,19 +79,22 @@ return function (app)
           return { status = 401 }
         end
       end
-      self.identity = Model.identities:create {
-        identifier = self.token_data.sub,
-        type       = "user",
-      }
       self.authentified = Model.users:create {
-        id       = self.identity.id,
-        path     = Et.render ("/users/<%- user %>", {
-          user = Hashid.encode (self.identity.id),
-        }),
+        path     = "FIXME",
         email    = info.email,
         name     = info.name,
         nickname = info.nickname,
         picture  = info.picture,
+      }
+      self.authentified:update {
+        path = Et.render ("/users/<%- user %>", {
+          user = Hashid.encode (self.authentified.id),
+        }),
+      }
+      self.identity = Model.identities:create {
+        identifier = self.token_data.sub,
+        id         = self.authentified.id,
+        type       = "user",
       }
     end
   end

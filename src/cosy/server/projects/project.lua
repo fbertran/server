@@ -98,7 +98,7 @@ return function (app)
             method  = "DELETE",
             url     = Url.build {
               scheme = "http",
-              host   = "127.0.0.1",
+              host   = Config.host,
               port   = Config.port,
               path   = resource.path,
             },
@@ -110,6 +110,7 @@ return function (app)
         end
       end)
       self.project:get_identity ():delete ()
+      self.project:delete ()
       return {
         status = 204,
       }

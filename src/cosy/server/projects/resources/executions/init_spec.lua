@@ -536,7 +536,7 @@ describe ("#resty route /projects/:project/resources/:resource/executions/", fun
                 image = "sylvainlasnier/echo",
               },
             })
-            assert.are.same (status, 401)
+            assert.are.same (status, 202)
           end)
         end
 

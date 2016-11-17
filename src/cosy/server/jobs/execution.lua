@@ -84,7 +84,6 @@ local function perform (execution)
       autorestart     = "OFF",
       autodestroy     = "ALWAYS",
       autoredeploy    = false,
-      tags            = { Config.branch },
     },
   }
   assert (service_status == 201, service_status)

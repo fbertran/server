@@ -72,6 +72,7 @@ return function (app)
         }
       end
       self.user:get_identity ():delete ()
+      self.user:delete ()
       return {
         status = 204,
       }

@@ -45,7 +45,6 @@ return function (app)
     end,
     POST    = Decorators.exists {}
            .. Decorators.can_write
-           .. Decorators.is_user
            .. function (self)
       -- check if image exists and is readable:
       local image, variant = self.json.image:match "([^:]+):?(.*)"

@@ -54,17 +54,14 @@ function Instance.create (config)
         services = {
           { name  = "postgres",
             image = "postgres",
-            tags  = { config.branch },
           },
           { name  = "redis",
             image = "redis:3.0.7",
-            tags  = { config.branch },
           },
           { name  = "api",
             image = Et.render ("cosyverif/server:<%- branch %>", {
               branch = config.branch,
             }),
-            tags  = { config.branch },
             ports = { "8080" },
             links = {
               "postgres",
