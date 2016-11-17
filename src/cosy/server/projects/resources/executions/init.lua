@@ -70,6 +70,7 @@ return function (app)
           image   = image,
           variant = variant == "" and "latest" or variant,
         }),
+        timeout = 10,
         method  = "GET",
         headers = {
           ["Authorization"] = "Bearer " .. docker_token,
