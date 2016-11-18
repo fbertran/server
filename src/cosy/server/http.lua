@@ -1,5 +1,5 @@
 local Ltn12 = require "ltn12"
-local Util  = require "lapis.util"
+local Json  = require "cjson"
 
 local M = {}
 
@@ -11,7 +11,7 @@ if _G.ngx then
     assert (type (options) == "table")
     options.ssl_verify = false
     options.method  = options.method or "GET"
-    options.body    = options.body   and Util.to_json (options.body)
+    options.body    = options.body   and Json.encode (options.body)
     options.headers = options.headers or {}
     options.headers ["Content-type"] = options.body and "application/json"
     options.headers ["Accept"      ] = "application/json"
@@ -19,7 +19,7 @@ if _G.ngx then
     client:set_timeout ((options.timeout or 5) * 1000) -- milliseconds
     local result = assert (client:request_uri (options.url, options))
     if result.body then
-      local ok, json = pcall (Util.from_json, result.body)
+      local ok, json = pcall (Json.decode, result.body)
       if ok then
         result.body = json
       end
@@ -37,7 +37,7 @@ else
     local result = {}
     options.sink    = Ltn12.sink.table (result)
     options.method  = options.method  or "GET"
-    options.body    = options.body    and Util.to_json (options.body)
+    options.body    = options.body    and Json.encode (options.body)
     options.source  = options.body    and Ltn12.source.string (options.body)
     options.headers = options.headers or {}
     options.headers ["Content-length"] = options.body and #options.body or 0
@@ -49,7 +49,7 @@ else
     local _, status, _, _ = http.request (options)
     result = table.concat (result)
     if result then
-      local ok, json = pcall (Util.from_json, result)
+      local ok, json = pcall (Json.decode, result)
       if ok then
         result = json
       end

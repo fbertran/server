@@ -17,6 +17,9 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
+  "argparse",
+  "ansicolors",
+  "etlua",
   "hashids", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
   "jwt",
   "lapis",
@@ -24,6 +27,7 @@ dependencies = {
   "luaposix",
   "luasec",
   "luasocket",
+  "lua-cjson-ol",
   "lua-resty-http",
   "lua-resty-qless", -- FIXME: remove rockspec, fix wercker.yml and Dockerfile
 }
@@ -36,7 +40,6 @@ local sources = {
   "src/cosy/server/hashid.lua",
   "src/cosy/server/http.lua",
   "src/cosy/server/init.lua",
-  "src/cosy/server/instance.lua",
   "src/cosy/server/jobs/clean.lua",
   "src/cosy/server/jobs/editor.lua",
   "src/cosy/server/jobs/execution.lua",

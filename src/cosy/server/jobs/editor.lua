@@ -8,7 +8,6 @@ local Lock     = require "cosy.server.lock"
 local Clean    = require "cosy.server.jobs.clean"
 local Et       = require "etlua"
 local Mime     = require "mime"
-local Url      = require "socket.url"
 local Json     = require "cjson"
 
 local Editor = {}
@@ -27,14 +26,10 @@ function Editor.start (resource)
     }, { timestamp = false })
     local qless = Qless.new (Config.redis)
     local queue = qless.queues ["cosy"]
-    local t     = Url.parse ("http://" .. _G.ngx.var.host or "http://localhost:8080")
-    t.path      = resource.path
-    t.scheme    = "http"
     local jid   = queue:put ("cosy.server.jobs.editor", {
       path     = resource.path,
       resource = resource.id,
       service  = service.id,
-      url      = Url.build (t),
     })
     service:update {
       qless_job = jid,
@@ -67,10 +62,40 @@ local function perform (resource, job)
   local headers = {
     ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
   }
+  -- Get API url:
+  local server_url
+  local api_url = os.getenv "DOCKERCLOUD_SERVICE_API_URL"
+  if api_url and api_url ~= "" then
+    local service_info, service_status = Http.json {
+      url     = api_url,
+      method  = "GET",
+      headers = headers,
+    }
+    assert (service_status == 200, service_status)
+    local container_info, container_status = Http.json {
+      url     = url .. service_info.containers [1],
+      method  = "GET",
+      headers = headers,
+    }
+    assert (container_status == 200, container_status)
+    for _, port in ipairs (container_info.container_ports) do
+      local endpoint = port.endpoint_uri
+      if endpoint and endpoint ~= Json.null then
+        if endpoint:sub (-1) == "/" then
+          endpoint = endpoint:sub (1, #endpoint-1)
+        end
+        server_url = endpoint
+        break
+      end
+    end
+  else
+    server_url = "http://localhost:8080"
+  end
+  assert (server_url, server_url)
   -- Create service:
   local data = {
     token    = Token (project.path, {}, math.huge),
-    resource = job.data.url,
+    resource = server_url .. job.data.path,
   }
   local arguments = {}
   for key, value in pairs (data) do

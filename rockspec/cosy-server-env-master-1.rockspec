@@ -1,7 +1,8 @@
 package = "cosy-server-env"
 version = "master-1"
 source  = {
-  url = "git+https://github.com/cosyverif/server.git"
+  url    = "git+https://github.com/cosyverif/server.git",
+  branch = "master",
 }
 
 description = {
@@ -16,18 +17,14 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
-  "argparse",
-  "ansicolors",
   "busted",
   "cluacov",
-  "copas",
   "etlua",
   "hashids",
   "lua-websockets",
   "luacheck",
   "luacov",
   "luacov-coveralls",
-  "luafilesystem",
 }
 
 build = {

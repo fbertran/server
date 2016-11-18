@@ -49,7 +49,7 @@ build:
     - script:
         name: "test server"
         code: |
-          busted --no-coverage --tags=instance --output=TAP src/
+          busted --no-coverage --tags=resty --output=TAP src/
     - script:
         name: "coverage"
         code: |
