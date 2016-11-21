@@ -8,7 +8,7 @@ if _G.ngx then
 
   Lock.scripts = {
     lock = {
-    	script = [[
+      script = [[
         local val = redis.call ('setnx', KEYS [1], ARGV [1])
         if val then
           redis.call ('expire', KEYS [1], ARGV [2])
@@ -20,7 +20,7 @@ if _G.ngx then
       hash   = nil,
     },
     unlock = {
-    	script = [[
+      script = [[
         local val = redis.call ('get', KEYS [1])
         if not val then
           return 0

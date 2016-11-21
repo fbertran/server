@@ -42,11 +42,10 @@ local common = {
     username = assert (os.getenv "DOCKER_USER"  ),
     api_key  = assert (os.getenv "DOCKER_SECRET"),
   },
-  editor      = {
-    timeout = 10 * 60, -- 10 minutes
-  },
   clean       = {
-    delay = 15,
+    delay = os.getenv "WERCKER_GIT_BRANCH"
+        and 1 -- 1 seconds
+         or 5 * 60, -- 5 minutes
   },
 }
 
