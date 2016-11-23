@@ -45,7 +45,7 @@ local common = {
 }
 
 Config ({ "test", "development", "production" }, common)
-Config ("development", {
+Config ({ "test", "development" }, {
   clean  = {
     delay = 1, -- second
   },
