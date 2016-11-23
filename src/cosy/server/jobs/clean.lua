@@ -50,7 +50,7 @@ function Clean.perform ()
         ["Authorization"] = "Basic " .. Mime.b64 (Config.docker.username .. ":" .. Config.docker.api_key),
       },
     }
-    if (status == 200 and info.state:lower () ~= "running")
+    if (status == 200 and info.state:lower () ~= "starting" and info.state:lower () ~= "running")
     or  status == 404 then
       Database.update ("resources", {
         service_id = Database.NULL,

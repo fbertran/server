@@ -99,6 +99,9 @@ local function perform (execution)
     timeout = 10, -- seconds
   }
   assert (started_status == 202, started_status)
+  execution:get_service ():update {
+    launched = true,
+  }
   do
     while true do
       local result, status = Http.json {
@@ -108,9 +111,6 @@ local function perform (execution)
       }
       assert (status == 200, status)
       if status == 200 and result.state:lower () ~= "starting" then
-        execution:get_service ():update {
-          launched = true,
-        }
         return
       else
         _G.ngx.sleep (1)

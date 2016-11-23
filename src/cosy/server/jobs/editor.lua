@@ -138,6 +138,9 @@ local function perform (resource, job)
     timeout = 10, -- seconds
   }
   assert (started_status == 202, started_status)
+  resource:get_service ():update {
+    launched = true,
+  }
   do
     while true do
       local result, status = Http.json {
@@ -161,7 +164,6 @@ local function perform (resource, job)
             end
             resource:get_service ():update {
               editor_url = endpoint,
-              launched   = true,
             }
             return
           end
