@@ -96,6 +96,7 @@ local function perform (resource, job)
   local data = {
     token    = Token (project.path, {}, math.huge),
     resource = server_url .. job.data.path,
+    timeout  = Config.editor.timeout,
   }
   local arguments = {}
   for key, value in pairs (data) do

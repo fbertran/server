@@ -4,6 +4,8 @@ local Socket = require "socket"
 local Url    = require "socket.url"
 local Setenv = require "posix.stdlib".setenv
 
+local mode = assert (os.getenv "COSY_MODE")
+
 -- FIXME:  nginx resolver does not seem to work within docker-compose or
 -- docker-cloud, so we convert all service hostnames to ips before
 -- launching the server.
@@ -28,7 +30,7 @@ for _, address in ipairs { "POSTGRES_PORT", "REDIS_PORT" } do
 end
 
 print "Applying database migrations..."
-assert (os.execute [[ lapis migrate ]])
+assert (os.execute ([[ lapis migrate ]] .. mode))
 
 print "Starting server..."
-assert (os.execute [[ lapis server ]])
+assert (os.execute ([[ lapis server ]] .. mode))

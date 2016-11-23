@@ -42,11 +42,22 @@ local common = {
     username = assert (os.getenv "DOCKER_USER"  ),
     api_key  = assert (os.getenv "DOCKER_SECRET"),
   },
-  clean       = {
-    delay = os.getenv "WERCKER_GIT_BRANCH"
-        and 1 -- 1 seconds
-         or 5 * 60, -- 5 minutes
-  },
 }
 
 Config ({ "test", "development", "production" }, common)
+Config ("development", {
+  clean  = {
+    delay = 1, -- second
+  },
+  editor = {
+    timeout = 1, -- second
+  },
+})
+Config ("production", {
+  clean  = {
+    delay = 300, -- second
+  },
+  editor = {
+    timeout = 300, -- second
+  },
+})
