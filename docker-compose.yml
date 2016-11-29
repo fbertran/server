@@ -15,6 +15,7 @@ services:
       driver: "json-file"
     environment:
       NPROC: 2
+      COSY_MODE: development
       COSY_BRANCH: ${COSY_BRANCH}
       REDIS_PORT: "tcp://redis:6379"
       POSTGRES_PORT: "tcp://postgres:5432"
