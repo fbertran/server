@@ -630,11 +630,11 @@ describe ("route /projects/:project/resources/:resource", function ()
           method  = method,
           headers = { Authorization = "Bearer " .. project_token},
           json    = {
-            editor  = project_token,
-            patches = { [[ return function () end ]] },
+            editor = project_token,
+            data   = [[ return function () end ]],
           }
         })
-        assert.are.same (status, 400)
+        assert.are.same (status, 204)
       end)
     end
 

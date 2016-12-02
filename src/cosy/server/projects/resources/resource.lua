@@ -64,12 +64,7 @@ return function (app)
               }
            .. Decorators.can_write
            .. function (self)
-      if self.json.patches or self.json.data then
-        if not self.json.data
-        or not self.json.editor
-        or type (self.json.patches) ~= "table" then
-          return { status = 400 }
-        end
+      if self.json.editor then
         local jwt = Jwt.decode (self.json.editor, {
           keys = {
             public = Config.auth0.client_secret
@@ -78,8 +73,19 @@ return function (app)
         if not jwt or jwt.sub ~= self.project.path then
           return { status = 403 }
         end
-        local lock = Lock:new (Config.redis)
-        assert (lock:lock (self.resource.path))
+      end
+      if self.json.patches and type (self.json.patches) ~= "table" then
+        return { status = 400 }
+      end
+      if self.json.data and type (self.json.data) ~= "string" then
+        return { status = 400 }
+      end
+      if (self.json.patches or self.json.data) and not self.json.editor then
+        return { status = 400 }
+      end
+      local lock = Lock:new (Config.redis)
+      assert (lock:lock (self.resource.path))
+      if self.json.patches then
         for _, patch in ipairs (self.json.patches) do
           Model.histories:create {
             data        = patch,
@@ -87,15 +93,17 @@ return function (app)
             resource_id = self.resource.id,
           }
         end
+      end
+      if self.json.data then
         self.resource:update {
           data = self.json.data,
         }
-        assert (lock:unlock (self.resource.path))
       end
       self.resource:update {
         name        = self.json.name,
         description = self.json.description,
       }
+      assert (lock:unlock (self.resource.path))
       return { status = 204 }
     end,
     DELETE  = Decorators.exists {}
