@@ -529,7 +529,7 @@ describe ("#resty route /projects/:project/resources/:resource/executions/", fun
 
         for _, method in ipairs { "POST" } do
           it ("answers to " .. method, function ()
-            local status = request (app, route, {
+            local status, result = request (app, route, {
               method  = method,
               headers = { Authorization = "Bearer " .. project_token},
               json    = {
@@ -537,6 +537,7 @@ describe ("#resty route /projects/:project/resources/:resource/executions/", fun
               },
             })
             assert.are.same (status, 202)
+            execution = result.path
           end)
         end
 
