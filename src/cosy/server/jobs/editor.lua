@@ -9,6 +9,7 @@ local Clean    = require "cosy.server.jobs.clean"
 local Et       = require "etlua"
 local Mime     = require "mime"
 local Json     = require "cjson"
+local gettime  = require "socket".gettime
 
 local Editor = {}
 
@@ -141,38 +142,41 @@ local function perform (resource, job)
   resource:get_service ():update {
     launched = true,
   }
-  do
-    while true do
-      local result, status = Http.json {
-        url     = service,
+  local start = gettime ()
+  while gettime () - start <= 120 do
+    job:heartbeat()
+    local result, status = Http.json {
+      url     = service,
+      method  = "GET",
+      headers = headers,
+    }
+    assert (status == 200, status)
+    if status == 200 and result.state:lower () ~= "starting" then
+      local container, container_status = Http.json {
+        url     = url .. result.containers [1],
         method  = "GET",
         headers = headers,
       }
-      assert (status == 200, status)
-      if status == 200 and result.state:lower () ~= "starting" then
-        local container, container_status = Http.json {
-          url     = url .. result.containers [1],
-          method  = "GET",
-          headers = headers,
-        }
-        assert (container_status == 200, container_status)
-        for _, port in ipairs (container.container_ports) do
-          local endpoint = port.endpoint_uri
-          if endpoint and endpoint ~= Json.null then
-            if endpoint:sub (-1) == "/" then
-              endpoint = endpoint:sub (1, #endpoint-1)
-            end
-            resource:get_service ():update {
-              editor_url = endpoint,
-            }
-            return
+      assert (container_status == 200, container_status)
+      for _, port in ipairs (container.container_ports) do
+        local endpoint = port.endpoint_uri
+        if endpoint and endpoint ~= Json.null then
+          if endpoint:sub (-1) == "/" then
+            endpoint = endpoint:sub (1, #endpoint-1)
           end
+          resource:get_service ():update {
+            editor_url = endpoint,
+          }
+          return
         end
-      else
-        _G.ngx.sleep (1)
       end
+    else
+      _G.ngx.sleep (1)
     end
   end
+  resource:update ({
+    service_id = Database.NULL,
+  }, { timestamp = false })
 end
 
 function Editor.perform (job)

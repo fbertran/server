@@ -8,6 +8,7 @@ local Lock     = require "cosy.server.lock"
 local Clean    = require "cosy.server.jobs.clean"
 local Et       = require "etlua"
 local Mime     = require "mime"
+local gettime  = require "socket".gettime
 
 local Execution = {}
 
@@ -54,7 +55,7 @@ function Execution.stop (execution)
   assert (lock:unlock (execution.path))
 end
 
-local function perform (execution)
+local function perform (execution, job)
   local resource = execution:get_resource ()
   local project  = resource:get_project ()
   local url      = "https://cloud.docker.com"
@@ -102,21 +103,24 @@ local function perform (execution)
   execution:get_service ():update {
     launched = true,
   }
-  do
-    while true do
-      local result, status = Http.json {
-        url     = service,
-        method  = "GET",
-        headers = headers,
-      }
-      assert (status == 200, status)
-      if status == 200 and result.state:lower () ~= "starting" then
-        return
-      else
-        _G.ngx.sleep (1)
-      end
+  local start = gettime ()
+  while gettime () - start <= 120 do
+    job:heartbeat()
+    local result, status = Http.json {
+      url     = service,
+      method  = "GET",
+      headers = headers,
+    }
+    assert (status == 200, status)
+    if status == 200 and result.state:lower () ~= "starting" then
+      return
+    else
+      _G.ngx.sleep (1)
     end
   end
+  resource:update ({
+    service_id = Database.NULL,
+  }, { timestamp = false })
 end
 
 function Execution.perform (job)
@@ -129,7 +133,7 @@ function Execution.perform (job)
       id = job.data.execution,
     })
     assert (execution.service_id == service.id)
-    perform (execution)
+    perform (execution, job)
   end, function (err)
     print (err, debug.traceback ())
   end) and execution then
