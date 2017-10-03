@@ -1,0 +1,74 @@
+box:
+  id: cosyverif/docker-images:openresty
+  cmd: /bin/bash
+services:
+  - id: postgres
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD:
+      POSTGRES_DATABASE: postgres
+  - id: redis:3.0.7 # because of bug in qless
+build:
+  steps:
+    - script:
+        name: "fix environment"
+        code: |
+          export POSTGRES_USER="${POSTGRES_ENV_POSTGRES_USER}"
+          export POSTGRES_PASSWORD="${POSTGRES_ENV_POSTGRES_PASSWORD}"
+          export POSTGRES_DATABASE="${POSTGRES_ENV_POSTGRES_DATABASE}"
+    - script:
+        name: "install"
+        code: |
+          apk add --no-cache --virtual .build-deps \
+              build-base \
+              make \
+              perl \
+              openssl-dev
+          luarocks install rockspec/lua-resty-qless-develop-0.rockspec
+          luarocks install rockspec/hashids-develop-0.rockspec
+          luarocks make    rockspec/cosy-server-env-master-1.rockspec
+          luarocks make    rockspec/cosy-server-master-1.rockspec
+          apk del .build-deps
+    - script:
+      name: "wait for services"
+      code: |
+        while ! nc $REDIS_PORT_6379_TCP_ADDR    $REDIS_PORT_6379_TCP_PORT    < /dev/null; do sleep 1; done
+        while ! nc $POSTGRES_PORT_5432_TCP_ADDR $POSTGRES_PORT_5432_TCP_PORT < /dev/null; do sleep 1; done
+    - script:
+        name: "configure"
+        code: |
+          lapis migrate test
+    - script:
+        name: "check"
+        code: |
+          luacheck src/
+    - script:
+        name: "test routes"
+        code: |
+          busted --no-coverage --exclude-tags=resty --output=TAP src/
+    - script:
+        name: "test server"
+        code: |
+          busted --no-coverage --tags=resty --output=TAP src/
+    - script:
+        name: "coverage"
+        code: |
+          RUN_COVERAGE=true busted --exclude-tags=resty --output=TAP src/
+          luacov
+          ./colorize.lua
+  after-steps:
+    - slack-notifier:
+        url: $SLACK_URL
+        channel: notifications
+        username: CosyVerif
+        branch: ${WERCKER_GIT_BRANCH}
+    - script:
+        name: "export to coveralls"
+        code: |
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          luacov-coveralls \
+            --repo-token "${COVERALLS_TOKEN}" \
+            --exclude share --exclude busted --exclude _spec \
+            --include cosy \
+            --root src/ \
+            --service-name "${branch}"
